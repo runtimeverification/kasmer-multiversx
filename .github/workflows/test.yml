@@ -1,0 +1,37 @@
+name: 'Test'
+on:
+  pull_request:
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-pr:
+    name: 'Build and Test kewasm'
+    runs-on: [self-hosted, linux, normal]
+    steps:
+      - name: 'Check out code'
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.JENKINS_GITHUB_PAT }}
+          submodules: recursive
+      - name: 'Set up Docker'
+        uses: ./.github/actions/with-docker
+        with:
+          container-name: elrond-wasm-ci-${{ github.sha }}
+      - name: 'Install dependencies'
+        run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} poetry -C kewasm install
+      - name: 'Check code quality'
+        run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} make -C kewasm check
+      - name: 'Run unit tests'
+        run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} make -C kewasm test-unit
+      - name: 'Build LLVM semantics'
+        run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} make -C kewasm kbuild-llvm
+      - name: 'Build Haskell semantics'
+        run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} make -C kewasm kbuild-haskell
+      - name: 'Run integration tests'
+        run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} make -C kewasm test-integration
+      - name: 'Tear down Docker'
+        if: always()
+        run: docker stop --time 0 elrond-wasm-ci-${GITHUB_SHA}
