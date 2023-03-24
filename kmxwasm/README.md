@@ -1,4 +1,4 @@
-# kewasm
+# kmxwasm
 
 
 ## Installation

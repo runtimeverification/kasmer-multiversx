@@ -1,5 +1,5 @@
 {
-  description = "kewasm - Symbolic execution for the Elrond blockchain with the Wasm semantics, using pyk.";
+  description = "kmxwasm - Symbolic execution for the Elrond blockchain with the Wasm semantics, using pyk.";
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-22.05";
     flake-utils.url = "github:numtide/flake-utils";
@@ -10,7 +10,7 @@
       allOverlays = [
         poetry2nix.overlay
         (final: prev: {
-          kewasm = prev.poetry2nix.mkPoetryApplication {
+          kmxwasm = prev.poetry2nix.mkPoetryApplication {
             python = prev.python39;
             projectDir = ./.;
             groups = [];
@@ -32,8 +32,8 @@
         };
       in {
         packages = rec {
-          inherit (pkgs) kewasm;
-          default = kewasm;
+          inherit (pkgs) kmxwasm;
+          default = kmxwasm;
         };
       }) // {
         overlay = nixpkgs.lib.composeManyExtensions allOverlays;

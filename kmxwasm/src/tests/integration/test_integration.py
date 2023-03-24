@@ -1,4 +1,4 @@
-from kewasm.hello import hello
+from kmxwasm.hello import hello
 
 
 def test_hello() -> None:

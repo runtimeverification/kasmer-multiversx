@@ -8,7 +8,7 @@ concurrency:
 
 jobs:
   test-pr:
-    name: 'Build and Test kewasm'
+    name: 'Build and Test kmxwasm'
     runs-on: [self-hosted, linux, normal]
     steps:
       - name: 'Check out code'
@@ -21,17 +21,17 @@ jobs:
         with:
           container-name: elrond-wasm-ci-${{ github.sha }}
       - name: 'Install dependencies'
-        run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} poetry -C kewasm install
+        run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} poetry -C kmxwasm install
       - name: 'Check code quality'
-        run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} make -C kewasm check
+        run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} make -C kmxwasm check
       - name: 'Run unit tests'
-        run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} make -C kewasm test-unit
+        run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-unit
       - name: 'Build LLVM semantics'
-        run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} make -C kewasm kbuild-llvm
+        run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} make -C kmxwasm kbuild-llvm
       - name: 'Build Haskell semantics'
-        run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} make -C kewasm kbuild-haskell
+        run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} make -C kmxwasm kbuild-haskell
       - name: 'Run integration tests'
-        run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} make -C kewasm test-integration
+        run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-integration
       - name: 'Tear down Docker'
         if: always()
         run: docker stop --time 0 elrond-wasm-ci-${GITHUB_SHA}

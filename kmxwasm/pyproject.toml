@@ -3,7 +3,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "kewasm"
+name = "kmxwasm"
 version = "0.1.0"
 description = "Symbolic execution for the Elrond blockchain with the Wasm semantics, using pyk."
 authors = [
