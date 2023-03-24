@@ -1,0 +1,3 @@
+[submodule "kmxwasm/k-src/wasm-semantics"]
+	path = kmxwasm/k-src/wasm-semantics
+	url = https://github.com/runtimeverification/wasm-semantics
