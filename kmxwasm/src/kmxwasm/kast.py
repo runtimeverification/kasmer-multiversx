@@ -92,7 +92,7 @@ def filter_map(term:KInner, filter:Callable[[KApply], bool]) -> KApply:
             return []
         raise AssertionError([term_, term_.label.name])
 
-    children = kinner_top_down_fold(find_items, operator.add, [], term)
+    children: List[KApply] = kinner_top_down_fold(find_items, operator.add, [], term)
     result:Optional[KApply] = None
     for c in children:
         if result is None:

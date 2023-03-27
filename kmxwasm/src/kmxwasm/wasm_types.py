@@ -1,6 +1,7 @@
 from typing import List
 
 class ValType:
+
     def __init__(self, ktype:int) -> None:
         self.__type = ktype
 
@@ -8,18 +9,17 @@ class ValType:
         return repr(self)
     
     def __repr__(self) -> str:
-        if self == ValType.I32:
-            return 'ValType.I32'
-        if self == ValType.I64:
-            return 'ValType.I64'
-        if self == ValType.F32:
-            return 'ValType.F32'
-        if self == ValType.F64:
-            return 'ValType.F64'
+        if self == I32:
+            return 'wasm_types.I32'
+        if self == I64:
+            return 'wasm_types.I64'
+        if self == F32:
+            return 'wasm_types.F32'
+        if self == F64:
+            return 'wasm_types.F64'
         raise AssertionError(self)
 
-class ValType:
-    (I32, I64, F32, F64) = (ValType(i) for i in range(0, 4))
+(I32, I64, F32, F64) = (ValType(i) for i in range(0, 4))
 
 class VecType:
     def __init__(self, types:List[ValType]) -> None:

@@ -10,7 +10,7 @@ import json
 from socket import AF_INET, SO_REUSEADDR, SOCK_STREAM, SOL_SOCKET, socket
 import tempfile
 from pathlib import Path
-from typing import Any, Iterable, List, Mapping, Optional, Set, Tuple
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Set, Tuple
 
 from pyk.cterm import CTerm
 from pyk.kast.inner import (
@@ -34,6 +34,7 @@ from pyk.kast.outer import (
     KProduction,
     KRequire,
     KRule,
+    KSentence,
     KTerminal,
     )
 from pyk.kcfg import KCFG, KCFGExplore
@@ -62,6 +63,7 @@ from .kast import ( extract_rewrite_parents,
                     replace_term,
                    )
 from .wasm_types import (ValType)
+from . import wasm_types
 
 sys.setrecursionlimit(4000)
 
@@ -109,10 +111,10 @@ class MyKPrint(KPrint):
         symbol_table['.TabInstCellMap'] = lambda: '.Bag'
 
 class RuleCreator:
-    def __init__(self, definition):
-        self.__macros = {}
-        self.__macro_rules = []
-        self.__rules = []
+    def __init__(self, definition:KDefinition) -> None:
+        self.__macros:Dict[str, Tuple[str, KInner]] = {}
+        self.__macro_rules:List[KSentence] = []
+        self.__rules:List[KRule] = []
         self.__definition = definition
 
     def add_rule(self, lhs_id: str, rhs_id:str, kcfg:KCFG) -> None:
@@ -162,10 +164,10 @@ class RuleCreator:
             KRule(body=KRewrite(KApply(name), term))
         )
 
-    def macro_rules(self):
+    def macro_rules(self) -> List[KSentence]:
         return self.__macro_rules
 
-    def summarize_rules(self):
+    def summarize_rules(self) -> List[KRule]:
         return self.__rules
 
 class LazyExplorer:
@@ -414,23 +416,23 @@ def make_a_call(address: str) -> KApply:
 def k_type_to_val_type(ktype:KInner) -> ValType:
     assert isinstance(ktype, KApply), ktype
     if ktype.label.name == 'i32':
-        return ValType.I32
+        return wasm_types.I32
     if ktype.label.name == 'i64':
-        return ValType.I64
+        return wasm_types.I64
     if ktype.label.name == 'f32':
-        return ValType.F32
+        return wasm_types.F32
     if ktype.label.name == 'f64':
-        return ValType.F64
+        return wasm_types.F64
     raise AssertionError(ktype)
 
 def make_type(vtype:ValType) -> KApply:
-    if vtype == ValType.I32:
+    if vtype == wasm_types.I32:
         return KApply('i32')
-    if vtype == ValType.I64:
+    if vtype == wasm_types.I64:
         return KApply('i64')
-    if vtype == ValType.F32:
+    if vtype == wasm_types.F32:
         return KApply('f32')
-    if vtype == ValType.F64:
+    if vtype == wasm_types.F64:
         return KApply('f64')
     raise AssertionError(vtype)
 
@@ -438,9 +440,9 @@ def make_statement_list(statements:List[KInner]) -> KSequence:
     return KSequence(statements)
 
 def make_sort(t:ValType) -> KSort:
-    if t == ValType.I32 or t == ValType.I64:
+    if t == wasm_types.I32 or t == wasm_types.I64:
         return KSort('Int')
-    if t == ValType.F32 or t == ValType.F64:
+    if t == wasm_types.F32 or t == wasm_types.F64:
         return KSort('Float')
     raise AssertionError(t)
 
@@ -454,9 +456,9 @@ def make_variables(types: List[ValType]) -> List[KVariable]:
     return retv
 
 def make_type_constraint(var:KInner, v_type:ValType) -> KInner:
-    if v_type == ValType.I32:
+    if v_type == wasm_types.I32:
         return andBool([leInt(intToken(0), var), ltInt(var, intToken(2 ** 32))])
-    if v_type == ValType.I64:
+    if v_type == wasm_types.I64:
         return andBool([leInt(intToken(0), var), ltInt(var, intToken(2 ** 64))])
     raise AssertionError(v_type)
 
@@ -818,9 +820,9 @@ def find_identifiers(term:KInner) -> Identifiers:
 class VariablesForGlobals:
     def __init__(self) -> None:
         self.__next_index = 0
-        self.__constraints = []
+        self.__constraints: List[KInner] = []
 
-    def replace_globals(self, term:KInner):
+    def replace_globals(self, term:KInner) -> KInner:
         if not isinstance(term, KApply):
             return term
         if term.label.name != '<globalInst>':
@@ -842,6 +844,7 @@ class VariablesForGlobals:
         assert gvalue.arity == 1, gvalue
 
         typed_value = gvalue.args[0]
+        assert isinstance(typed_value, KApply)
         val_type = k_type_to_val_type(typed_value.args[0])
 
         assert isinstance(typed_value, KApply), typed_value
@@ -862,7 +865,7 @@ class VariablesForGlobals:
 
         return term
 
-    def constraints(self):
+    def constraints(self) -> List[KInner]:
         return self.__constraints
 
 def replace_globals_with_variables(term:KInner) -> Tuple[KInner, List[KInner]]:
@@ -920,8 +923,8 @@ def run_for_input(input_file:Path, short_name:str) -> None:
 
 def main() -> None:
     samples = ROOT / 'kmxwasm' / 'samples'
-    run_for_input(samples / 'multisig-full.wat', 'multisig-full')
-    #run_for_input(samples / 'sum-to-n.wat', 'sum-to-n')
+    #run_for_input(samples / 'multisig-full.wat', 'multisig-full')
+    run_for_input(samples / 'sum-to-n.wat', 'sum-to-n')
     return
 
 """

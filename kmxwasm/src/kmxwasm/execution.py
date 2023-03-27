@@ -101,7 +101,7 @@ class ExecutionManager:
     def finish_function(self, function_addr:int) -> None:
         self.__already_summarized.add(function_addr)
 
-    def __handle_trap(self, instrs:KSequence):
+    def __handle_trap(self, instrs:KSequence) -> Decision:
         assert instrs.arity > 1
         second = instrs.items[1]
         if isinstance(second, KApply):

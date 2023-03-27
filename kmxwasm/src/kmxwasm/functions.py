@@ -19,6 +19,7 @@ from .kast import (filter_map,
                    load_token_from_child,
                    )
 from .wasm_types import (FuncType, ValType, VecType)
+from . import wasm_types
 
 class WasmFunction:
     def __init__(self, name:str, ftype:FuncType, is_builtin:bool, has_instructions:bool, address:str) -> None:
@@ -94,16 +95,16 @@ def load_val_type(term:KInner) -> ValType:
     assert isinstance(term, KApply), term
     if term.label.name == 'i32':
         assert term.arity == 0, term
-        return ValType.I32
+        return wasm_types.I32
     if term.label.name == 'i64':
         assert term.arity == 0, term
-        return ValType.I64
+        return wasm_types.I64
     if term.label.name == 'f32':
         assert term.arity == 0, term
-        return ValType.F32
+        return wasm_types.F32
     if term.label.name == 'f64':
         assert term.arity == 0, term
-        return ValType.F64
+        return wasm_types.F64
     raise AssertionError(term)
 
 def load_vec_type(term:KInner) -> VecType:
@@ -243,7 +244,9 @@ def remove_all_functions_but_one_and_builtins(term:KInner, function_addr:str, fu
         child = term.args[0]
         assert isinstance(child, KApply)
         my_funcs = find_func_items(child)
-        return term.let(args=(join_tree('_FuncDefCellMap_', my_funcs),))
+        tree = join_tree('_FuncDefCellMap_', my_funcs)
+        assert tree is not None
+        return term.let(args=(tree,))
         # KApply(
         #     '_FuncDefCellMap_',
         #     myfunc,
