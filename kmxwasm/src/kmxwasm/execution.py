@@ -1,46 +1,47 @@
 from dataclasses import dataclass
 from typing import Set
 
-from pyk.kast.inner import (
-    KInner,
-    KApply,
-    KToken,
-    KSequence,
-    KVariable,
-    )
+from pyk.kast.inner import KApply, KInner, KSequence, KToken, KVariable
 from pyk.kcfg import KCFG
 from pyk.prelude.k import K
 
 from .functions import Functions
-from .kast import (get_inner_path,
-                   )
+from .kast import get_inner_path
+
 
 class Decision:
     pass
 
+
 class Continue(Decision):
     pass
+
 
 class Finish(Decision):
     pass
 
+
 class Loop(Decision):
     pass
+
 
 @dataclass(frozen=True)
 class UnimplementedElrondFunction(Decision):
     function_id: int
     function_name: str
 
+
 @dataclass(frozen=True)
 class UnsummarizedFunction(Decision):
     function_id: int
     function_name: str
 
+
 @dataclass(frozen=True)
 class ClaimNotAppliedForSummarizedFunction(Decision):
     function_id: int
     function_name: str
+
 
 IMPLEMENTED_ELROND_FUNCTIONS = {
     '$bigIntAdd',
@@ -63,13 +64,14 @@ IMPLEMENTED_ELROND_FUNCTIONS = {
     '$signalError',
 }
 
+
 class ExecutionManager:
-    def __init__(self, functions:Functions) -> None:
-        self.__already_summarized:Set[int] = set()
+    def __init__(self, functions: Functions) -> None:
+        self.__already_summarized: Set[int] = set()
         self.__functions = functions
         self.__executing_addr = -1
 
-    def decide_configuration(self, kcfg:KCFG, node_id:str) -> Decision:
+    def decide_configuration(self, kcfg: KCFG, node_id: str) -> Decision:
         node = kcfg.node(node_id)
         instrs = get_instrs_child(node.cterm.config)
 
@@ -91,16 +93,16 @@ class ExecutionManager:
         if first.label.name == 'elrondReverted':
             return Finish()
         if first.label.name == 'aLoop':
-                return Loop()
+            return Loop()
         return Continue()
-    
-    def start_function(self, function_addr:int) -> None:
+
+    def start_function(self, function_addr: int) -> None:
         self.__executing_addr = function_addr
 
-    def finish_function(self, function_addr:int) -> None:
+    def finish_function(self, function_addr: int) -> None:
         self.__already_summarized.add(function_addr)
 
-    def __handle_trap(self, instrs:KSequence) -> Decision:
+    def __handle_trap(self, instrs: KSequence) -> Decision:
         assert instrs.arity > 1
         second = instrs.items[1]
         if isinstance(second, KApply):
@@ -110,7 +112,7 @@ class ExecutionManager:
         assert second.sort == K, second
         return Finish()
 
-    def __handle_invoke(self, invoke:KApply) -> Decision:
+    def __handle_invoke(self, invoke: KApply) -> Decision:
         assert invoke.label.name == '(invoke_)_WASM_Instr_Int'
         assert invoke.arity == 1
         value = invoke.args[0]
@@ -124,7 +126,7 @@ class ExecutionManager:
         assert id in self.__already_summarized
         return ClaimNotAppliedForSummarizedFunction(id, self.__function_name(id))
 
-    def __handle_call(self, call:KApply) -> Decision:
+    def __handle_call(self, call: KApply) -> Decision:
         assert call.label.name == 'aCall'
         assert call.arity == 1
         value = call.args[0]
@@ -138,21 +140,22 @@ class ExecutionManager:
             return Continue()
         return UnsummarizedFunction(id, self.__function_name(id))
 
-    def __function_name(self, id:int) -> str:
+    def __function_name(self, id: int) -> str:
         return self.__functions.addr_to_function(str(id)).name()
 
-    def __is_elrond_function(self, id:int) -> bool:
+    def __is_elrond_function(self, id: int) -> bool:
         return self.__functions.addr_to_function(str(id)).is_builtin()
 
-def get_instrs_child(term:KInner) -> KInner:
+
+def get_instrs_child(term: KInner) -> KInner:
     instrs = get_inner_path(term, [(0, '<elrond-wasm>'), (1, '<wasm>'), (0, '<instrs>')])
     assert isinstance(instrs, KApply)
     assert instrs.arity == 1, instrs
     return instrs.args[0]
 
-def get_first_instruction(instrs:KSequence) -> KApply:
+
+def get_first_instruction(instrs: KSequence) -> KApply:
     assert instrs.items
     first = instrs.items[0]
     assert isinstance(first, KApply), first
     return first
-

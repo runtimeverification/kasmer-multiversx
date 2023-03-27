@@ -1,28 +1,26 @@
 import operator
 from typing import Dict, Iterable, List, Optional
 
-from pyk.kast.inner import (
-    KApply,
-    KInner,
-    KToken,
-    bottom_up)
+from pyk.kast.inner import KApply, KInner, KToken, bottom_up
 from pyk.prelude.kint import INT
 
-from .kast import (filter_map,
-                   find_term_get_child,
-                   get_inner,
-                   get_inner_path,
-                   join_tree,
-                   kinner_top_down_fold,
-                   load_map_from_child,
-                   load_token,
-                   load_token_from_child,
-                   )
-from .wasm_types import (FuncType, ValType, VecType)
 from . import wasm_types
+from .kast import (
+    filter_map,
+    find_term_get_child,
+    get_inner,
+    get_inner_path,
+    join_tree,
+    kinner_top_down_fold,
+    load_map_from_child,
+    load_token,
+    load_token_from_child,
+)
+from .wasm_types import FuncType, ValType, VecType
+
 
 class WasmFunction:
-    def __init__(self, name:str, ftype:FuncType, is_builtin:bool, has_instructions:bool, address:str) -> None:
+    def __init__(self, name: str, ftype: FuncType, is_builtin: bool, has_instructions: bool, address: str) -> None:
         self.__name = name
         self.__type = ftype
         self.__is_builtin = is_builtin
@@ -31,7 +29,7 @@ class WasmFunction:
 
     def argument_types_list(self) -> List[ValType]:
         return self.__type.argument_types_list()
-    
+
     def address(self) -> str:
         return self.__address
 
@@ -43,22 +41,25 @@ class WasmFunction:
 
     def __str__(self) -> str:
         return repr(self)
-    
+
     def __repr__(self) -> str:
         return f'WasmFunction(name={repr(self.__name)}, ftype={repr(self.__type)}, is_builtin={repr(self.__is_builtin)}, has_instructions={self.__has_instructions}, address={repr(self.__address)})'
 
+
 class Functions:
-    def __init__(self,
-                 name_to_id:dict[str, str],
-                 id_to_addr:dict[str, str],
-                 id_to_type:dict[str, FuncType],
-                 addr_to_def:dict[str, WasmFunction]):
+    def __init__(
+        self,
+        name_to_id: dict[str, str],
+        id_to_addr: dict[str, str],
+        id_to_type: dict[str, FuncType],
+        addr_to_def: dict[str, WasmFunction],
+    ):
         self.__name_to_id = name_to_id
         self.__id_to_addr = id_to_addr
         self.__id_to_type = id_to_type
         self.__addr_to_def = addr_to_def
 
-    def addr_to_function(self, addr:str) -> WasmFunction:
+    def addr_to_function(self, addr: str) -> WasmFunction:
         return self.__addr_to_def[addr]
 
     def addrs(self) -> Iterable[str]:
@@ -66,12 +67,12 @@ class Functions:
 
     def __str__(self) -> str:
         return repr(self)
-    
+
     def __repr__(self) -> str:
         return f'Functions(name_to_id={repr(self.__name_to_id)}, id_to_addr={repr(self.__id_to_addr)}, id_to_type={repr(self.__id_to_type)}, addr_to_def={repr(self.__addr_to_def)})'
 
 
-def get_first_instruction(term:KInner) -> Optional[KInner]:
+def get_first_instruction(term: KInner) -> Optional[KInner]:
     assert isinstance(term, KApply), term
     assert term.label.name == '<fCode>', term
     assert term.arity == 1
@@ -85,13 +86,14 @@ def get_first_instruction(term:KInner) -> Optional[KInner]:
             return term
         term = term.args[0]
 
-def is_elrond_trap(term:KInner) -> bool:
+
+def is_elrond_trap(term: KInner) -> bool:
     if not isinstance(term, KApply):
         return False
     return term.label.name == 'elrond_trap'
 
 
-def load_val_type(term:KInner) -> ValType:
+def load_val_type(term: KInner) -> ValType:
     assert isinstance(term, KApply), term
     if term.label.name == 'i32':
         assert term.arity == 0, term
@@ -107,13 +109,14 @@ def load_val_type(term:KInner) -> ValType:
         return wasm_types.F64
     raise AssertionError(term)
 
-def load_vec_type(term:KInner) -> VecType:
+
+def load_vec_type(term: KInner) -> VecType:
     assert isinstance(term, KApply), term
     assert term.label.name == 'aVecType', term
     assert term.arity == 1, term
     term = term.args[0]
 
-    types:List[ValType] = []
+    types: List[ValType] = []
     while True:
         assert isinstance(term, KApply), term
         if term.label.name == '.List{"listValTypes"}_ValTypes':
@@ -126,7 +129,8 @@ def load_vec_type(term:KInner) -> VecType:
         else:
             raise AssertionError(term)
 
-def load_function_type(term:KInner) -> FuncType:
+
+def load_function_type(term: KInner) -> FuncType:
     assert isinstance(term, KApply)
     assert term.label.name == 'aFuncType', term
     assert term.arity == 2, term
@@ -135,12 +139,13 @@ def load_function_type(term:KInner) -> FuncType:
     return FuncType(arg_types, result_types)
 
 
-def load_function_type_from_child(term:KInner) -> FuncType:
+def load_function_type_from_child(term: KInner) -> FuncType:
     assert isinstance(term, KApply), term
     assert term.arity == 1
     return load_function_type(term.args[0])
 
-def load_function(kfunc_def:KApply, loaded: Dict[str, WasmFunction]) -> None:
+
+def load_function(kfunc_def: KApply, loaded: Dict[str, WasmFunction]) -> None:
     assert kfunc_def.label.name == '<funcDef>', kfunc_def
 
     kfaddr = get_inner(kfunc_def, 0, '<fAddr>')
@@ -163,15 +168,16 @@ def load_function(kfunc_def:KApply, loaded: Dict[str, WasmFunction]) -> None:
     function_name = load_token_from_child(kfunc_id)
 
     f = WasmFunction(
-        name = function_name,
-        ftype = function_type,
-        is_builtin = is_elrond_trap_,
+        name=function_name,
+        ftype=function_type,
+        is_builtin=is_elrond_trap_,
         has_instructions=has_instructions,
-        address = addr
+        address=addr,
     )
     loaded[addr] = f
 
-def function_map_to_list(term:KInner, functions:List[KInner]) -> None:
+
+def function_map_to_list(term: KInner, functions: List[KInner]) -> None:
     assert isinstance(term, KApply)
     if term.label.name == '_FuncDefCellMap_':
         assert term.arity == 2, term
@@ -186,13 +192,14 @@ def function_map_to_list(term:KInner, functions:List[KInner]) -> None:
     else:
         raise AssertionError([term, term.label.name])
 
-def load_functions_from_store(term:KInner) -> Dict[str, WasmFunction]:
+
+def load_functions_from_store(term: KInner) -> Dict[str, WasmFunction]:
     assert isinstance(term, KApply), term
     assert term.label.name == '<funcs>', term
     assert term.arity == 1
-    funcs:List[KInner] = []
+    funcs: List[KInner] = []
     function_map_to_list(term.args[0], funcs)
-    func_addr_to_def:Dict[str, WasmFunction] = {}
+    func_addr_to_def: Dict[str, WasmFunction] = {}
     for kfunc_def in funcs:
         assert isinstance(kfunc_def, KApply), kfunc_def
         assert kfunc_def.label.name == '<funcDef>', kfunc_def
@@ -201,7 +208,7 @@ def load_functions_from_store(term:KInner) -> Dict[str, WasmFunction]:
     return func_addr_to_def
 
 
-def find_functions(term:KInner) -> Functions:
+def find_functions(term: KInner) -> Functions:
     kwasm = get_inner_path(term, [(0, '<elrond-wasm>'), (1, '<wasm>')])
     kmodule_instances = get_inner(kwasm, 5, '<moduleInstances>')
     assert isinstance(kmodule_instances, KApply), kmodule_instances
@@ -217,15 +224,13 @@ def find_functions(term:KInner) -> Functions:
     func_id_to_type = load_map_from_child(ktypes, load_function_type)  # TODO: Probably not needed.
     func_addr_to_def = load_functions_from_store(kfuncs)
     return Functions(
-        name_to_id=func_name_to_id,
-        id_to_addr=func_id_to_addr,
-        id_to_type=func_id_to_type,
-        addr_to_def=func_addr_to_def
+        name_to_id=func_name_to_id, id_to_addr=func_id_to_addr, id_to_type=func_id_to_type, addr_to_def=func_addr_to_def
     )
 
-def remove_all_functions_but_one_and_builtins(term:KInner, function_addr:str, functions:Functions) -> KInner:
-    def find_func_items(term_:KApply) -> List[KInner]:
-        def func_selector(item:KInner) -> Optional[List[KInner]]:
+
+def remove_all_functions_but_one_and_builtins(term: KInner, function_addr: str, functions: Functions) -> KInner:
+    def find_func_items(term_: KApply) -> List[KInner]:
+        def func_selector(item: KInner) -> Optional[List[KInner]]:
             if not isinstance(item, KApply):
                 return None
             if item.label.name != 'FuncDefCellMapItem':
@@ -237,8 +242,10 @@ def remove_all_functions_but_one_and_builtins(term:KInner, function_addr:str, fu
             if functions.addr_to_function(addr.token).is_builtin():
                 return [item]
             return []
+
         return kinner_top_down_fold(func_selector, operator.add, [], term_)
-    def rewrite_funcs(term:KApply) -> KApply:
+
+    def rewrite_funcs(term: KApply) -> KApply:
         assert term.label.name == '<funcs>'
         assert term.arity == 1
         child = term.args[0]
@@ -252,16 +259,21 @@ def remove_all_functions_but_one_and_builtins(term:KInner, function_addr:str, fu
         #     myfunc,
         #     KVariable('MyFuncDefCellMap', sort=KSort('FuncDefCellMap'))
         # )
-    def replace_funcs(term:KInner) -> KInner:
+
+    def replace_funcs(term: KInner) -> KInner:
         if not isinstance(term, KApply):
             return term
         if not term.label.name == '<funcs>':
             return term
         return rewrite_funcs(term)
+
     return bottom_up(replace_funcs, term)
 
-def remove_all_function_id_to_addrs_but_one_and_builtins(term:KInner, function_addr:str, functions:Functions) -> KInner:
-    def keep_mapping(item:KApply) -> bool:
+
+def remove_all_function_id_to_addrs_but_one_and_builtins(
+    term: KInner, function_addr: str, functions: Functions
+) -> KInner:
+    def keep_mapping(item: KApply) -> bool:
         assert item.label.name == '_|->_', item
         assert item.arity == 2
         key, value = item.args
@@ -273,7 +285,8 @@ def remove_all_function_id_to_addrs_but_one_and_builtins(term:KInner, function_a
         if functions.addr_to_function(addr).is_builtin():
             return True
         return False
-    def replace_funcs(term:KInner) -> KInner:
+
+    def replace_funcs(term: KInner) -> KInner:
         if not isinstance(term, KApply):
             return term
         if not term.label.name == '<funcAddrs>':
@@ -281,4 +294,5 @@ def remove_all_function_id_to_addrs_but_one_and_builtins(term:KInner, function_a
         assert term.arity == 1, term
         mapping = term.args[0]
         return term.let(args=[filter_map(mapping, keep_mapping)])
+
     return bottom_up(replace_funcs, term)
