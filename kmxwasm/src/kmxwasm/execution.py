@@ -68,7 +68,6 @@ class ExecutionManager:
         self.__already_summarized:Set[int] = set()
         self.__functions = functions
         self.__executing_addr = -1
-        pass
 
     def decide_configuration(self, kcfg:KCFG, node_id:str) -> Decision:
         node = kcfg.node(node_id)
