@@ -16,7 +16,7 @@ class ValType:
             return 'ValType.F32'
         if self == ValType.F64:
             return 'ValType.F64'
-        assert False, self
+        raise AssertionError(self)
 
 class ValType:
     (I32, I64, F32, F64) = (ValType(i) for i in range(0, 4))
@@ -39,7 +39,7 @@ class FuncType:
         self.__arg_types = arg_types
         self.__result_types = result_types
 
-    def argumentTypesList(self) -> List[ValType]:
+    def argument_types_list(self) -> List[ValType]:
         return self.__arg_types.types()
 
     def __str__(self) -> str:

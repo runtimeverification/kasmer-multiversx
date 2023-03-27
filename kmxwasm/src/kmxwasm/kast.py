@@ -17,8 +17,8 @@ from pyk.kast.inner import (
 
 V = TypeVar('V')
 
-def replaceChild(term:KInner, parent_name:str, replacement:KInner) -> KInner:
-    def replaceChildCallback(term:KInner) -> KInner:
+def replace_child(term:KInner, parent_name:str, replacement:KInner) -> KInner:
+    def replace_child_callback(term:KInner) -> KInner:
         if not isinstance(term, KApply):
             return term
         if not term.label.name == parent_name:
@@ -26,20 +26,20 @@ def replaceChild(term:KInner, parent_name:str, replacement:KInner) -> KInner:
         assert term.arity == 1, term
         return term.let(args=[replacement])
 
-    return top_down(replaceChildCallback, term)
+    return top_down(replace_child_callback, term)
 
-def replaceTerm(term:KInner, name:str, replacement:KInner) -> KInner:
-    def replaceTermCallback(term:KInner) -> KInner:
+def replace_term(term:KInner, name:str, replacement:KInner) -> KInner:
+    def replace_term_callback(term:KInner) -> KInner:
         if not isinstance(term, KApply):
             return term
         if not term.label.name == name:
             return term
         return replacement
 
-    return top_down(replaceTermCallback, term)
+    return top_down(replace_term_callback, term)
 
 
-def getInner(term:KInner, idx:int, label:Optional[str]) -> KInner:
+def get_inner(term:KInner, idx:int, label:Optional[str]) -> KInner:
   assert isinstance(term, KApply), term
   assert idx < term.arity, [term, idx]
   retv = term.args[idx]
@@ -48,39 +48,39 @@ def getInner(term:KInner, idx:int, label:Optional[str]) -> KInner:
     assert retv.label.name == label, [retv.label.name, label]
   return retv
 
-def getInnerPath(term:KInner, path:Iterable[Tuple[int, Optional[str]]]) -> KInner:
+def get_inner_path(term:KInner, path:Iterable[Tuple[int, Optional[str]]]) -> KInner:
     for (ids, label) in path:
-        term = getInner(term, ids, label)
+        term = get_inner(term, ids, label)
     return term
 
-def loadToken(term:KInner) -> str:
+def load_token(term:KInner) -> str:
     assert isinstance(term, KToken), term
     return term.token
 
-def loadTokenFromChild(term:KInner) -> str:
+def load_token_from_child(term:KInner) -> str:
     assert isinstance(term, KApply), term
     assert len(term.args) == 1, term
-    return loadToken(term.args[0])
+    return load_token(term.args[0])
 
-def loadMap(term:KInner, value_loader:Callable[[KInner], V], loaded: Dict[str, V]) -> None:
+def load_map(term:KInner, value_loader:Callable[[KInner], V], loaded: Dict[str, V]) -> None:
     assert isinstance(term, KApply), term
     if term.label.name == '_Map_':
         assert term.arity == 2, term
-        loadMap(term.args[0], value_loader, loaded)
-        loadMap(term.args[1], value_loader, loaded)
+        load_map(term.args[0], value_loader, loaded)
+        load_map(term.args[1], value_loader, loaded)
     elif term.label.name == '_|->_':
         assert term.arity == 2, term
-        key = loadToken(term.args[0])
+        key = load_token(term.args[0])
         value = value_loader(term.args[1])
         assert not key in loaded, [term, loaded, key]
         loaded[key] = value
     elif term.label.name == '.Map':
         pass
     else:
-        assert False, term
+        raise AssertionError(term)
 
-def filterMap(term:KInner, filter:Callable[[KApply], bool]) -> KApply:
-    def findItems(term_:KInner) -> Optional[List[KApply]]:
+def filter_map(term:KInner, filter:Callable[[KApply], bool]) -> KApply:
+    def find_items(term_:KInner) -> Optional[List[KApply]]:
         assert isinstance(term_, KApply), term_
         if term_.label.name == '_Map_':
             return None
@@ -90,9 +90,9 @@ def filterMap(term:KInner, filter:Callable[[KApply], bool]) -> KApply:
             if filter(term_):
                 return [term_]
             return []
-        assert False, [term_, term_.label.name]
+        raise AssertionError([term_, term_.label.name])
 
-    children = kinner_top_down_fold(findItems, operator.add, [], term)
+    children = kinner_top_down_fold(find_items, operator.add, [], term)
     result:Optional[KApply] = None
     for c in children:
         if result is None:
@@ -103,15 +103,15 @@ def filterMap(term:KInner, filter:Callable[[KApply], bool]) -> KApply:
         return KApply('.Map')
     return result
 
-def loadMapFromChild(term:KInner, value_loader:Callable[[KInner], V]) -> Dict[str, V]:
+def load_map_from_child(term:KInner, value_loader:Callable[[KInner], V]) -> Dict[str, V]:
     assert isinstance(term, KApply), term
     assert len(term.args) == 1, term
     kdict = term.args[0]
     retv:Dict[str, V] = {}
-    loadMap(kdict, value_loader, retv)
+    load_map(kdict, value_loader, retv)
     return retv
 
-def getChildren(item:KInner) -> Iterable[KInner]:
+def get_children(item:KInner) -> Iterable[KInner]:
     if isinstance(item, KApply):
         return item.args
     if isinstance(item, KSort):
@@ -128,35 +128,26 @@ def getChildren(item:KInner) -> Iterable[KInner]:
         return [item.lhs, item.rhs]
     if isinstance(item, KSequence):
         return item.items
-    assert False, [item, type(item)]
+    raise AssertionError([item, type(item)])
 
-def findTerm(item:KInner, name:str) -> Optional[KInner]:
-    def findTermSummarize(term:KInner) -> Optional[KInner]:
+def find_term(item:KInner, name:str) -> Optional[KInner]:
+    def find_term_summarize(term:KInner) -> Optional[KInner]:
         if not isinstance(term, KApply):
             return None
         if not term.label.name == name:
             return None
         return term
-    def findTermMerge(first: Optional[KInner], second: Optional[KInner]) -> Optional[KInner]:
+    def find_term_merge(first: Optional[KInner], second: Optional[KInner]) -> Optional[KInner]:
         if first is None:
             return second
         if second is None:
             return first
         assert first == second
         return first
-    return kinner_top_down_fold(findTermSummarize, findTermMerge, None, item)
+    return kinner_top_down_fold(find_term_summarize, find_term_merge, None, item)
 
-def findAllTerms(item:KInner, name:str) -> List[KApply]:
-    def findTermSummarize(term:KInner) -> List[KApply]:
-        if not isinstance(term, KApply):
-            return []
-        if not term.label.name == name:
-            return []
-        return [term]
-    return kinner_top_down_fold(findTermSummarize, operator.add, [], item)
-
-def findTermGetChild(item:KInner, name:str) -> KInner:
-    term = findTerm(item, name)
+def find_term_get_child(item:KInner, name:str) -> KInner:
+    term = find_term(item, name)
     assert term is not None
     assert isinstance(term, KApply)
     assert term.arity == 1
@@ -171,17 +162,17 @@ def kinner_top_down_fold(
     summary = summarizer(to_fold)
     if summary is not None:
         return summary
-    children = getChildren(to_fold)
-    summaries = map(
-        lambda x: kinner_top_down_fold(summarizer, merger, default, x),
-        children
-    )
+    children = get_children(to_fold)
+    summaries = [
+        kinner_top_down_fold(summarizer, merger, default, x)
+        for x in children
+    ]
     return fold(merger, summaries, default)
 
-def extractRewriteParents(term:KInner) -> List[KInner]:
+def extract_rewrite_parents(term:KInner) -> List[KInner]:
     def maybe_with_rewrite_child(value:KInner) -> Optional[List[KInner]]:
-        children = getChildren(value)
-        if fold(operator.or_, map(lambda x:isinstance(x, KRewrite), children), False):
+        children = get_children(value)
+        if fold(operator.or_, [isinstance(x, KRewrite) for x in children], False):
             return [value]
         return None
     return kinner_top_down_fold(maybe_with_rewrite_child, operator.add, [], term)
@@ -192,7 +183,7 @@ def fold(folder:Callable[[V, V], V], to_fold:Iterable[V], initial:V) -> V:
         result = folder(item, result)
     return result
 
-def joinTree(label:str, leaves:List[KInner]) -> Optional[KInner]:
+def join_tree(label:str, leaves:List[KInner]) -> Optional[KInner]:
     tree:Optional[KInner] = None
     for leaf in leaves:
         if tree is None:
