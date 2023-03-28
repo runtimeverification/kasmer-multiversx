@@ -14,7 +14,7 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional, Set, Tuple
 from pyk.cli_utils import BugReport
 from pyk.cterm import CTerm
 from pyk.kast.inner import KApply, KInner, KLabel, KRewrite, KSequence, KSort, KToken, KVariable, bottom_up
-from pyk.kast.manip import ml_pred_to_bool, push_down_rewrites
+from pyk.kast.manip import count_vars, ml_pred_to_bool, push_down_rewrites
 from pyk.kast.outer import (
     KAtt,
     KClaim,
@@ -591,11 +591,22 @@ def make_final_rule(lhs_id: str, rhs_id: str, kcfg: KCFG) -> KRule:
     rule_att = KAtt(atts=att_dict)
     return KRule(body=rewrite, requires=constraint, att=rule_att)
 
+def underscore_for_unused_vars(kast: KInner, constraint:KInner) -> KInner:
+    num_occs = count_vars(mlAnd([kast, constraint]))
+
+    def _underscore_unused_var(_kast: KInner) -> KInner:
+        if type(_kast) is KVariable and num_occs[_kast.name] == 1:
+            return _kast.let(name = f'_{_kast.name}')
+        return _kast
+
+    return bottom_up(_underscore_unused_var, kast)
+
 
 def make_final_rule_new(
     lhs: KInner, lhs_constraints: Tuple[KInner, ...], rhs: KInner, rhs_constraints: Tuple[KInner, ...]
 ) -> KRule:
     (rewrite, constraint) = build_rewrite_requires_new(lhs, lhs_constraints, rhs, rhs_constraints)
+    rewrite = underscore_for_unused_vars(rewrite, constraint)
 
     att_dict = {'priority': str(GENERATED_RULE_PRIORITY)}
     rule_att = KAtt(atts=att_dict)
@@ -652,6 +663,7 @@ def my_step(explorer: LazyExplorer, cfg: KCFG, node_id: str) -> List[str]:
         for next_cterm in next_cterms:
             next_cterm = replace_bytes_c_term(next_cterm)
             new_node = cfg.get_or_create_node(next_cterm)
+            print(node.id, '-*>', new_node.id)
             cfg.create_edge(node.id, new_node.id, condition=mlTop(), depth=1)
             next_ids.append(new_node.id)
         return next_ids
@@ -694,10 +706,12 @@ def my_step_logging(explorer: LazyExplorer, kcfg: KCFG, node_id: str, branches: 
 
         for c in new_cterm.constraints:
             if c != TRUE and not c in prev_cterm.constraints:
-                pretty = explorer.printer().pretty_print(ml_pred_to_bool(c))
-                print('requires:', pretty)
                 print(explorer.printer().pretty_print(c))
                 print(c)
+                print()
+                pretty = explorer.printer().pretty_print(ml_pred_to_bool(c))
+                print('requires:', pretty)
+                print()
     print('=' * 80, flush=True)
     return new_node_ids
 
@@ -930,7 +944,12 @@ def run_for_input(input_file: Path, short_name: str) -> None:
     term = replace_child(term, '<funcIds>', KVariable('MyFuncIds', sort=MAP))
 
     # Real symbolic inputs
+    term = replace_child(term, '<buffers>', KVariable('MyBuffers', sort=KSort('MapIntwToBytesw')))
+    term = replace_child(term, '<ints>', KVariable('MyInts', sort=KSort('MapIntwToIntw')))
+    term = replace_child(term, '<storage>', KVariable('MyStorage', sort=KSort('MapByteswToBytesw')))
+    term = replace_child(term, '<payments>', KVariable('MyPayments', sort=KSort('ListESDTTransfer')))
     term = replace_child(term, '<caller>', KVariable('MyCaller', sort=BYTES))
+    term = replace_child(term, '<owner>', KVariable('MyCaller', sort=BYTES))
     term = replace_child(term, '<gas>', KVariable('MyGas', sort=INT))
     term = replace_child(term, '<call-value>', KVariable('MyCallValue', sort=INT))
     term = replace_child(term, '<arguments>', KVariable('MyEndpointArguments', sort=KSort('ListBytesw')))
@@ -941,13 +960,15 @@ def run_for_input(input_file: Path, short_name: str) -> None:
     printer = MyKPrint(DEFINITION_DIR)
     execution_decision = execution.ExecutionManager(functions)
 
+    print(printer.pretty_print(constraint))
+
     execute_functions(term, constraint, functions, identifiers, printer, json_dir, summaries_dir, execution_decision)
 
 
 def main() -> None:
     samples = ROOT / 'kmxwasm' / 'samples'
-    # run_for_input(samples / 'multisig-full.wat', 'multisig-full')
-    run_for_input(samples / 'sum-to-n.wat', 'sum-to-n')
+    run_for_input(samples / 'multisig-full.wat', 'multisig-full')
+    # run_for_input(samples / 'sum-to-n.wat', 'sum-to-n')
     return
 
 

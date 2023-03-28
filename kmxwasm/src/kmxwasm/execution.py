@@ -51,18 +51,28 @@ IMPLEMENTED_ELROND_FUNCTIONS = {
     '$checkNoPayment',
     '$getGasLeft',
     '$getNumArguments',
+    '$managedCaller',
+    '$managedGetOriginalTxHash',
     '$managedSignalError',
     '$mBufferAppend',
     '$mBufferAppendBytes',
+    '$mBufferCopyByteSlice',
     '$mBufferFinish',
+    '$mBufferFromBigIntUnsigned',
     '$mBufferGetArgument',
+    '$mBufferGetByteSlice',
     '$mBufferGetLength',
     '$mBufferNew',
     '$mBufferSetBytes',
+    '$mBufferStorageLoad',
+    '$mBufferStorageStore',
+    '$mBufferToBigIntUnsigned',
     '$smallIntFinishUnsigned',
     '$smallIntGetUnsignedArgument',
     '$signalError',
 }
+
+# Checked up to (import "env" "mBufferStorageStore" (func $mBufferStorageStore (type 3)))
 
 
 class ExecutionManager:
