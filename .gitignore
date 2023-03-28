@@ -5,6 +5,9 @@
 
 .build
 .kprove-*
+.kore-repl-history
+.sessionCommands
+tmp
 
 # User-specific files
 *.rsuser

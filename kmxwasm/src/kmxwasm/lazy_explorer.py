@@ -6,12 +6,19 @@ from typing import Any, Optional
 
 from pyk.kast.outer import KAtt, KDefinition, KFlatModule, KImport, KProduction, KRequire, KTerminal
 from pyk.kcfg import KCFGExplore
+from pyk.konvert import krule_to_kore
+from pyk.kore.syntax import Import, Module, Sentence
 from pyk.ktool.kompile import KompileBackend, kompile
 from pyk.ktool.kprint import KPrint
 from pyk.ktool.kprove import KProve
+from pyk.utils import BugReport
 
 from .identifiers import Identifiers
 from .rules import RuleCreator
+
+BUG_REPORT: BugReport | None = BugReport(Path('bug-report'))
+# BUG_REPORT = None
+GENERATED_MODULE_NAME = 'SUMMARIZED-CONTRACT'
 
 
 class LazyExplorer:
@@ -21,7 +28,6 @@ class LazyExplorer:
         identifiers: Identifiers,
         data_folder: Path,
         definition_parent: Path,
-        k_dir: Path,
         printer: KPrint,
         debug_id: str,
     ) -> None:
@@ -29,7 +35,6 @@ class LazyExplorer:
         self.__identifiers = identifiers
         self.__summary_folder = data_folder
         self.__definition_folder = definition_parent
-        self.__k_dir = k_dir
         self.__printer = printer
         self.__debug_id = debug_id
         self.__explorer: Optional[KCFGExplore] = None
@@ -47,20 +52,27 @@ class LazyExplorer:
 
     def get(self) -> KCFGExplore:
         if self.__explorer is None:
-            self.__explorer = make_explorer(self.get_kprove(), self.__debug_id != '')
+            self.__explorer = make_explorer(self.get_kprove(), self.__debug_id != '', self.__make_summary_module())
         return self.__explorer
 
     def get_kprove(self) -> KProve:
         if self.__kprove is None:
-            if not self.__debug_id:
-                self.__make_semantics()
+            self.__write_semantics()
             self.__kprove = make_kprove(self.__definition_folder)
         return self.__kprove
 
     def printer(self) -> KPrint:
         return self.__printer
 
-    def __make_semantics(self) -> None:
+    def __make_summary_module(self) -> Module:
+        axioms: list[Sentence] = [
+            krule_to_kore(self.printer().definition, self.printer().kompiled_kore, r)
+            for r in self.__rules.summarize_rules()
+        ]
+        sentences: list[Sentence] = [Import(module_name='ELROND-WASM', attrs=())]
+        return Module(name=GENERATED_MODULE_NAME, sentences=sentences + axioms)
+
+    def __write_semantics(self) -> None:
         identifier_sentences = [
             KProduction(sort=sort, items=[KTerminal(token.token)], att=KAtt({'token': ''}))
             for sort, tokens in self.__identifiers.sort_to_ids.items()
@@ -68,11 +80,10 @@ class LazyExplorer:
         ]
         identifiers_module = KFlatModule('IDENTIFIERS', sentences=identifier_sentences)
 
-        ims = [KImport('ELROND-IMPL'), KImport('IDENTIFIERS')]
-        macros_module = KFlatModule('SUMMARY-MACROS', sentences=self.__rules.macro_rules(), imports=ims)
+        ims = [KImport('ELROND-WASM-CONFIGURATION'), KImport('IDENTIFIERS')]
 
         reqs = [
-            KRequire('elrond-impl.md'),
+            KRequire('backend-fixes.md'),
             KRequire('elrond-lemmas.md'),
             KRequire('elrond-wasm-configuration.md'),
             KRequire('proof-extensions.md'),
@@ -81,32 +92,22 @@ class LazyExplorer:
         ims.append(KImport('ELROND-WASM-CONFIGURATION'))
         ims.append(KImport('PROOF-EXTENSIONS'))
         ims.append(KImport('SUMMARY-MACROS'))
-        # TODO: pyk now supports sending a module of claims when proving.
-        # Investigate using that. One possible problem: When executing
-        # step-by-step, the Haskell backend might or might not be able to
-        # figure out whether a specific rpc we send is the forst step or not,
-        # and claims should not be applied at the first step.
         summaries_module = KFlatModule('SUMMARIES', sentences=self.__rules.summarize_rules(), imports=ims)
 
-        definition = KDefinition(
-            'SUMMARIES', all_modules=[summaries_module, identifiers_module, macros_module], requires=reqs
-        )
+        definition = KDefinition('SUMMARIES', all_modules=[summaries_module, identifiers_module], requires=reqs)
 
         definition_text = self.__printer.pretty_print(definition)
-        # definition_text = definition_text.replace('$', '$#')
 
         self.__summary_folder.mkdir(parents=True, exist_ok=True)
         (self.__summary_folder / 'summaries.k').write_text(definition_text)
 
-        kompile_semantics(self.__k_dir, self.__summary_folder, self.__definition_folder)
 
-
-def kompile_semantics(k_dir: Path, summary_folder: Optional[Path], definition_dir: Path) -> None:
-    print(f'Kompile with {summary_folder} to {definition_dir}', flush=True)
+def kompile_semantics(k_dir: Path, definition_dir: Path) -> None:
+    print(f'Kompile to {definition_dir}', flush=True)
     _ = subprocess.run(['rm', '-r', definition_dir])
 
-    default_summaries_dir = k_dir / 'summaries'
-    wasm_dir = k_dir / 'wasm-semantics'
+    elrond_dir = k_dir / 'elrond-semantics'
+    wasm_dir = elrond_dir / 'deps' / 'wasm-semantics'
 
     _ = kompile(
         k_dir / 'elrond-wasm.md',
@@ -114,30 +115,28 @@ def kompile_semantics(k_dir: Path, summary_folder: Optional[Path], definition_di
         backend=KompileBackend.HASKELL,
         main_module='ELROND-WASM',
         syntax_module='ELROND-WASM-SYNTAX',
-        include_dirs=[summary_folder or default_summaries_dir, k_dir, wasm_dir],
+        include_dirs=[k_dir, elrond_dir, wasm_dir],
         md_selector='k',
     )
     print('Kompile done.', flush=True)
 
 
 def make_kprove(definition_dir: Path) -> KProve:
-    return KProve(
-        definition_dir,
-        bug_report=None
-        # bug_report=BugReport(Path('bug_report'))
-    )
+    return KProve(definition_dir, bug_report=BUG_REPORT)
 
 
-def make_explorer(kprove: KProve, is_debug: bool) -> KCFGExplore:
+def make_explorer(kprove: KProve, is_debug: bool, module: Module) -> KCFGExplore:
     if is_debug:
         port = 39425
     else:
         port = free_port_on_host()
-    return KCFGExplore(
+    explorer = KCFGExplore(
         kprove,
         port=port,
         bug_report=kprove._bug_report,
     )
+    explorer._kore_rpc[1].add_module(module)
+    return explorer
 
 
 # Based on: https://stackoverflow.com/a/45690594

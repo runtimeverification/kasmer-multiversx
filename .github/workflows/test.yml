@@ -26,8 +26,8 @@ jobs:
         run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} make -C kmxwasm check
       - name: 'Run unit tests'
         run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-unit
-      # - name: 'Build LLVM semantics'
-      #   run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} make -C kmxwasm kbuild-llvm
+      - name: 'Build LLVM semantics'
+        run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} make -C kmxwasm kbuild-llvm
       - name: 'Build Haskell semantics'
         run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} make -C kmxwasm kbuild-haskell
       - name: 'Run integration tests'
