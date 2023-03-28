@@ -269,25 +269,13 @@ module ELROND-IMPL
               ...
             </instrs>
             <locals>
-                (0 |-> <i32> Handle:Int)
-                (1 |-> <i32> Ptr:Int)
-                (2 |-> <i32> Len:Int)
+                (0 |-> <i32> _Handle:Int)
+                (1 |-> <i32> _Ptr:Int)
+                (2 |-> <i32> _Len:Int)
             </locals>
-            <mdata> Mem:Bytes </mdata>
             ...
         </wasm>
-        <elrond>
-            <buffers>
-                M:MapIntwToBytesw
-            </buffers>
-            ...
-        </elrond>
-    requires true
-        #And
-            #Not
-                ( #Ceil(substrBytes(Mem, Ptr, Ptr +Int Len))
-                #And {true #Equals (wrap(Handle) in_keys(M))}
-                )
+      [owise]
 
   rule  <wasm>
             <instrs>
@@ -327,7 +315,7 @@ module ELROND-IMPL
         </wasm>
         <elrond>
             <buffers>
-                M:MapIntwToBytesw
+                _M:MapIntwToBytesw
             </buffers>
             ...
         </elrond>
@@ -355,7 +343,7 @@ module ELROND-IMPL
             </buffers>
             ...
         </elrond>
-      requires wrap(HandleAccumulator) in_keys(M) andBool wrap(HandleData) in_keys(M)
+      requires wrap(Handle1) in_keys(M) andBool wrap(Handle2) in_keys(M)
   rule  <wasm>
             <instrs>
               elrond_trap("\"mBufferEq\"") => i32.const -1
@@ -489,8 +477,8 @@ module ELROND-IMPL
               ...
             </instrs>
             <locals>
-                (0 |-> <i32> Ptr:Int)
-                (1 |-> <i32> Len:Int)
+                (0 |-> <i32> _Ptr:Int)
+                (1 |-> <i32> _Len:Int)
             </locals>
             ...
         </wasm>
@@ -528,17 +516,11 @@ module ELROND-IMPL
             </instrs>
             <locals>
                 (0 |-> <i32> _HandleBuffer:Int)
-                (1 |-> <i32> HandleInt:Int)
+                (1 |-> <i32> _HandleInt:Int)
             </locals>
             ...
         </wasm>
-        <elrond>
-            <ints>
-                N:MapIntwToIntw
-            </ints>
-            ...
-        </elrond>
-        requires notBool wrap(HandleInt) in_keys(N)
+      [owise]
 
   rule  <wasm>
             <instrs>
@@ -581,13 +563,7 @@ module ELROND-IMPL
             </locals>
             ...
         </wasm>
-        <elrond>
-            <buffers>
-                M:MapIntwToBytesw
-            </buffers>
-            ...
-        </elrond>
-        requires notBool wrap(HandleBuffer) in_keys(M)
+      [owise]
 
   rule  <wasm>
             <instrs>
@@ -691,17 +667,11 @@ module ELROND-IMPL
               ...
             </instrs>
             <locals>
-                (0 |-> <i32> Handle:Int)
+                (0 |-> <i32> _Handle:Int)
             </locals>
             ...
         </wasm>
-        <elrond>
-            <buffers>
-                M:MapIntwToBytesw
-            </buffers>
-            ...
-        </elrond>
-    requires notBool (wrap(Handle) in_keys(M))
+    [owise]
 
   rule  <wasm>
             <instrs>
@@ -796,7 +766,7 @@ module ELROND-IMPL
               ...
             </instrs>
             <locals>
-                (0 |-> <i32> Handle:Int)
+                (0 |-> <i32> _Handle:Int)
             </locals>
             ...
         </wasm>

@@ -655,7 +655,12 @@ def my_step(explorer: LazyExplorer, cfg: KCFG, node_id: str) -> List[str]:
     actual_depth, cterm, next_cterms = explorer.get().cterm_execute(node.cterm, depth=1)
     if actual_depth == 0:
         if len(next_cterms) < 2:
-            print(explorer.printer().pretty_print(node.cterm.config))
+            print(node.id)
+            print(explorer.printer().pretty_print(node.cterm.config), flush=True)
+            for constraint in node.cterm.constraints:
+                print('--', explorer.printer().pretty_print(constraint), flush=True)
+            for constraint in node.cterm.constraints:
+                print('**', explorer.printer().pretty_print(ml_pred_to_bool(constraint)), flush=True)
             raise ValueError(
                 f'Unable to take {1} steps from node (next={len(next_cterms)}), got {actual_depth} steps: {node.id}'
             )
