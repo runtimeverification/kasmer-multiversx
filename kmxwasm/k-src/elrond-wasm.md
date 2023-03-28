@@ -1,9 +1,7 @@
 ```k
-require "summaries.k"
-require "elrond-impl.md"
 require "elrond-lemmas.md"
-require "elrond-configuration.md"
 require "elrond-wasm-configuration.md"
+require "kwasm-lemmas.md"
 require "proof-extensions.md"
 
 module ELROND-WASM-SYNTAX
@@ -11,13 +9,13 @@ module ELROND-WASM-SYNTAX
 endmodule
 
 module ELROND-WASM
-  imports ELROND-IMPL
   imports ELROND-LEMMAS
   imports ELROND-WASM-CONFIGURATION
-  imports SUMMARIES
+  imports KWASM-LEMMAS
+  imports MAP-KORE-SYMBOLIC
   imports PROOF-EXTENSIONS
 
-  rule <k> PGM => . </k>
+  rule <k> PGM => .K </k>
         <instrs> .K => sequenceStmts(text2abstract(PGM)) </instrs>
 
 endmodule

@@ -44,7 +44,11 @@ module SUM-TO-N-SPEC
         2 |-> <i32> N:Int
         _MyLocals:Map
       </locals>
+      <commands>
+        Commands:K
+      </commands>
   requires LoopLimit <Int N
+      andBool firstCommandIsNotException(Commands)
 
   claim
       <k>
@@ -89,10 +93,14 @@ module SUM-TO-N-SPEC
         2 |-> <i32> (N:Int => (LoopLimit +Int 1))
         _MyLocals:Map
       </locals>
+      <commands>
+        Commands:K
+      </commands>
   requires true
       andBool 0 <=Int N
       andBool N <=Int LoopLimit
       andBool LoopLimit <Int #pow(i32) -Int 1
+      andBool firstCommandIsNotException(Commands)
   ensures true
       andBool ?Sum ==Int (Sum +Int LoopLimit *Int (LoopLimit +Int 1) /Int 2 -Int N *Int (N -Int 1) /Int 2) modInt #pow(i32)
 
@@ -139,8 +147,12 @@ module SUM-TO-N-SPEC
         2 |-> <i32> (N:Int => ?_N:Int)
         _MyLocals:Map
       </locals>
+      <commands>
+        Commands:K
+      </commands>
   requires true
       andBool 0 <=Int N
       andBool N <=Int LoopLimit
       andBool LoopLimit ==Int #pow(i32) -Int 1
+      andBool firstCommandIsNotException(Commands)
 endmodule

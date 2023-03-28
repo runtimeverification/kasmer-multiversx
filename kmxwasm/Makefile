@@ -82,12 +82,16 @@ black: poetry-install
 check-black: poetry-install
 	$(POETRY_RUN) black --check src
 
-kbuild-%:
+k-src/elrond-semantics/deps/wasm-semantics/blockchain-k-plugin/krypto.md:
+	make -C k-src/elrond-semantics deps/wasm-semantics/blockchain-k-plugin/krypto.md
+
+kbuild-%: k-src/elrond-semantics/deps/wasm-semantics/blockchain-k-plugin/krypto.md
 	echo && kompile \
 			--backend $* \
 			--md-selector k \
 			--emit-json \
-			-I k-src/wasm-semantics \
+			-I k-src/elrond-semantics \
+			-I k-src/elrond-semantics/deps/wasm-semantics \
 			-I k-src/summaries \
 			--directory ../.build/defn/haskell \
 			--main-module ELROND-WASM \

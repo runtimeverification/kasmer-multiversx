@@ -17,15 +17,10 @@ The Haskell backend team prefers implementing pyk features instead of fixing
 kore-repl, so, right now, someone doing proofs has to choose between an old
 tool that has a lot of features (kore-repl), but is no longer supported, and a
 new tool that is actively developed, and has a lot of potential, but currently
-does not have that many debugging features (pyk). On the bright side, the K
-team seemed very willing to implement missing features.
+does not have that many debugging features (pyk).
 
 Starting one’s own RPC server and using it from pyk may be a good way to get
 some of the missing debugging features.
-
-Json parsing is _very_ slow. A 4 MB file (containing the dump of a concrete
-configuration with ~1M of memory) takes 4-5 minutes to parse on my old, but
-still powerful machine.
 
 Simple step-by-step execution is rather slow for large configurations.
 Part of it seems to be caused by the python part (most likely, the json
