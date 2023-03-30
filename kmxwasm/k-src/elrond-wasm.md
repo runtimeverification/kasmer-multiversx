@@ -17,5 +17,9 @@ module ELROND-WASM
 
   rule <k> PGM => . </k>
         <instrs> .K => sequenceStmts(text2abstract(PGM)) </instrs>
+
+  syntax Instr ::= "infiniteLoop"  [symbol, klabel(infiniteLoop)]
+  rule <instrs> (infiniteLoop ~> _:KItem => infiniteLoop) ... </instrs>
+
 endmodule
 ```

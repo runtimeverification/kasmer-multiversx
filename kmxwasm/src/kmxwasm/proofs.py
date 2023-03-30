@@ -5,6 +5,7 @@ import operator
 import subprocess
 import sys
 import tempfile
+import time
 from contextlib import closing
 from dataclasses import dataclass
 from pathlib import Path
@@ -54,7 +55,8 @@ ROOT = Path(subprocess.check_output(['git', 'rev-parse', '--show-toplevel']).dec
 K_DIR = ROOT / 'kmxwasm' / 'k-src'
 BUILD_DIR = ROOT / '.build'
 DEFINITION_PARENT = BUILD_DIR / 'defn/haskell'
-DEFINITION_DIR = DEFINITION_PARENT / 'elrond-wasm-kompiled'
+DEFINITION_NAME = 'elrond-wasm-kompiled'
+DEFINITION_DIR = DEFINITION_PARENT / DEFINITION_NAME
 DATA_DIR = BUILD_DIR / 'data'
 JSON_DIR = DATA_DIR / 'json'
 DEBUG_DIR = BUILD_DIR / 'debug'
@@ -72,7 +74,6 @@ MAP = KSort('Map')
 
 # Setting this disables compilation.
 DEBUG_ID = ''  #'ca3493ec081b72857fe96a8b6d3b3f969505e6bc09d91d16eaff9995f2c551ad'
-
 
 @dataclass(frozen=True)
 class Identifiers:
@@ -93,7 +94,10 @@ class MyKPrint(KPrint):
     def _patch_symbol_table(cls, symbol_table: SymbolTable) -> None:
         symbol_table['_|->_'] = lambda c1, c2: f'({c1} |-> {c2})'
         symbol_table['_Map_'] = lambda c1, c2: f'({c1} {c2})'
+        symbol_table['_Int2Bytes|->_'] = lambda c1, c2: f'({c1} Int2Bytes|-> {c2})'
+        symbol_table['_MapIntwToBytesw_'] = lambda c1, c2: f'({c1} {c2})'
         symbol_table['.TabInstCellMap'] = lambda: '.Bag'
+        symbol_table['notBool_'] = lambda c1: f'notBool ({c1})'
 
 
 class RuleCreator:
@@ -165,10 +169,11 @@ class RuleCreator:
 
 
 class LazyExplorer:
-    def __init__(self, rules: RuleCreator, identifiers: Identifiers, data_folder: Path, printer: KPrint) -> None:
+    def __init__(self, rules: RuleCreator, identifiers: Identifiers, data_folder: Path, definition_parent: Path, printer: KPrint) -> None:
         self.__rules = rules
         self.__identifiers = identifiers
         self.__summary_folder = data_folder
+        self.__definition_parent = definition_parent
         self.__printer = printer
         self.__explorer: Optional[KCFGExplore] = None
 
@@ -187,7 +192,7 @@ class LazyExplorer:
             if not DEBUG_ID:
                 self.__make_semantics()
             temp_dir = tempfile.TemporaryDirectory(prefix='kprove')
-            kprove = make_kprove(temp_dir)
+            kprove = make_kprove(temp_dir, self.__definition_parent / DEFINITION_NAME)
             self.__explorer = make_explorer(kprove)
         return self.__explorer
 
@@ -205,8 +210,14 @@ class LazyExplorer:
         ims = [KImport('ELROND-IMPL'), KImport('IDENTIFIERS')]
         macros_module = KFlatModule('SUMMARY-MACROS', sentences=self.__rules.macro_rules(), imports=ims)
 
-        req1 = KRequire('elrond-impl.md')
-        req2 = KRequire('elrond-wasm-configuration.md')
+        reqs = [
+            KRequire('backend-fixes.md'),
+            KRequire('elrond-impl.md'),
+            KRequire('elrond-lemmas.md'),
+            KRequire('elrond-wasm-configuration.md'),
+        ]
+        ims.append(KImport('BACKEND-FIXES'))
+        ims.append(KImport('ELROND-LEMMAS'))
         ims.append(KImport('ELROND-WASM-CONFIGURATION'))
         ims.append(KImport('SUMMARY-MACROS'))
         # TODO: pyk now supports sending a module of claims when proving.
@@ -217,7 +228,7 @@ class LazyExplorer:
         summaries_module = KFlatModule('SUMMARIES', sentences=self.__rules.summarize_rules(), imports=ims)
 
         definition = KDefinition(
-            'SUMMARIES', all_modules=[summaries_module, identifiers_module, macros_module], requires=[req1, req2]
+            'SUMMARIES', all_modules=[summaries_module, identifiers_module, macros_module], requires=reqs
         )
 
         definition_text = self.__printer.pretty_print(definition)
@@ -226,11 +237,11 @@ class LazyExplorer:
         self.__summary_folder.mkdir(parents=True, exist_ok=True)
         (self.__summary_folder / 'summaries.k').write_text(definition_text)
 
-        kompile_semantics(self.__summary_folder)
+        kompile_semantics(self.__summary_folder, self.__definition_parent)
 
 
-def kompile_semantics(summary_folder: Optional[Path]) -> None:
-    result = subprocess.run(['rm', '-r', DEFINITION_DIR])
+def kompile_semantics(summary_folder: Optional[Path], definition_dir:Path) -> None:
+    result = subprocess.run(['rm', '-r', definition_dir])
     # TODO: Surely there is a better way to fo this with pyk.
     args = [
         'kompile',
@@ -246,7 +257,7 @@ def kompile_semantics(summary_folder: Optional[Path]) -> None:
         '-I',
         str(WASM_DIR),
         '--directory',
-        str(DEFINITION_PARENT),
+        str(definition_dir),
         '--main-module',
         'ELROND-WASM',
         '--syntax-module',
@@ -375,13 +386,18 @@ def krun(input_file: Path, output_file: Path) -> None:
 
 def load_json_dict(input_file: Path) -> Mapping[str, Any]:
     print('Load json', flush=True)
-    value = input_file.read_text()
-    return json.loads(value)
+    with input_file.open() as f:
+        return json.load(f)
 
 
 def load_json_krun(input_file: Path) -> KInner:
+    start_time = time.time()
+    print('Starting', flush=True)
     value = load_json_dict(input_file)
-    return KInner.from_dict(value['term'])
+    print('Before dict', time.time() - start_time, flush=True)
+    term = KInner.from_dict(value['term'])
+    print('term', time.time() - start_time, flush=True)
+    return term
 
 
 def load_json(input_file: Path) -> KInner:
@@ -596,7 +612,14 @@ def underscore_for_unused_vars(kast: KInner, constraint:KInner) -> KInner:
 
     def _underscore_unused_var(_kast: KInner) -> KInner:
         if type(_kast) is KVariable and num_occs[_kast.name] == 1:
-            return _kast.let(name = f'_{_kast.name}')
+            name = _kast.name
+            prefix = ''
+            if name.startswith('?'):
+                prefix = '?'
+                name = name[1:]
+            if name.startswith('_'):
+                return _kast
+            return _kast.let(name = f'{prefix}_{name}')
         return _kast
 
     return bottom_up(_underscore_unused_var, kast)
@@ -613,9 +636,9 @@ def make_final_rule_new(
     return KRule(body=rewrite, requires=constraint, att=rule_att)
 
 
-def make_kprove(temp_dir: tempfile.TemporaryDirectory) -> KProve:
+def make_kprove(temp_dir: tempfile.TemporaryDirectory, definition_dir: Path) -> KProve:
     return KProve(
-        DEFINITION_DIR,
+        definition_dir,
         use_directory=Path(temp_dir.name),
         bug_report=None
         # bug_report=BugReport(Path('bug_report'))
@@ -623,10 +646,13 @@ def make_kprove(temp_dir: tempfile.TemporaryDirectory) -> KProve:
 
 
 def make_explorer(kprove: KProve) -> KCFGExplore:
+    if DEBUG_ID:
+        port = 39425
+    else:
+        port = free_port_on_host()
     return KCFGExplore(
         kprove,
-        39425,
-        # free_port_on_host(),
+        port,
         bug_report=kprove._bug_report,
     )
 
@@ -751,6 +777,7 @@ def execute_function(
         hacked_term = remove_all_functions_but_one_and_builtins(term, function_addr, functions)
         hacked_term = remove_all_function_id_to_addrs_but_one_and_builtins(hacked_term, function_addr, functions)
 
+        # TODO: Set kcfg with a LHS only, not an entire claim.
         (_rule_creator, claim) = make_claim(hacked_term, constraint, function_addr, functions)
         kcfg = KCFG.from_claim(explorer.printer().definition, claim)
 
@@ -802,6 +829,7 @@ def execute_functions(
     term: KInner,
     constraints: KInner,
     functions: Functions,
+    blacklisted_functions:Set[str],
     identifiers: Identifiers,
     printer: KPrint,
     state_path: Path,
@@ -811,13 +839,14 @@ def execute_functions(
     rules = RuleCreator(printer.definition)
     unprocessed_functions: List[str] = [
         addr for addr in functions.addrs() if not functions.addr_to_function(addr).is_builtin()
+        if not addr in blacklisted_functions
     ]
     not_processable: List[str] = []
     processed_functions: List[str] = []
     while unprocessed_functions:
         postponed_functions: List[str] = []
         for function_addr in unprocessed_functions:
-            with LazyExplorer(rules, identifiers, summaries_path / function_addr, printer) as explorer:
+            with LazyExplorer(rules, identifiers, summaries_path / function_addr, DEFINITION_PARENT / function_addr, printer) as explorer:
                 execution_decision.start_function(int(function_addr))
                 result = execute_function(
                     function_addr, term, constraints, functions, explorer, state_path, execution_decision, rules
@@ -831,16 +860,16 @@ def execute_functions(
                     processed_functions.append(function_addr)
                     execution_decision.finish_function(int(function_addr))
         if len(postponed_functions) == len(unprocessed_functions):
-            with LazyExplorer(rules, identifiers, summaries_path / 'final', printer) as explorer:
+            with LazyExplorer(rules, identifiers, summaries_path / 'final', DEFINITION_PARENT / 'final', printer) as explorer:
                 explorer.get()
             raise ValueError(
-                f'Cannot summarize {unprocessed_functions}, postponed={postponed_functions}, unprocessable={unprocessed_functions}, processed={processed_functions}'
+                f'Cannot summarize {unprocessed_functions}, postponed={postponed_functions}, unprocessable={not_processable}, processed={processed_functions}'
             )
         unprocessed_functions = postponed_functions
-    with LazyExplorer(rules, identifiers, summaries_path / 'final', printer) as explorer:
+    with LazyExplorer(rules, identifiers, summaries_path / 'final', DEFINITION_PARENT / 'final', printer) as explorer:
         explorer.get()
     print(
-        f'unprocessed={unprocessed_functions}, unprocessable={unprocessed_functions}, processed={processed_functions}'
+        f'unprocessed={unprocessed_functions}, unprocessable={not_processable}, processed={processed_functions}'
     )
 
 
@@ -920,9 +949,9 @@ def replace_globals_with_variables(term: KInner) -> Tuple[KInner, List[KInner]]:
     return (new_term, replacer.constraints())
 
 
-def run_for_input(input_file: Path, short_name: str) -> None:
+def run_for_input(input_file: Path, short_name: str, blacklisted_functions:Set[str]) -> None:
     if not DEBUG_ID:
-        kompile_semantics(None)
+        kompile_semantics(None, DEFINITION_PARENT)
 
     json_dir = JSON_DIR / short_name
     summaries_dir = SUMMARIES_DIR / short_name
@@ -967,13 +996,22 @@ def run_for_input(input_file: Path, short_name: str) -> None:
 
     print(printer.pretty_print(constraint))
 
-    execute_functions(term, constraint, functions, identifiers, printer, json_dir, summaries_dir, execution_decision)
+    execute_functions(term, constraint, functions, blacklisted_functions, identifiers, printer, json_dir, summaries_dir, execution_decision)
 
 
-def main() -> None:
-    samples = ROOT / 'kmxwasm' / 'samples'
-    run_for_input(samples / 'multisig-full.wat', 'multisig-full')
-    # run_for_input(samples / 'sum-to-n.wat', 'sum-to-n')
+def main(args) -> None:
+    if len(args) != 1:
+        print('Usage:')
+        print('  python3 -m kmxwasm.proofs <sample-no-extension>')
+        sys.exit(-1)
+    sample_name = args[0]
+    sample_path = ROOT / 'kmxwasm' / 'samples' / f'{sample_name}.wat'
+    if not sample_path.exists():
+        print(f'Input file ({sample_path}) does not exit.')
+    blacklist = {'multisig-full' : {'78'}}
+    run_for_input(sample_path, sample_name, blacklist.get(sample_name, set()))
+    # run_for_input(samples / 'multisig-full.wat', 'multisig-full', {'78'})
+    # run_for_input(samples / 'sum-to-n.wat', 'sum-to-n', set())
     return
 
 
@@ -998,4 +1036,4 @@ print(pretty)
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])

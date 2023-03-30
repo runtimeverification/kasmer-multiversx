@@ -558,7 +558,7 @@ module ELROND-IMPL
               ...
             </instrs>
             <locals>
-                (0 |-> <i32> HandleBuffer:Int)
+                (0 |-> <i32> _HandleBuffer:Int)
                 (1 |-> <i32> _HandleInt:Int)
             </locals>
             ...
