@@ -21,10 +21,17 @@ module ELROND-LEMMAS
   rule M:MapIntwToBytesw[Key:Intw <- Value:Bytesw]
       => M:MapIntwToBytesw{Key <- Value}
       [simplification(100)]
-  rule M:MapIntwToBytesw{Key1:Intw <- Value1:Bytesw}[Key2:Intw] orDefault Value2:Bytesw
-      => (M[Key2] orDefault Value2 #And #Not ({Key1 #Equals Key2}))
-        #Or (Value1 #And {Key1 #Equals Key2})
+  rule M:MapIntwToBytesw{Key1:Intw <- _Value1:Bytesw}[Key2:Intw] orDefault Value2:Bytesw
+      => M[Key2] orDefault Value2
+      requires Key1 =/=K Key2
       [simplification]
+  rule _M:MapIntwToBytesw{Key:Intw <- Value1:Bytesw}[Key:Intw] orDefault _Value2:Bytesw
+      => Value1
+      [simplification]
+  // rule M:MapIntwToBytesw{Key1:Intw <- Value1:Bytesw}[Key2:Intw] orDefault Value2:Bytesw
+  //     => (M[Key2] orDefault Value2 #And #Not ({Key1 #Equals Key2}))
+  //       #Or (Value1 #And {Key1 #Equals Key2})
+  //     [simplification]
   rule M:MapIntwToBytesw{Key1:Intw <- Value1:Bytesw}[Key2:Intw]
       => (M[Key2] #And #Not ({Key1 #Equals Key2}))
         #Or (Value1 #And {Key1 #Equals Key2})

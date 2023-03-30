@@ -29,6 +29,7 @@ from pyk.kast.outer import (
     KTerminal,
 )
 from pyk.kcfg import KCFG, KCFGExplore
+from pyk.ktool.kompile import kompile, KompileBackend
 from pyk.ktool.kprint import KPrint, SymbolTable
 from pyk.ktool.kprove import KProve
 from pyk.ktool.krun import KRunOutput, _krun
@@ -56,7 +57,6 @@ K_DIR = ROOT / 'kmxwasm' / 'k-src'
 BUILD_DIR = ROOT / '.build'
 DEFINITION_PARENT = BUILD_DIR / 'defn/haskell'
 DEFINITION_NAME = 'elrond-wasm-kompiled'
-DEFINITION_DIR = DEFINITION_PARENT / DEFINITION_NAME
 DATA_DIR = BUILD_DIR / 'data'
 JSON_DIR = DATA_DIR / 'json'
 DEBUG_DIR = BUILD_DIR / 'debug'
@@ -173,7 +173,7 @@ class LazyExplorer:
         self.__rules = rules
         self.__identifiers = identifiers
         self.__summary_folder = data_folder
-        self.__definition_parent = definition_parent
+        self.__definition_folder = definition_parent / DEFINITION_NAME
         self.__printer = printer
         self.__explorer: Optional[KCFGExplore] = None
 
@@ -192,7 +192,7 @@ class LazyExplorer:
             if not DEBUG_ID:
                 self.__make_semantics()
             temp_dir = tempfile.TemporaryDirectory(prefix='kprove')
-            kprove = make_kprove(temp_dir, self.__definition_parent / DEFINITION_NAME)
+            kprove = make_kprove(temp_dir, self.__definition_folder)
             self.__explorer = make_explorer(kprove)
         return self.__explorer
 
@@ -237,37 +237,21 @@ class LazyExplorer:
         self.__summary_folder.mkdir(parents=True, exist_ok=True)
         (self.__summary_folder / 'summaries.k').write_text(definition_text)
 
-        kompile_semantics(self.__summary_folder, self.__definition_parent)
+        kompile_semantics(self.__summary_folder, self.__definition_folder)
 
 
 def kompile_semantics(summary_folder: Optional[Path], definition_dir:Path) -> None:
-    result = subprocess.run(['rm', '-r', definition_dir])
-    # TODO: Surely there is a better way to fo this with pyk.
-    args = [
-        'kompile',
-        '--backend',
-        'haskell',
-        '--md-selector',
-        'k',
-        '--emit-json',
-        '-I',
-        str(summary_folder) if summary_folder else str(DEFAULT_SUMMARIES_DIR),
-        '-I',
-        str(K_DIR),
-        '-I',
-        str(WASM_DIR),
-        '--directory',
-        str(definition_dir),
-        '--main-module',
-        'ELROND-WASM',
-        '--syntax-module',
-        'ELROND-WASM-SYNTAX',
-        str(K_DIR / 'elrond-wasm.md'),
-    ]
-    print('Running:', ' '.join(args), flush=True)
-    result = subprocess.run(args)
-    assert result.returncode == 0
-
+    print(f'Kompile with {summary_folder} to {definition_dir}')
+    _result = subprocess.run(['rm', '-r', definition_dir])
+    _output_dir = kompile(
+        K_DIR / 'elrond-wasm.md',
+        output_dir=definition_dir,
+        backend=KompileBackend.HASKELL,
+        main_module='ELROND-WASM',
+        syntax_module='ELROND-WASM-SYNTAX',
+        include_dirs=[summary_folder or DEFAULT_SUMMARIES_DIR, K_DIR, WASM_DIR],
+        md_selector='k',
+    )
 
 SET_BYTES_RANGE = '#setBytesRange(_,_,_)_WASM-DATA_Bytes_Bytes_Int_Bytes'
 DOT_BYTES = '.Bytes_BYTES-HOOKED_Bytes'
@@ -377,9 +361,9 @@ def print_kore_cfg(node_id: str, kcfg: KCFG, printer: KPrint) -> None:
         print(printer.kore_to_pretty(kore))
 
 
-def krun(input_file: Path, output_file: Path) -> None:
+def krun(input_file: Path, output_file: Path, definition_dir:Path) -> None:
     print('Run', flush=True)
-    result = _krun(input_file=input_file, definition_dir=DEFINITION_DIR, output=KRunOutput.JSON)
+    result = _krun(input_file=input_file, definition_dir=definition_dir, output=KRunOutput.JSON)
     output_file.parent.mkdir(parents=True, exist_ok=True)
     output_file.write_text(result.stdout)
 
@@ -652,7 +636,7 @@ def make_explorer(kprove: KProve) -> KCFGExplore:
         port = free_port_on_host()
     return KCFGExplore(
         kprove,
-        port,
+        port=port,
         bug_report=kprove._bug_report,
     )
 
@@ -674,9 +658,19 @@ def write_json(term: KInner, output_file: Path) -> None:
 
 def my_step(explorer: LazyExplorer, cfg: KCFG, node_id: str) -> List[str]:
     node = cfg.node(node_id)
-    out_edges = cfg.edges(source_id=node.id)
+    out_edges:List[str] = []
+    for split in cfg.splits(source_id=node.id):
+        for n, _ in split.targets:
+          out_edges.append(n.id)
+    for e in cfg.edges(source_id=node.id):
+        out_edges.append(e.target.id)
     if len(out_edges) > 0:
-        return [edge.target.id for edge in out_edges]
+        return out_edges
+    assert len(list(cfg.edges(source_id=node.id))) == 0
+    assert len(list(cfg.covers(source_id=node.id))) == 0
+    assert len(list(cfg.splits(source_id=node.id))) == 0
+    assert len(list(cfg.successors(node.id))) == 0
+
     print('Executing!', flush=True)
     actual_depth, cterm, next_cterms = explorer.get().cterm_execute(node.cterm, depth=1)
     if actual_depth == 0:
@@ -690,13 +684,10 @@ def my_step(explorer: LazyExplorer, cfg: KCFG, node_id: str) -> List[str]:
             raise ValueError(
                 f'Unable to take {1} steps from node (next={len(next_cterms)}), got {actual_depth} steps: {node.id}'
             )
-        next_ids = []
-        for next_cterm in next_cterms:
-            next_cterm = replace_bytes_c_term(next_cterm)
-            new_node = cfg.get_or_create_node(next_cterm)
-            print(node.id, '-*>', new_node.id)
-            cfg.create_edge(node.id, new_node.id, condition=mlTop(), depth=1)
-            next_ids.append(new_node.id)
+        branches = [mlAnd(c for c in s.constraints if c not in cterm.constraints) for s in next_cterms]
+        next_ids = cfg.split_on_constraints(node.id, branches)
+        for next_id in next_ids:
+            print(node.id, '-*>', next_id)
         return next_ids
     if actual_depth != 1:
         write_json(node.cterm.config, DEBUG_DIR / 'stuck.json')
@@ -708,7 +699,7 @@ def my_step(explorer: LazyExplorer, cfg: KCFG, node_id: str) -> List[str]:
     cterm = replace_bytes_c_term(cterm)
     new_node = cfg.get_or_create_node(cterm)
     # TODO: This may be other things than mlTop()
-    cfg.create_edge(node.id, new_node.id, condition=mlTop(), depth=1)
+    cfg.create_edge(node.id, new_node.id, depth=1)
     return [new_node.id]
 
 
@@ -834,6 +825,7 @@ def execute_functions(
     printer: KPrint,
     state_path: Path,
     summaries_path: Path,
+    definition_path: Path,
     execution_decision: execution.ExecutionManager,
 ) -> None:
     rules = RuleCreator(printer.definition)
@@ -846,7 +838,7 @@ def execute_functions(
     while unprocessed_functions:
         postponed_functions: List[str] = []
         for function_addr in unprocessed_functions:
-            with LazyExplorer(rules, identifiers, summaries_path / function_addr, DEFINITION_PARENT / function_addr, printer) as explorer:
+            with LazyExplorer(rules, identifiers, summaries_path / function_addr, definition_path / function_addr, printer) as explorer:
                 execution_decision.start_function(int(function_addr))
                 result = execute_function(
                     function_addr, term, constraints, functions, explorer, state_path, execution_decision, rules
@@ -860,13 +852,13 @@ def execute_functions(
                     processed_functions.append(function_addr)
                     execution_decision.finish_function(int(function_addr))
         if len(postponed_functions) == len(unprocessed_functions):
-            with LazyExplorer(rules, identifiers, summaries_path / 'final', DEFINITION_PARENT / 'final', printer) as explorer:
+            with LazyExplorer(rules, identifiers, summaries_path / 'final', definition_path / 'final', printer) as explorer:
                 explorer.get()
             raise ValueError(
                 f'Cannot summarize {unprocessed_functions}, postponed={postponed_functions}, unprocessable={not_processable}, processed={processed_functions}'
             )
         unprocessed_functions = postponed_functions
-    with LazyExplorer(rules, identifiers, summaries_path / 'final', DEFINITION_PARENT / 'final', printer) as explorer:
+    with LazyExplorer(rules, identifiers, summaries_path / 'final', definition_path / 'final', printer) as explorer:
         explorer.get()
     print(
         f'unprocessed={unprocessed_functions}, unprocessable={not_processable}, processed={processed_functions}'
@@ -950,16 +942,19 @@ def replace_globals_with_variables(term: KInner) -> Tuple[KInner, List[KInner]]:
 
 
 def run_for_input(input_file: Path, short_name: str, blacklisted_functions:Set[str]) -> None:
-    if not DEBUG_ID:
-        kompile_semantics(None, DEFINITION_PARENT)
-
     json_dir = JSON_DIR / short_name
     summaries_dir = SUMMARIES_DIR / short_name
+    definitions_dir = DEFINITION_PARENT / short_name
+    main_definition_dir = definitions_dir / DEFINITION_NAME
+
+    if not DEBUG_ID:
+        kompile_semantics(None, main_definition_dir)
+
     krun_output_file = json_dir / 'krun.json'
     bytes_output_file = json_dir / 'bytes.json'
     if not bytes_output_file.exists():
         if not krun_output_file.exists():
-            krun(input_file, krun_output_file)
+            krun(input_file, krun_output_file, main_definition_dir)
         term = load_json_krun(krun_output_file)
         # TODO: Replace the config in the term
         # assert not term.constraints
@@ -991,12 +986,12 @@ def run_for_input(input_file: Path, short_name: str, blacklisted_functions:Set[s
     term, constraints = replace_globals_with_variables(term)
     constraint = make_balanced_and_bool(constraints)
 
-    printer = MyKPrint(DEFINITION_DIR)
+    printer = MyKPrint(main_definition_dir)
     execution_decision = execution.ExecutionManager(functions)
 
     print(printer.pretty_print(constraint))
 
-    execute_functions(term, constraint, functions, blacklisted_functions, identifiers, printer, json_dir, summaries_dir, execution_decision)
+    execute_functions(term, constraint, functions, blacklisted_functions, identifiers, printer, json_dir, summaries_dir, definitions_dir, execution_decision)
 
 
 def main(args) -> None:
