@@ -1,43 +1,30 @@
 #!/usr/bin/env python3
 
 import json
-import operator
 import subprocess
 import sys
-import tempfile
 import time
-from contextlib import closing
-from dataclasses import dataclass
 from pathlib import Path
-from socket import AF_INET, SO_REUSEADDR, SOCK_STREAM, SOL_SOCKET, socket
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Set, Tuple
+from typing import Any, Iterable, List, Mapping, Optional, Set, Tuple
 
 from pyk.cli_utils import BugReport
 from pyk.cterm import CTerm
-from pyk.kast.inner import KApply, KInner, KLabel, KRewrite, KSequence, KSort, KToken, KVariable, bottom_up
-from pyk.kast.manip import count_vars, ml_pred_to_bool, push_down_rewrites
+from pyk.kast.inner import KApply, KInner, KLabel, KSequence, KSort, KToken, KVariable, bottom_up
+from pyk.kast.manip import ml_pred_to_bool
 from pyk.kast.outer import (
     KAtt,
     KClaim,
-    KDefinition,
     KFlatModule,
-    KImport,
-    KProduction,
-    KRequire,
     KRule,
-    KSentence,
-    KTerminal,
 )
-from pyk.kcfg import KCFG, KCFGExplore
-from pyk.ktool.kompile import kompile, KompileBackend
+from pyk.kcfg import KCFG
 from pyk.ktool.kprint import KPrint, SymbolTable
-from pyk.ktool.kprove import KProve
 from pyk.ktool.krun import KRunOutput, _krun
 from pyk.prelude.bytes import BYTES, bytesToken
 from pyk.prelude.k import GENERATED_TOP_CELL, K
 from pyk.prelude.kbool import TRUE, andBool
 from pyk.prelude.kint import INT, intToken, leInt, ltInt
-from pyk.prelude.ml import mlAnd, mlTop
+from pyk.prelude.ml import mlAnd
 
 from . import execution, wasm_types
 from .functions import (
@@ -47,7 +34,18 @@ from .functions import (
     remove_all_function_id_to_addrs_but_one_and_builtins,
     remove_all_functions_but_one_and_builtins,
 )
-from .kast import extract_rewrite_parents, find_term, get_inner, kinner_top_down_fold, replace_child, replace_term
+from .identifiers import Identifiers, find_identifiers
+from .kast import (
+    DOT_BYTES,
+    SET_BYTES_RANGE,
+    bytes_to_string,
+    extract_rewrite_parents,
+    make_rewrite,
+    replace_child,
+)
+from .lazy_explorer import LazyExplorer, kompile_semantics
+from .rules import RuleCreator, build_rewrite_requires_new
+from .specs import Specs, find_specs
 from .wasm_types import ValType
 
 sys.setrecursionlimit(4000)
@@ -61,8 +59,6 @@ DATA_DIR = BUILD_DIR / 'data'
 JSON_DIR = DATA_DIR / 'json'
 DEBUG_DIR = BUILD_DIR / 'debug'
 SUMMARIES_DIR = DATA_DIR / 'summaries'
-WASM_DIR = K_DIR / 'wasm-semantics'
-DEFAULT_SUMMARIES_DIR = K_DIR / 'summaries'
 MACRO_CELLS = {
     # <moduleInstances> needs MyExports as an argument
     # '<moduleInstances>' : 'moduleInstancesMacro',
@@ -74,10 +70,6 @@ MAP = KSort('Map')
 
 # Setting this disables compilation.
 DEBUG_ID = ''  #'ca3493ec081b72857fe96a8b6d3b3f969505e6bc09d91d16eaff9995f2c551ad'
-
-@dataclass(frozen=True)
-class Identifiers:
-    sort_to_ids: Mapping[KSort, Set[KToken]]
 
 
 class MyKPrint(KPrint):
@@ -98,171 +90,6 @@ class MyKPrint(KPrint):
         symbol_table['_MapIntwToBytesw_'] = lambda c1, c2: f'({c1} {c2})'
         symbol_table['.TabInstCellMap'] = lambda: '.Bag'
         symbol_table['notBool_'] = lambda c1: f'notBool ({c1})'
-
-
-class RuleCreator:
-    def __init__(self, definition: KDefinition) -> None:
-        self.__macros: Dict[str, Tuple[str, KInner]] = {}
-        self.__macro_rules: List[KSentence] = []
-        self.__rules: List[KRule] = []
-        self.__definition = definition
-
-    def add_rule(self, lhs_id: str, rhs_id: str, kcfg: KCFG) -> None:
-        lhs_cterm = kcfg.node(lhs_id).cterm
-        rhs_cterm = kcfg.node(rhs_id).cterm
-        if not self.__macro_rules:
-            self.__initialize_macros(lhs_cterm.config)
-
-        lhs = self.__replace_macros(lhs_cterm.config)
-        # TODO: This is WRONG, should find a better way to solve the speed issue.
-        #
-        # These rules are valid summarizations only for a very specific <funcs> cell.
-        # Replacing its contents with a variable means that we are claiming
-        # that the rule should apply regardless of the contents of the cell.
-        # This rule works properly in the context in which we are currently
-        # using it, but this is rather fragile.
-        #
-        # This also applies to the <funcAddrs> cell.
-        lhs = replace_term(lhs, '<funcs>', KVariable('MyFuncs'))
-        lhs = replace_term(lhs, '<funcAddrs>', KVariable('MyFuncAddrs'))
-        # lhs = replace_term(lhs, '<funcIds>', KVariable('MyFuncIds'))
-
-        rhs = self.__replace_macros(rhs_cterm.config)
-        # TODO: This is WRONG, should find a better way to solve the speed issue.
-        # See the similar comment above.
-        rhs = replace_term(rhs, '<funcs>', KVariable('MyFuncs'))
-        rhs = replace_term(rhs, '<funcAddrs>', KVariable('MyFuncAddrs'))
-        # rhs = replace_term(rhs, '<funcIds>', KVariable('MyFuncIds'))
-        self.__rules.append(make_final_rule_new(lhs, lhs_cterm.constraints, rhs, rhs_cterm.constraints))
-
-    def __initialize_macros(self, config: KInner) -> None:
-        for cell, macro_name in MACRO_CELLS.items():
-            child = find_term(config, cell)
-            assert child is not None
-            self.__macros[cell] = (macro_name, child)
-            self.__add_macro_rules(macro_name, child)
-
-    def __replace_macros(self, config: KInner) -> KInner:
-        for cell, macro_name in MACRO_CELLS.items():
-            _macro_name, macro_value = self.__macros[cell]
-            child = find_term(config, cell)
-            assert child == macro_value
-            config = replace_term(config, cell, KApply(macro_name))
-        return config
-
-    def __add_macro_rules(self, name: str, term: KInner) -> None:
-        assert isinstance(term, KApply)
-        self.__macro_rules.append(
-            KProduction(
-                sort=self.__definition.return_sort(term.label),
-                items=[KTerminal(name), KTerminal('('), KTerminal(')')],
-                att=KAtt({'macro': ''}),
-            )
-        )
-        self.__macro_rules.append(KRule(body=KRewrite(KApply(name), term)))
-
-    def macro_rules(self) -> List[KSentence]:
-        return self.__macro_rules
-
-    def summarize_rules(self) -> List[KRule]:
-        return self.__rules
-
-
-class LazyExplorer:
-    def __init__(self, rules: RuleCreator, identifiers: Identifiers, data_folder: Path, definition_parent: Path, printer: KPrint) -> None:
-        self.__rules = rules
-        self.__identifiers = identifiers
-        self.__summary_folder = data_folder
-        self.__definition_folder = definition_parent / DEFINITION_NAME
-        self.__printer = printer
-        self.__explorer: Optional[KCFGExplore] = None
-
-    def __enter__(self) -> 'LazyExplorer':
-        return self
-
-    def __exit__(self, *_args: Any) -> None:
-        self.close()
-
-    def close(self) -> None:
-        if self.__explorer:
-            self.__explorer.close()
-
-    def get(self) -> KCFGExplore:
-        if self.__explorer is None:
-            if not DEBUG_ID:
-                self.__make_semantics()
-            temp_dir = tempfile.TemporaryDirectory(prefix='kprove')
-            kprove = make_kprove(temp_dir, self.__definition_folder)
-            self.__explorer = make_explorer(kprove)
-        return self.__explorer
-
-    def printer(self) -> KPrint:
-        return self.__printer
-
-    def __make_semantics(self) -> None:
-        identifier_sentences = [
-            KProduction(sort=sort, items=[KTerminal(token.token)], att=KAtt({'token': ''}))
-            for sort, tokens in self.__identifiers.sort_to_ids.items()
-            for token in tokens
-        ]
-        identifiers_module = KFlatModule('IDENTIFIERS', sentences=identifier_sentences)
-
-        ims = [KImport('ELROND-IMPL'), KImport('IDENTIFIERS')]
-        macros_module = KFlatModule('SUMMARY-MACROS', sentences=self.__rules.macro_rules(), imports=ims)
-
-        reqs = [
-            KRequire('backend-fixes.md'),
-            KRequire('elrond-impl.md'),
-            KRequire('elrond-lemmas.md'),
-            KRequire('elrond-wasm-configuration.md'),
-        ]
-        ims.append(KImport('BACKEND-FIXES'))
-        ims.append(KImport('ELROND-LEMMAS'))
-        ims.append(KImport('ELROND-WASM-CONFIGURATION'))
-        ims.append(KImport('SUMMARY-MACROS'))
-        # TODO: pyk now supports sending a module of claims when proving.
-        # Investigate using that. One possible problem: When executing
-        # step-by-step, the Haskell backend might or might not be able to
-        # figure out whether a specific rpc we send is the forst step or not,
-        # and claims should not be applied at the first step.
-        summaries_module = KFlatModule('SUMMARIES', sentences=self.__rules.summarize_rules(), imports=ims)
-
-        definition = KDefinition(
-            'SUMMARIES', all_modules=[summaries_module, identifiers_module, macros_module], requires=reqs
-        )
-
-        definition_text = self.__printer.pretty_print(definition)
-        # definition_text = definition_text.replace('$', '$#')
-
-        self.__summary_folder.mkdir(parents=True, exist_ok=True)
-        (self.__summary_folder / 'summaries.k').write_text(definition_text)
-
-        kompile_semantics(self.__summary_folder, self.__definition_folder)
-
-
-def kompile_semantics(summary_folder: Optional[Path], definition_dir:Path) -> None:
-    print(f'Kompile with {summary_folder} to {definition_dir}')
-    _result = subprocess.run(['rm', '-r', definition_dir])
-    _output_dir = kompile(
-        K_DIR / 'elrond-wasm.md',
-        output_dir=definition_dir,
-        backend=KompileBackend.HASKELL,
-        main_module='ELROND-WASM',
-        syntax_module='ELROND-WASM-SYNTAX',
-        include_dirs=[summary_folder or DEFAULT_SUMMARIES_DIR, K_DIR, WASM_DIR],
-        md_selector='k',
-    )
-
-SET_BYTES_RANGE = '#setBytesRange(_,_,_)_WASM-DATA_Bytes_Bytes_Int_Bytes'
-DOT_BYTES = '.Bytes_BYTES-HOOKED_Bytes'
-
-
-def bytes_to_string(b: str) -> str:
-    assert b.startswith('b"')
-    assert b.endswith('"')
-
-    b = b[2:-1]
-    return b
 
 
 def filter_bytes(term: KToken) -> KInner:
@@ -315,43 +142,6 @@ def filter_bytes_callback(term: KInner) -> KInner:
     return term
 
 
-def compute_bytes(term: KInner) -> KToken:
-    if isinstance(term, KToken):
-        assert term.sort == BYTES, term
-        return term
-    assert isinstance(term, KApply)
-    if term.label.name == DOT_BYTES:
-        return bytesToken('')
-    assert term.label.name == SET_BYTES_RANGE, term
-    assert len(term.args) == 3, term
-    (inner, start, token) = term.args
-
-    inner = compute_bytes(inner)
-    assert inner.sort == BYTES, inner
-    inner_str = bytes_to_string(inner.token)
-
-    assert isinstance(start, KToken), start
-    assert start.sort == INT
-    start_int = int(start.token)
-
-    assert isinstance(token, KToken), token
-    assert token.sort == BYTES, token
-    token_str = bytes_to_string(token.token)
-
-    if len(inner_str) < start_int + len(token_str):
-        inner_str += '\x00' * (start_int + len(token_str) - len(inner_str))
-    inner_str = inner_str[:start_int] + token_str + inner_str[start_int + len(token_str) :]
-
-    return bytesToken(inner_str)
-
-
-def unpack_bytes_callback(term: KInner) -> KInner:
-    if isinstance(term, KApply):
-        if term.label.name == SET_BYTES_RANGE:
-            return compute_bytes(term)
-    return term
-
-
 def print_kore_cfg(node_id: str, kcfg: KCFG, printer: KPrint) -> None:
     cterm = kcfg.node(node_id).cterm
     kore = printer.kast_to_kore(cterm.config)
@@ -391,11 +181,6 @@ def load_json(input_file: Path) -> KInner:
 
 def replace_bytes(term: KInner) -> KInner:
     term = bottom_up(filter_bytes_callback, term)
-    return term
-
-
-def unpack_bytes(term: KInner) -> KInner:
-    term = bottom_up(unpack_bytes_callback, term)
     return term
 
 
@@ -509,32 +294,6 @@ def generate_symbolic_function_call(function: WasmFunction) -> Tuple[KSequence, 
     return (call, stack, constraint)
 
 
-def has_questionmark_variables(term: KInner) -> bool:
-    def maybe_is_questionmark_variable(term: KInner) -> Optional[bool]:
-        if not isinstance(term, KVariable):
-            return None
-        if term.name.startswith('?'):
-            return True
-        return False
-
-    assert isinstance(term, KInner)
-    return kinner_top_down_fold(maybe_is_questionmark_variable, operator.or_, False, term)
-
-
-def make_rewrite(lhs: KInner, rhs: KInner) -> KInner:
-    def make_rewrite_if_needed(left: KInner, right: KInner) -> KInner:
-        if left == right:
-            return left
-        return KRewrite(left, right)
-
-    assert isinstance(lhs, KApply)
-    assert isinstance(rhs, KApply)
-    assert lhs.arity == rhs.arity, [lhs.arity, lhs.label, rhs.arity, rhs.label]
-    assert lhs.label == rhs.label
-    rw = lhs.let(args=[make_rewrite_if_needed(l, r) for (l, r) in zip(lhs.args, rhs.args, strict=True)])
-    return push_down_rewrites(rw)
-
-
 def make_claim(term: KInner, constraint: KInner, address: str, functions: Functions) -> Tuple[KInner, KClaim]:
     function = functions.addr_to_function(address)
     (call, stack, fn_constraint) = generate_symbolic_function_call(function)
@@ -546,21 +305,6 @@ def make_claim(term: KInner, constraint: KInner, address: str, functions: Functi
     write_json(rewrite, DEBUG_DIR / 'rewrite.json')
     full_constraint = make_balanced_and_bool([constraint, fn_constraint])
     return (lhs, KClaim(body=rewrite, requires=full_constraint))
-
-
-def build_rewrite_requires_new(
-    lhs: KInner, lhs_constraints: Tuple[KInner, ...], rhs: KInner, rhs_constraints: Tuple[KInner, ...]
-) -> Tuple[KInner, KInner]:
-    lhs_config = unpack_bytes(lhs)
-    rhs_config = unpack_bytes(rhs)
-    rewrite = make_rewrite(lhs_config, rhs_config)
-    rewrite = get_inner(rewrite, 0, '<elrond-wasm>')
-    requires = [c for c in lhs_constraints if c != TRUE]
-    for c in rhs_constraints:
-        if c != TRUE and c not in lhs_constraints and not has_questionmark_variables(c):
-            requires.append(c)
-    constraint = andBool([ml_pred_to_bool(c) for c in requires])
-    return (rewrite, constraint)
 
 
 def build_rewrite_requires(lhs_id: str, rhs_id: str, kcfg: KCFG) -> Tuple[KInner, KInner]:
@@ -590,65 +334,6 @@ def make_final_rule(lhs_id: str, rhs_id: str, kcfg: KCFG) -> KRule:
     att_dict = {'priority': str(GENERATED_RULE_PRIORITY)}
     rule_att = KAtt(atts=att_dict)
     return KRule(body=rewrite, requires=constraint, att=rule_att)
-
-def underscore_for_unused_vars(kast: KInner, constraint:KInner) -> KInner:
-    num_occs = count_vars(mlAnd([kast, constraint]))
-
-    def _underscore_unused_var(_kast: KInner) -> KInner:
-        if type(_kast) is KVariable and num_occs[_kast.name] == 1:
-            name = _kast.name
-            prefix = ''
-            if name.startswith('?'):
-                prefix = '?'
-                name = name[1:]
-            if name.startswith('_'):
-                return _kast
-            return _kast.let(name = f'{prefix}_{name}')
-        return _kast
-
-    return bottom_up(_underscore_unused_var, kast)
-
-
-def make_final_rule_new(
-    lhs: KInner, lhs_constraints: Tuple[KInner, ...], rhs: KInner, rhs_constraints: Tuple[KInner, ...]
-) -> KRule:
-    (rewrite, constraint) = build_rewrite_requires_new(lhs, lhs_constraints, rhs, rhs_constraints)
-    rewrite = underscore_for_unused_vars(rewrite, constraint)
-
-    att_dict = {'priority': str(GENERATED_RULE_PRIORITY)}
-    rule_att = KAtt(atts=att_dict)
-    return KRule(body=rewrite, requires=constraint, att=rule_att)
-
-
-def make_kprove(temp_dir: tempfile.TemporaryDirectory, definition_dir: Path) -> KProve:
-    return KProve(
-        definition_dir,
-        use_directory=Path(temp_dir.name),
-        bug_report=None
-        # bug_report=BugReport(Path('bug_report'))
-    )
-
-
-def make_explorer(kprove: KProve) -> KCFGExplore:
-    if DEBUG_ID:
-        port = 39425
-    else:
-        port = free_port_on_host()
-    return KCFGExplore(
-        kprove,
-        port=port,
-        bug_report=kprove._bug_report,
-    )
-
-
-# Based on: https://stackoverflow.com/a/45690594
-# TODO: has an obvious race condition, replace with something better.
-def free_port_on_host(host: str = 'localhost') -> int:
-    with closing(socket(AF_INET, SOCK_STREAM)) as sock:
-        sock.bind((host, 0))
-        sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-        _, port = sock.getsockname()
-    return port
 
 
 def write_json(term: KInner, output_file: Path) -> None:
@@ -688,6 +373,7 @@ def my_step(explorer: LazyExplorer, cfg: KCFG, node_id: str) -> List[str]:
         next_ids = cfg.split_on_constraints(node.id, branches)
         for next_id in next_ids:
             print(node.id, '-*>', next_id)
+        assert node.id not in next_ids
         return next_ids
     if actual_depth != 1:
         write_json(node.cterm.config, DEBUG_DIR / 'stuck.json')
@@ -821,6 +507,7 @@ def execute_functions(
     constraints: KInner,
     functions: Functions,
     blacklisted_functions:Set[str],
+    specs:Specs,
     identifiers: Identifiers,
     printer: KPrint,
     state_path: Path,
@@ -828,7 +515,7 @@ def execute_functions(
     definition_path: Path,
     execution_decision: execution.ExecutionManager,
 ) -> None:
-    rules = RuleCreator(printer.definition)
+    rules = RuleCreator(printer.definition, MACRO_CELLS, GENERATED_RULE_PRIORITY)
     unprocessed_functions: List[str] = [
         addr for addr in functions.addrs() if not functions.addr_to_function(addr).is_builtin()
         if not addr in blacklisted_functions
@@ -838,7 +525,17 @@ def execute_functions(
     while unprocessed_functions:
         postponed_functions: List[str] = []
         for function_addr in unprocessed_functions:
-            with LazyExplorer(rules, identifiers, summaries_path / function_addr, definition_path / function_addr, printer) as explorer:
+            with LazyExplorer(
+                    rules=rules,
+                    identifiers=identifiers,
+                    data_folder=summaries_path / function_addr,
+                    definition_parent=definition_path / function_addr / DEFINITION_NAME,
+                    k_dir=K_DIR,
+                    printer=printer,
+                    debug_id=DEBUG_ID,
+                    ) as explorer:
+                specs.add_rules(processed_functions, rules, explorer)
+
                 execution_decision.start_function(int(function_addr))
                 result = execute_function(
                     function_addr, term, constraints, functions, explorer, state_path, execution_decision, rules
@@ -852,38 +549,32 @@ def execute_functions(
                     processed_functions.append(function_addr)
                     execution_decision.finish_function(int(function_addr))
         if len(postponed_functions) == len(unprocessed_functions):
-            with LazyExplorer(rules, identifiers, summaries_path / 'final', definition_path / 'final', printer) as explorer:
+            with LazyExplorer(
+                    rules=rules,
+                    identifiers=identifiers,
+                    data_folder=summaries_path / 'final',
+                    definition_parent=definition_path / 'final',
+                    k_dir=K_DIR, printer=printer,
+                    debug_id=DEBUG_ID
+                    ) as explorer:
                 explorer.get()
             raise ValueError(
                 f'Cannot summarize {unprocessed_functions}, postponed={postponed_functions}, unprocessable={not_processable}, processed={processed_functions}'
             )
         unprocessed_functions = postponed_functions
-    with LazyExplorer(rules, identifiers, summaries_path / 'final', definition_path / 'final', printer) as explorer:
+    with LazyExplorer(
+            rules=rules,
+            identifiers=identifiers,
+            data_folder=summaries_path / 'final',
+            definition_parent=definition_path / 'final',
+            k_dir=K_DIR,
+            printer=printer,
+            debug_id=DEBUG_ID
+            ) as explorer:
         explorer.get()
     print(
         f'unprocessed={unprocessed_functions}, unprocessable={not_processable}, processed={processed_functions}'
     )
-
-
-def find_identifiers(term: KInner) -> Identifiers:
-    def maybe_identifier(term_: KInner) -> Optional[Mapping[KSort, Set[KToken]]]:
-        if isinstance(term_, KToken):
-            if term_.sort.name in ['IdentifierToken']:
-                return {term_.sort: {term_}}
-        return None
-
-    def merge_dicts(
-        first: Mapping[KSort, Set[KToken]], second: Mapping[KSort, Set[KToken]]
-    ) -> Mapping[KSort, Set[KToken]]:
-        result = dict(first)
-        for key, value in second.items():
-            if key in result:
-                result[key] |= value
-            else:
-                result[key] = value
-        return result
-
-    return Identifiers(kinner_top_down_fold(maybe_identifier, merge_dicts, {}, term))
 
 
 class VariablesForGlobals:
@@ -941,14 +632,14 @@ def replace_globals_with_variables(term: KInner) -> Tuple[KInner, List[KInner]]:
     return (new_term, replacer.constraints())
 
 
-def run_for_input(input_file: Path, short_name: str, blacklisted_functions:Set[str]) -> None:
+def run_for_input(input_file: Path, short_name: str, blacklisted_functions:Set[str], whitelisted_for_loops:Set[str]) -> None:
     json_dir = JSON_DIR / short_name
     summaries_dir = SUMMARIES_DIR / short_name
     definitions_dir = DEFINITION_PARENT / short_name
     main_definition_dir = definitions_dir / DEFINITION_NAME
 
     if not DEBUG_ID:
-        kompile_semantics(None, main_definition_dir)
+        kompile_semantics(k_dir=K_DIR, summary_folder=None, definition_dir=main_definition_dir)
 
     krun_output_file = json_dir / 'krun.json'
     bytes_output_file = json_dir / 'bytes.json'
@@ -965,6 +656,7 @@ def run_for_input(input_file: Path, short_name: str, blacklisted_functions:Set[s
     term = load_json(bytes_output_file)
     identifiers = find_identifiers(term)
     functions = find_functions(term)
+    specs = find_specs(input_file.parent / short_name)
 
     # The exports field contains wasm strings that are not serialized properly.
     term = replace_child(term, '<exports>', KVariable('MyExports', sort=MAP))
@@ -987,11 +679,18 @@ def run_for_input(input_file: Path, short_name: str, blacklisted_functions:Set[s
     constraint = make_balanced_and_bool(constraints)
 
     printer = MyKPrint(main_definition_dir)
-    execution_decision = execution.ExecutionManager(functions)
+    execution_decision = execution.ExecutionManager(functions, whitelisted_for_loops)
 
     print(printer.pretty_print(constraint))
 
-    execute_functions(term, constraint, functions, blacklisted_functions, identifiers, printer, json_dir, summaries_dir, definitions_dir, execution_decision)
+    execute_functions(
+        term, constraint,
+        functions, blacklisted_functions,
+        specs,
+        identifiers,
+        printer,
+        json_dir, summaries_dir, definitions_dir,
+        execution_decision)
 
 
 def main(args) -> None:
@@ -1004,7 +703,8 @@ def main(args) -> None:
     if not sample_path.exists():
         print(f'Input file ({sample_path}) does not exit.')
     blacklist = {'multisig-full' : {'78'}}
-    run_for_input(sample_path, sample_name, blacklist.get(sample_name, set()))
+    loop_whitelist = {'sum-to-n' : {'13'}}
+    run_for_input(sample_path, sample_name, blacklist.get(sample_name, set()), loop_whitelist.get(sample_name, set()))
     # run_for_input(samples / 'multisig-full.wat', 'multisig-full', {'78'})
     # run_for_input(samples / 'sum-to-n.wat', 'sum-to-n', set())
     return

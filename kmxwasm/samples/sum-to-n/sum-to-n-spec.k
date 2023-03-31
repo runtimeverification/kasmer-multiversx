@@ -142,5 +142,5 @@ module SUM-TO-N-SPEC
   requires true
       andBool 0 <=Int N
       andBool N <=Int LoopLimit
-      andBool LoopLimit ==Int #pow(i32)
+      andBool LoopLimit ==Int #pow(i32) -Int 1
 endmodule

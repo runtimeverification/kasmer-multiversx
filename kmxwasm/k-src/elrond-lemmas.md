@@ -94,6 +94,21 @@ module ELROND-LEMMAS
       requires Index <=Int Start andBool End <=Int Index +Int lengthBytes(Src)
           andBool definedReplaceAtBytes(Dest, Index, Src)
       [simplification]
+
+  rule #getBytesRange(replaceAtBytes(Dest:Bytes, Index:Int, Source:Bytes), Start:Int, Len:Int)
+      => #getBytesRange(Dest, Start, Len)
+      requires (Start +Int Len <=Int Index) orBool (Index +Int lengthBytes (Source) <=Int Start)
+      [simplification]
+  rule #getBytesRange(replaceAtBytes(_Dest:Bytes, Index:Int, Source:Bytes), Start:Int, Len:Int)
+      => #getBytesRange(Source, Start -Int Index, Len)
+      requires (Index <=Int Start) andBool (Start +Int Len <=Int Index +Int lengthBytes (Source))
+      [simplification]
+  rule #getBytesRange(padRightBytes(B:Bytes, PadLen:Int, Val:Int), Start:Int, GetLen:Int)
+      => #getBytesRange(B, Start, GetLen)
+      requires true
+          andBool definedPadRightBytes(B, PadLen, Val)
+          andBool (PadLen <Int Start orBool Start +Int GetLen <Int lengthBytes(B))
+      [simplification]
   // rule #substrBytes(#replaceAtBytes(Dest:Bytes, Index:Int, Src:Bytes), Start:Int, End:Int)
   //     => Dest
   //     requires (End <=Int Index orBool Index +Int lengthBytes(Src) <=Int Start)

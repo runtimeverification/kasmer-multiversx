@@ -68,16 +68,16 @@ module ELROND-IMPL
           ...
         </instrs>
 
-  rule  <instrs>
-          elrond_trap("\"smallIntGetUnsignedArgument\"") => i64.const ?Argument:Int
-          ...
-        </instrs>
-    ensures 0 <=Int ?Argument andBool ?Argument <Int (1 <<Int 64)
+  // rule  <instrs>
+  //         elrond_trap("\"smallIntGetUnsignedArgument\"") => i64.const ?Argument:Int
+  //         ...
+  //       </instrs>
+  //   ensures 0 <=Int ?Argument andBool ?Argument <Int (1 <<Int 64)
 
-  rule  <instrs>
-          elrond_trap("\"smallIntGetUnsignedArgument\"") => elrondError
-          ...
-        </instrs>
+  // rule  <instrs>
+  //         elrond_trap("\"smallIntGetUnsignedArgument\"") => elrondError
+  //         ...
+  //       </instrs>
 
   rule  <instrs>
           elrond_trap("\"checkNoPayment\"") => .K
@@ -843,23 +843,24 @@ module ELROND-IMPL
               ...
             </instrs>
             <locals>
-                (0 |-> <i32> ArgId:Int)
+                (0 |-> <i32> _ArgId:Int)
             </locals>
             ...
         </wasm>
         <elrond>
             <arguments>
-                L:ListBytesw
+                _L:ListBytesw
             </arguments>
             ...
         </elrond>
-    requires notBool(
-        0 <=Int ArgId
-        andBool ArgId <Int size(L)
-        // TODO: use a total function for list access.
-        andBool 0 <=Int Bytes2Int(unwrap(L[ArgId] orDefault wrap(.Bytes)), LE, Signed)
-        andBool Bytes2Int(unwrap(L[ArgId] orDefault wrap(.Bytes)), LE, Signed) <Int 2 ^Int 64
-    )
+      [owise]
+    // requires notBool(
+    //     0 <=Int ArgId
+    //     andBool ArgId <Int size(L)
+    //     // TODO: use a total function for list access.
+    //     andBool 0 <=Int Bytes2Int(unwrap(L[ArgId] orDefault wrap(.Bytes)), LE, Signed)
+    //     andBool Bytes2Int(unwrap(L[ArgId] orDefault wrap(.Bytes)), LE, Signed) <Int 2 ^Int 64
+    // )
 
   rule  <wasm>
             <instrs>
