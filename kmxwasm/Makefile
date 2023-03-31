@@ -87,6 +87,8 @@ kbuild-%:
 			--backend $* \
 			--md-selector k \
 			--emit-json \
+			-I k-src/wasm-semantics \
+			-I k-src/summaries \
 			--directory ../.build/defn/haskell \
 			--main-module ELROND-WASM \
 			--syntax-module ELROND-WASM-SYNTAX \
