@@ -11,12 +11,7 @@ from pyk.cli_utils import BugReport
 from pyk.cterm import CTerm
 from pyk.kast.inner import KApply, KInner, KLabel, KSequence, KSort, KToken, KVariable, bottom_up
 from pyk.kast.manip import ml_pred_to_bool
-from pyk.kast.outer import (
-    KAtt,
-    KClaim,
-    KFlatModule,
-    KRule,
-)
+from pyk.kast.outer import KAtt, KClaim, KFlatModule, KRule
 from pyk.kcfg import KCFG
 from pyk.ktool.kprint import KPrint, SymbolTable
 from pyk.ktool.krun import KRunOutput, _krun
@@ -35,14 +30,7 @@ from .functions import (
     remove_all_functions_but_one_and_builtins,
 )
 from .identifiers import Identifiers, find_identifiers
-from .kast import (
-    DOT_BYTES,
-    SET_BYTES_RANGE,
-    bytes_to_string,
-    extract_rewrite_parents,
-    make_rewrite,
-    replace_child,
-)
+from .kast import DOT_BYTES, SET_BYTES_RANGE, bytes_to_string, extract_rewrite_parents, make_rewrite, replace_child
 from .lazy_explorer import LazyExplorer, kompile_semantics
 from .rules import RuleCreator, build_rewrite_requires_new
 from .specs import Specs, find_specs
@@ -151,7 +139,7 @@ def print_kore_cfg(node_id: str, kcfg: KCFG, printer: KPrint) -> None:
         print(printer.kore_to_pretty(kore))
 
 
-def krun(input_file: Path, output_file: Path, definition_dir:Path) -> None:
+def krun(input_file: Path, output_file: Path, definition_dir: Path) -> None:
     print('Run', flush=True)
     result = _krun(input_file=input_file, definition_dir=definition_dir, output=KRunOutput.JSON)
     output_file.parent.mkdir(parents=True, exist_ok=True)
@@ -343,10 +331,10 @@ def write_json(term: KInner, output_file: Path) -> None:
 
 def my_step(explorer: LazyExplorer, cfg: KCFG, node_id: str) -> List[str]:
     node = cfg.node(node_id)
-    out_edges:List[str] = []
+    out_edges: List[str] = []
     for split in cfg.splits(source_id=node.id):
         for n, _ in split.targets:
-          out_edges.append(n.id)
+            out_edges.append(n.id)
     for e in cfg.edges(source_id=node.id):
         out_edges.append(e.target.id)
     if len(out_edges) > 0:
@@ -506,8 +494,8 @@ def execute_functions(
     term: KInner,
     constraints: KInner,
     functions: Functions,
-    blacklisted_functions:Set[str],
-    specs:Specs,
+    blacklisted_functions: Set[str],
+    specs: Specs,
     identifiers: Identifiers,
     printer: KPrint,
     state_path: Path,
@@ -517,7 +505,9 @@ def execute_functions(
 ) -> None:
     rules = RuleCreator(printer.definition, MACRO_CELLS, GENERATED_RULE_PRIORITY)
     unprocessed_functions: List[str] = [
-        addr for addr in functions.addrs() if not functions.addr_to_function(addr).is_builtin()
+        addr
+        for addr in functions.addrs()
+        if not functions.addr_to_function(addr).is_builtin()
         if not addr in blacklisted_functions
     ]
     not_processable: List[str] = []
@@ -526,14 +516,14 @@ def execute_functions(
         postponed_functions: List[str] = []
         for function_addr in unprocessed_functions:
             with LazyExplorer(
-                    rules=rules,
-                    identifiers=identifiers,
-                    data_folder=summaries_path / function_addr,
-                    definition_parent=definition_path / function_addr / DEFINITION_NAME,
-                    k_dir=K_DIR,
-                    printer=printer,
-                    debug_id=DEBUG_ID,
-                    ) as explorer:
+                rules=rules,
+                identifiers=identifiers,
+                data_folder=summaries_path / function_addr,
+                definition_parent=definition_path / function_addr / DEFINITION_NAME,
+                k_dir=K_DIR,
+                printer=printer,
+                debug_id=DEBUG_ID,
+            ) as explorer:
                 specs.add_rules(processed_functions, rules, explorer)
 
                 execution_decision.start_function(int(function_addr))
@@ -550,31 +540,30 @@ def execute_functions(
                     execution_decision.finish_function(int(function_addr))
         if len(postponed_functions) == len(unprocessed_functions):
             with LazyExplorer(
-                    rules=rules,
-                    identifiers=identifiers,
-                    data_folder=summaries_path / 'final',
-                    definition_parent=definition_path / 'final',
-                    k_dir=K_DIR, printer=printer,
-                    debug_id=DEBUG_ID
-                    ) as explorer:
+                rules=rules,
+                identifiers=identifiers,
+                data_folder=summaries_path / 'final',
+                definition_parent=definition_path / 'final',
+                k_dir=K_DIR,
+                printer=printer,
+                debug_id=DEBUG_ID,
+            ) as explorer:
                 explorer.get()
             raise ValueError(
                 f'Cannot summarize {unprocessed_functions}, postponed={postponed_functions}, unprocessable={not_processable}, processed={processed_functions}'
             )
         unprocessed_functions = postponed_functions
     with LazyExplorer(
-            rules=rules,
-            identifiers=identifiers,
-            data_folder=summaries_path / 'final',
-            definition_parent=definition_path / 'final',
-            k_dir=K_DIR,
-            printer=printer,
-            debug_id=DEBUG_ID
-            ) as explorer:
+        rules=rules,
+        identifiers=identifiers,
+        data_folder=summaries_path / 'final',
+        definition_parent=definition_path / 'final',
+        k_dir=K_DIR,
+        printer=printer,
+        debug_id=DEBUG_ID,
+    ) as explorer:
         explorer.get()
-    print(
-        f'unprocessed={unprocessed_functions}, unprocessable={not_processable}, processed={processed_functions}'
-    )
+    print(f'unprocessed={unprocessed_functions}, unprocessable={not_processable}, processed={processed_functions}')
 
 
 class VariablesForGlobals:
@@ -632,7 +621,9 @@ def replace_globals_with_variables(term: KInner) -> Tuple[KInner, List[KInner]]:
     return (new_term, replacer.constraints())
 
 
-def run_for_input(input_file: Path, short_name: str, blacklisted_functions:Set[str], whitelisted_for_loops:Set[str]) -> None:
+def run_for_input(
+    input_file: Path, short_name: str, blacklisted_functions: Set[str], whitelisted_for_loops: Set[str]
+) -> None:
     json_dir = JSON_DIR / short_name
     summaries_dir = SUMMARIES_DIR / short_name
     definitions_dir = DEFINITION_PARENT / short_name
@@ -684,16 +675,21 @@ def run_for_input(input_file: Path, short_name: str, blacklisted_functions:Set[s
     print(printer.pretty_print(constraint))
 
     execute_functions(
-        term, constraint,
-        functions, blacklisted_functions,
+        term,
+        constraint,
+        functions,
+        blacklisted_functions,
         specs,
         identifiers,
         printer,
-        json_dir, summaries_dir, definitions_dir,
-        execution_decision)
+        json_dir,
+        summaries_dir,
+        definitions_dir,
+        execution_decision,
+    )
 
 
-def main(args) -> None:
+def main(args: List[str]) -> None:
     if len(args) != 1:
         print('Usage:')
         print('  python3 -m kmxwasm.proofs <sample-no-extension>')
@@ -702,8 +698,8 @@ def main(args) -> None:
     sample_path = ROOT / 'kmxwasm' / 'samples' / f'{sample_name}.wat'
     if not sample_path.exists():
         print(f'Input file ({sample_path}) does not exit.')
-    blacklist = {'multisig-full' : {'78'}}
-    loop_whitelist = {'sum-to-n' : {'13'}}
+    blacklist = {'multisig-full': {'78'}}
+    loop_whitelist = {'sum-to-n': {'13'}}
     run_for_input(sample_path, sample_name, blacklist.get(sample_name, set()), loop_whitelist.get(sample_name, set()))
     # run_for_input(samples / 'multisig-full.wat', 'multisig-full', {'78'})
     # run_for_input(samples / 'sum-to-n.wat', 'sum-to-n', set())

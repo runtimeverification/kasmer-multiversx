@@ -1,7 +1,19 @@
 import operator
 from typing import Callable, Dict, Iterable, List, Optional, Tuple, TypeVar
 
-from pyk.kast.inner import KApply, KAs, KInner, KLabel, KRewrite, KSequence, KSort, KToken, KVariable, bottom_up, top_down
+from pyk.kast.inner import (
+    KApply,
+    KAs,
+    KInner,
+    KLabel,
+    KRewrite,
+    KSequence,
+    KSort,
+    KToken,
+    KVariable,
+    bottom_up,
+    top_down,
+)
 from pyk.kast.manip import count_vars, push_down_rewrites
 from pyk.prelude.ml import mlAnd
 
@@ -198,7 +210,7 @@ def join_tree(label: str, leaves: List[KInner]) -> Optional[KInner]:
     return tree
 
 
-def underscore_for_unused_vars(kast: KInner, constraint:KInner) -> KInner:
+def underscore_for_unused_vars(kast: KInner, constraint: KInner) -> KInner:
     num_occs = count_vars(mlAnd([kast, constraint]))
 
     def _underscore_unused_var(_kast: KInner) -> KInner:
@@ -210,7 +222,7 @@ def underscore_for_unused_vars(kast: KInner, constraint:KInner) -> KInner:
                 name = name[1:]
             if name.startswith('_'):
                 return _kast
-            return _kast.let(name = f'{prefix}_{name}')
+            return _kast.let(name=f'{prefix}_{name}')
         return _kast
 
     return bottom_up(_underscore_unused_var, kast)

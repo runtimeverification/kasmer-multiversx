@@ -1,21 +1,12 @@
 import subprocess
-import tempfile
 from contextlib import closing
 from pathlib import Path
 from socket import AF_INET, SO_REUSEADDR, SOCK_STREAM, SOL_SOCKET, socket
 from typing import Any, Optional
 
-from pyk.kast.outer import (
-    KAtt,
-    KDefinition,
-    KFlatModule,
-    KImport,
-    KProduction,
-    KRequire,
-    KTerminal,
-)
+from pyk.kast.outer import KAtt, KDefinition, KFlatModule, KImport, KProduction, KRequire, KTerminal
 from pyk.kcfg import KCFGExplore
-from pyk.ktool.kompile import kompile, KompileBackend
+from pyk.ktool.kompile import KompileBackend, kompile
 from pyk.ktool.kprint import KPrint
 from pyk.ktool.kprove import KProve
 
@@ -24,15 +15,16 @@ from .rules import RuleCreator
 
 
 class LazyExplorer:
-    def __init__(self,
-                 rules: RuleCreator,
-                 identifiers: Identifiers,
-                 data_folder: Path,
-                 definition_parent: Path,
-                 k_dir: Path,
-                 printer: KPrint,
-                 debug_id: str,
-                 ) -> None:
+    def __init__(
+        self,
+        rules: RuleCreator,
+        identifiers: Identifiers,
+        data_folder: Path,
+        definition_parent: Path,
+        k_dir: Path,
+        printer: KPrint,
+        debug_id: str,
+    ) -> None:
         self.__rules = rules
         self.__identifiers = identifiers
         self.__summary_folder = data_folder
@@ -57,7 +49,7 @@ class LazyExplorer:
         if self.__explorer is None:
             self.__explorer = make_explorer(self.get_kprove(), self.__debug_id != '')
         return self.__explorer
-    
+
     def get_kprove(self) -> KProve:
         if self.__kprove is None:
             if not self.__debug_id:
@@ -111,14 +103,14 @@ class LazyExplorer:
         kompile_semantics(self.__k_dir, self.__summary_folder, self.__definition_folder)
 
 
-def kompile_semantics(k_dir:Path, summary_folder: Optional[Path], definition_dir:Path) -> None:
+def kompile_semantics(k_dir: Path, summary_folder: Optional[Path], definition_dir: Path) -> None:
     print(f'Kompile with {summary_folder} to {definition_dir}', flush=True)
-    _result = subprocess.run(['rm', '-r', definition_dir])
+    _ = subprocess.run(['rm', '-r', definition_dir])
 
     default_summaries_dir = k_dir / 'summaries'
     wasm_dir = k_dir / 'wasm-semantics'
 
-    _output_dir = kompile(
+    _ = kompile(
         k_dir / 'elrond-wasm.md',
         output_dir=definition_dir,
         backend=KompileBackend.HASKELL,
@@ -127,7 +119,7 @@ def kompile_semantics(k_dir:Path, summary_folder: Optional[Path], definition_dir
         include_dirs=[summary_folder or default_summaries_dir, k_dir, wasm_dir],
         md_selector='k',
     )
-    print(f'Kompile done.', flush=True)
+    print('Kompile done.', flush=True)
 
 
 def make_kprove(definition_dir: Path) -> KProve:
@@ -138,7 +130,7 @@ def make_kprove(definition_dir: Path) -> KProve:
     )
 
 
-def make_explorer(kprove: KProve, is_debug:bool) -> KCFGExplore:
+def make_explorer(kprove: KProve, is_debug: bool) -> KCFGExplore:
     if is_debug:
         port = 39425
     else:

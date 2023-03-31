@@ -87,7 +87,7 @@ IMPLEMENTED_ELROND_FUNCTIONS = {
 
 
 class ExecutionManager:
-    def __init__(self, functions: Functions, loop_whitelist:Set[str]) -> None:
+    def __init__(self, functions: Functions, loop_whitelist: Set[str]) -> None:
         self.__already_summarized: Set[int] = set()
         self.__functions = functions
         self.__executing_addr = -1
@@ -126,7 +126,7 @@ class ExecutionManager:
     def finish_function(self, function_addr: int) -> None:
         self.__already_summarized.add(function_addr)
 
-    def __handle_loop(self):
+    def __handle_loop(self) -> Decision:
         if str(self.__executing_addr) in self.__loop_whitelist:
             return Continue()
         return Loop()

@@ -5,6 +5,7 @@ from pyk.kast.inner import KInner, KSort, KToken
 
 from .kast import kinner_top_down_fold
 
+
 @dataclass(frozen=True)
 class Identifiers:
     sort_to_ids: Mapping[KSort, Set[KToken]]

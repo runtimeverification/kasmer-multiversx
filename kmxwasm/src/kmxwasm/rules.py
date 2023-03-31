@@ -2,14 +2,7 @@ from typing import Dict, List, Tuple
 
 from pyk.kast.inner import KApply, KInner, KRewrite, KToken, KVariable, bottom_up
 from pyk.kast.manip import ml_pred_to_bool
-from pyk.kast.outer import (
-    KAtt,
-    KDefinition,
-    KProduction,
-    KRule,
-    KSentence,
-    KTerminal,
-)
+from pyk.kast.outer import KAtt, KDefinition, KProduction, KRule, KSentence, KTerminal
 from pyk.kcfg import KCFG
 from pyk.prelude.bytes import BYTES, bytesToken
 from pyk.prelude.kbool import TRUE, andBool
@@ -27,8 +20,9 @@ from .kast import (
     underscore_for_unused_vars,
 )
 
+
 class RuleCreator:
-    def __init__(self, definition: KDefinition, macro_cells: Dict[str, str], priority:int) -> None:
+    def __init__(self, definition: KDefinition, macro_cells: Dict[str, str], priority: int) -> None:
         self.__macros: Dict[str, Tuple[str, KInner]] = {}
         self.__macro_rules: List[KSentence] = []
         self.__rules: List[KRule] = []
@@ -53,9 +47,11 @@ class RuleCreator:
         rhs = replace_term(rhs, '<funcs>', KVariable('MyFuncs'))
         rhs = replace_term(rhs, '<funcAddrs>', KVariable('MyFuncAddrs'))
         # rhs = replace_term(rhs, '<funcIds>', KVariable('MyFuncIds'))
-        self.__rules.append(make_final_rule_new(lhs, lhs_cterm.constraints, rhs, rhs_cterm.constraints, self.__priority))
+        self.__rules.append(
+            make_final_rule_new(lhs, lhs_cterm.constraints, rhs, rhs_cterm.constraints, self.__priority)
+        )
 
-    def add_raw_rule(self, rule:KRule):
+    def add_raw_rule(self, rule: KRule) -> None:
         self.__rules.append(rule.let(att=default_atts(self.__priority)))
 
     def __initialize_macros(self, config: KInner) -> None:
@@ -97,9 +93,11 @@ def default_atts(priority: int) -> KAtt:
 
 
 def make_final_rule_new(
-    lhs: KInner, lhs_constraints: Tuple[KInner, ...],
-    rhs: KInner, rhs_constraints: Tuple[KInner, ...],
-    priority:int,
+    lhs: KInner,
+    lhs_constraints: Tuple[KInner, ...],
+    rhs: KInner,
+    rhs_constraints: Tuple[KInner, ...],
+    priority: int,
 ) -> KRule:
     (rewrite, constraint) = build_rewrite_requires_new(lhs, lhs_constraints, rhs, rhs_constraints)
     rewrite = underscore_for_unused_vars(rewrite, constraint)
@@ -128,6 +126,7 @@ def unpack_bytes_callback(term: KInner) -> KInner:
         if term.label.name == SET_BYTES_RANGE:
             return compute_bytes(term)
     return term
+
 
 # TODO: This is probably no longer needed and should be removed.
 def unpack_bytes(term: KInner) -> KInner:
