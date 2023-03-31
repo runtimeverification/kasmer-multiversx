@@ -9,17 +9,7 @@ At the end of the document there is a short description of how it works.
 
 ## Running
 
-Setup:
-```sh
-cd kmxwasm
-poetry install
-```
-
-Running:
-
-```sh
-poetry python3 -m kmxwasm.proofs
-```
+See README.md
 
 ## Lessons
 
