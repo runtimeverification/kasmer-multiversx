@@ -110,13 +110,22 @@ class RuleCreator:
             self.__initialize_macros(lhs_cterm.config)
 
         lhs = self.__replace_macros(lhs_cterm.config)
-        # TODO: This is an ugly hack, should find a better way to solve the speed issue.
+        # TODO: This is WRONG, should find a better way to solve the speed issue.
+        #
+        # These rules are valid summarizations only for a very specific <funcs> cell.
+        # Replacing its contents with a variable means that we are claiming
+        # that the rule should apply regardless of the contents of the cell.
+        # This rule works properly in the context in which we are currently
+        # using it, but this is rather fragile.
+        #
+        # This also applies to the <funcAddrs> cell.
         lhs = replace_term(lhs, '<funcs>', KVariable('MyFuncs'))
         lhs = replace_term(lhs, '<funcAddrs>', KVariable('MyFuncAddrs'))
         # lhs = replace_term(lhs, '<funcIds>', KVariable('MyFuncIds'))
 
         rhs = self.__replace_macros(rhs_cterm.config)
-        # TODO: This is an ugly hack, should find a better way to solve the speed issue.
+        # TODO: This is WRONG, should find a better way to solve the speed issue.
+        # See the similar comment above.
         rhs = replace_term(rhs, '<funcs>', KVariable('MyFuncs'))
         rhs = replace_term(rhs, '<funcAddrs>', KVariable('MyFuncAddrs'))
         # rhs = replace_term(rhs, '<funcIds>', KVariable('MyFuncIds'))
@@ -717,7 +726,9 @@ def execute_function(
         json = function_state_path.read_text()
         kcfg = KCFG.from_json(json)
     else:
-        # TODO: This is an ugly hack, should find a better way to solve the speed issue.
+        # TODO: This is WRONG, should find a better way to solve the speed issue.
+        # We should replace the removed functions with a variable, or something
+        # similar.
         hacked_term = remove_all_functions_but_one_and_builtins(term, function_addr, functions)
         hacked_term = remove_all_function_id_to_addrs_but_one_and_builtins(hacked_term, function_addr, functions)
 
