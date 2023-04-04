@@ -15,7 +15,7 @@ module ELROND-CONFIGURATION
     imports MAP-INTW-TO-INTW
 
     // TODO: Move out of here
-    syntax ESDTTransfer ::= esdtTrandfer(value:Int, tokenName:Bytes, tokenType:Int, tokenNonce:Int)
+    syntax ESDTTransfer ::= esdtTransfer(value:Int, tokenName:Bytes, tokenType:Int, tokenNonce:Int)
 
     configuration
         <elrond>
