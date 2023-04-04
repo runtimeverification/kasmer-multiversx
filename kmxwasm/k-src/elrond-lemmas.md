@@ -70,6 +70,13 @@ module ELROND-LEMMAS
       requires notBool Key1 ==K Key2
       [simplification]
 
+  rule Bytes2Int(Int2Bytes(Length:Int, Value:Int, E), E:Endianness, Unsigned)
+      => Value modInt (2 ^Int (Length *Int 8))
+      requires 0 <=Int Value
+      [simplification]
+  rule Bytes2Int(Int2Bytes(Value:Int, E, S), E:Endianness, S:Signedness)
+      => Value
+      [simplification]
 
   rule { _:Int #Equals undefined } => #Top  [simplification]
   rule { (< _:IValType > _:Int) #Equals undefined } => #Bottom  [simplification]
