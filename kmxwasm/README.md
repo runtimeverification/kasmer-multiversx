@@ -25,6 +25,12 @@ wasm. The command should look something like this:
 mxpy contract build multisig --wasm-symbols --no-wasm-opt
 ```
 
+Next, go to the output directory and transform the wasm to wat:
+```bash
+cd multisig/output
+wasm2wat multisig-full.wasm > multisig-full.wat
+```
+
 Then take the produced .wat file and copy it to the `kmxwasm/samples` directory.
 
 If the contract has loops, you may want to create some claims that summarize
@@ -47,12 +53,12 @@ poetry install
 Running, this is an example for the multisig contract:
 
 ```bash
-poetry python3 -m kmxwasm.proofs multisig-full
+poetry run python3 -m kmxwasm.proofs multisig-full
 ```
 
-You may find it useful to use something like
-` 2>&1 | tee ../.build/multisig-full.log` in order to debug, since the output
-is usually fairly large.
+You may find it useful to append something like
+` 2>&1 | tee ../.build/multisig-full.log` to the command above
+in order to debug, since the output is usually fairly large.
 
 
 ## For Developers

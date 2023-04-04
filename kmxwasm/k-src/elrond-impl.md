@@ -580,6 +580,18 @@ module ELROND-IMPL
   rule  <wasm>
             <instrs>
               // TODO: Should append to the returned result, or something like that.
+              elrond_trap("\"bigIntFinishUnsigned\"") => .K
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> _Handle:Int)
+            </locals>
+            ...
+        </wasm>
+
+  rule  <wasm>
+            <instrs>
+              // TODO: Should append to the returned result, or something like that.
               elrond_trap("\"smallIntFinishUnsigned\"") => .K
               ...
             </instrs>

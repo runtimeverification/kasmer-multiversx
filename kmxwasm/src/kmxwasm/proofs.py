@@ -77,7 +77,29 @@ class MyKPrint(KPrint):
         symbol_table['_Int2Bytes|->_'] = lambda c1, c2: f'({c1} Int2Bytes|-> {c2})'
         symbol_table['_MapIntwToBytesw_'] = lambda c1, c2: f'({c1} {c2})'
         symbol_table['.TabInstCellMap'] = lambda: '.Bag'
+
         symbol_table['notBool_'] = lambda c1: f'notBool ({c1})'
+        symbol_table['_andBool_'] = lambda c1, c2: f'({c1}) andBool ({c2})'
+        symbol_table['_orBool_'] = lambda c1, c2: f'({c1}) orBool ({c2})'
+        symbol_table['_andThenBool_'] = lambda c1, c2: f'({c1}) andThenBool ({c2})'
+        symbol_table['_xorBool_'] = lambda c1, c2: f'({c1}) xorBool ({c2})'
+        symbol_table['_orElseBool_'] = lambda c1, c2: f'({c1}) orElseBool ({c2})'
+        symbol_table['_impliesBool_'] = lambda c1, c2: f'({c1}) impliesBool ({c2})'
+
+        symbol_table['~Int_'] = lambda c1: f'~Int ({c1})'
+        symbol_table['_modInt_'] = lambda c1, c2: f'({c1}) modInt ({c2})'
+        symbol_table['_*Int_'] = lambda c1, c2: f'({c1}) *Int ({c2})'
+        symbol_table['_/Int_'] = lambda c1, c2: f'({c1}) /Int ({c2})'
+        symbol_table['_%Int_'] = lambda c1, c2: f'({c1}) %Int ({c2})'
+        symbol_table['_^Int_'] = lambda c1, c2: f'({c1}) ^Int ({c2})'
+        symbol_table['_^%Int_'] = lambda c1, c2: f'({c1}) ^%Int ({c2})'
+        symbol_table['_+Int_'] = lambda c1, c2: f'({c1}) +Int ({c2})'
+        symbol_table['_-Int_'] = lambda c1, c2: f'({c1}) -Int ({c2})'
+        symbol_table['_>>Int_'] = lambda c1, c2: f'({c1}) >>Int ({c2})'
+        symbol_table['_<<Int_'] = lambda c1, c2: f'({c1}) <<Int ({c2})'
+        symbol_table['_&Int_'] = lambda c1, c2: f'({c1}) &Int ({c2})'
+        symbol_table['_xorInt_'] = lambda c1, c2: f'({c1}) xorInt ({c2})'
+        symbol_table['_|Int_'] = lambda c1, c2: f'({c1}) |Int ({c2})'
 
 
 def filter_bytes(term: KToken) -> KInner:

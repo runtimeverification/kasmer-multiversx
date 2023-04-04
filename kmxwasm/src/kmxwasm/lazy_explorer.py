@@ -72,13 +72,11 @@ class LazyExplorer:
         macros_module = KFlatModule('SUMMARY-MACROS', sentences=self.__rules.macro_rules(), imports=ims)
 
         reqs = [
-            KRequire('backend-fixes.md'),
             KRequire('elrond-impl.md'),
             KRequire('elrond-lemmas.md'),
             KRequire('elrond-wasm-configuration.md'),
             KRequire('proof-extensions.md'),
         ]
-        ims.append(KImport('BACKEND-FIXES'))
         ims.append(KImport('ELROND-LEMMAS'))
         ims.append(KImport('ELROND-WASM-CONFIGURATION'))
         ims.append(KImport('PROOF-EXTENSIONS'))

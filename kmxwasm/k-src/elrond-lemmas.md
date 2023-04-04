@@ -1,9 +1,34 @@
 ```k
-requires "backend-fixes.md"
-
 module ELROND-LEMMAS
-  imports private BACKEND-FIXES
   imports public ELROND-IMPL
+
+  syntax Bool ::= definedSubstrBytes(Bytes, startIndex: Int, endIndex: Int)  [function, total]
+  rule definedSubstrBytes(B:Bytes, StartIndex:Int, EndIndex:Int)
+      => (0 <=Int StartIndex) andBool (0 <=Int EndIndex)
+          andBool (StartIndex <Int lengthBytes(B))
+          andBool (EndIndex <=Int lengthBytes(B))
+
+  syntax Bool ::= definedReplaceAtBytes(dest: Bytes, index: Int, src: Bytes)  [function, total]
+  rule definedReplaceAtBytes(Dest:Bytes, Index:Int, Src:Bytes)
+      =>  (0 <=Int Index)
+          andBool (Index +Int lengthBytes(Src) <=Int lengthBytes(Dest))
+
+  syntax Bool ::= definedPadRightBytes(Bytes, length: Int, value: Int)  [function, total]
+  rule definedPadRightBytes(_B:Bytes, Length:Int, Value:Int)
+      =>  (0 <=Int Length)
+          andBool (0 <=Int Value)
+          andBool (Value <=Int 255)
+
+  // // TODO: Should, perhaps, change domains.md to add a smtlib attribute to
+  // // Bytes2Int instead of creating a new symbol that we control.
+  // syntax Int ::= #Bytes2Int(Bytes, Endianness, Signedness)
+  //     [function, total, smtlib(Bytes2Int)]
+  // rule Bytes2Int(B:Bytes, E:Endianness, S:Signedness) => #Bytes2Int (B, E, S)
+  //     [simplification, symbolic]
+  // rule #Bytes2Int(B:Bytes, E:Endianness, S:Signedness) => Bytes2Int (B, E, S)
+  //     [simplification, concrete]
+  // rule 0 <=Int #Bytes2Int(_:Bytes, _:Endianness, Unsigned) => true
+  //     [simplification, smt-lemma]
 
   syntax MapIntwToBytesw ::= MapIntwToBytesw "{" key:Intw "<-" value:Bytesw "}"  [function, total]
   rule M:MapIntwToBytesw{Key:Intw <- Value:Bytesw} => M (Key Int2Bytes|-> Value)
@@ -94,6 +119,9 @@ module ELROND-LEMMAS
       requires Index <=Int Start andBool End <=Int Index +Int lengthBytes(Src)
           andBool definedReplaceAtBytes(Dest, Index, Src)
       [simplification]
+
+  rule padRightBytes (B:Bytes, Length:Int, _Value:Int) => B
+      requires Length <=Int lengthBytes(B)
 
   rule #getBytesRange(replaceAtBytes(Dest:Bytes, Index:Int, Source:Bytes), Start:Int, Len:Int)
       => #getBytesRange(Dest, Start, Len)

@@ -45,6 +45,7 @@ class ClaimNotAppliedForSummarizedFunction(Decision):
 
 IMPLEMENTED_ELROND_FUNCTIONS = {
     '$bigIntAdd',
+    '$bigIntFinishUnsigned',
     '$bigIntGetCallValue',
     '$bigIntGetUnsignedArgument',
     '$bigIntSetInt64',
