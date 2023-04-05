@@ -57,7 +57,7 @@ GENERATED_RULE_PRIORITY = 20
 MAP = KSort('Map')
 
 # Setting this disables compilation.
-DEBUG_ID = ''  #'ca3493ec081b72857fe96a8b6d3b3f969505e6bc09d91d16eaff9995f2c551ad'
+DEBUG_ID = ''  # '65c2eb70d28b5233e53205d46fb32e65a3edf97ce494dfb77ee227c49a29b021'
 
 
 class MyKPrint(KPrint):
@@ -88,6 +88,7 @@ class MyKPrint(KPrint):
 
         symbol_table['~Int_'] = lambda c1: f'~Int ({c1})'
         symbol_table['_modInt_'] = lambda c1, c2: f'({c1}) modInt ({c2})'
+        symbol_table['_modIntTotal_'] = lambda c1, c2: f'({c1}) modIntTotal ({c2})'
         symbol_table['_*Int_'] = lambda c1, c2: f'({c1}) *Int ({c2})'
         symbol_table['_/Int_'] = lambda c1, c2: f'({c1}) /Int ({c2})'
         symbol_table['_%Int_'] = lambda c1, c2: f'({c1}) %Int ({c2})'

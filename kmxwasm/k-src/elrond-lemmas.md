@@ -19,6 +19,9 @@ module ELROND-LEMMAS
           andBool (0 <=Int Value)
           andBool (Value <=Int 255)
 
+  syntax Bool ::= definedModInt(Int, Int)  [function, total]
+  rule definedModInt (_:Int, X:Int) => X =/=Int 0
+
   // // TODO: Should, perhaps, change domains.md to add a smtlib attribute to
   // // Bytes2Int instead of creating a new symbol that we control.
   // syntax Int ::= #Bytes2Int(Bytes, Endianness, Signedness)
@@ -126,6 +129,9 @@ module ELROND-LEMMAS
       requires Index <=Int Start andBool End <=Int Index +Int lengthBytes(Src)
           andBool definedReplaceAtBytes(Dest, Index, Src)
       [simplification]
+  rule substrBytes(B:Bytes, 0:Int, L:Int) => B
+      requires lengthBytes(B) ==Int L
+      [simplification]
 
   rule padRightBytes (B:Bytes, Length:Int, _Value:Int) => B
       requires Length <=Int lengthBytes(B)
@@ -189,10 +195,24 @@ module ELROND-LEMMAS
   rule maxInt(B:Int, C:Int) <Int A:Int => A >Int B andBool A >Int C
       [simplification]
 
-  rule (X modInt Y +Int Z) modInt Y => (X +Int Z) modInt Y
+  rule ((X modIntTotal Y) +Int Z) modIntTotal Y => (X +Int Z) modIntTotal Y
       [simplification]
-  rule (X +Int Z modInt Y) modInt Y => (X +Int Z) modInt Y
+  rule (X +Int (Z modIntTotal Y)) modIntTotal Y => (X +Int Z) modIntTotal Y
       [simplification]
+  rule (_X modIntTotal Y) <Int Y => true
+      requires Y >Int 0
+      [simplification]
+  rule 0 <=Int (_X modIntTotal Y) => true
+      requires Y >Int 0
+      [simplification]
+
+  syntax Int ::= Int "modIntTotal" Int  [function, total, klabel(_modIntTotal_), symbol, left, smt-hook(mod)]
+  rule _ modIntTotal 0 => 0
+  rule X modIntTotal Y => X modInt Y [concrete, simplification]
+
+  rule X modInt Y => X modIntTotal Y
+      requires definedModInt(X, Y)
+      [simplification, symbolic]
 
 endmodule
 ```
