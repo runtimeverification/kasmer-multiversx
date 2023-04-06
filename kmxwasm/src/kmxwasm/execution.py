@@ -45,31 +45,54 @@ class ClaimNotAppliedForSummarizedFunction(Decision):
 
 IMPLEMENTED_ELROND_FUNCTIONS = {
     '$bigIntAdd',
+    '$bigIntFinishUnsigned',
     '$bigIntGetCallValue',
     '$bigIntGetUnsignedArgument',
     '$bigIntSetInt64',
+    '$bigIntSign',
     '$checkNoPayment',
     '$getGasLeft',
     '$getNumArguments',
+    '$getNumESDTTransfers',
+    '$managedAsyncCall',
+    '$managedCaller',
+    '$managedDeployFromSourceContract',
+    '$managedGetOriginalTxHash',
+    '$managedOwnerAddress',
     '$managedSignalError',
+    '$managedTransferValueExecute',
+    '$managedUpgradeFromSourceContract',
+    '$managedWriteLog',
     '$mBufferAppend',
     '$mBufferAppendBytes',
+    '$mBufferCopyByteSlice',
+    '$mBufferEq',
     '$mBufferFinish',
+    '$mBufferFromBigIntUnsigned',
     '$mBufferGetArgument',
+    '$mBufferGetByteSlice',
     '$mBufferGetLength',
     '$mBufferNew',
+    '$mBufferNewFromBytes',
     '$mBufferSetBytes',
+    '$mBufferStorageLoad',
+    '$mBufferStorageStore',
+    '$mBufferToBigIntUnsigned',
+    '$smallIntFinishSigned',
     '$smallIntFinishUnsigned',
     '$smallIntGetUnsignedArgument',
     '$signalError',
 }
 
+# Checked up to (import "env" "mBufferStorageStore" (func $mBufferStorageStore (type 3)))
+
 
 class ExecutionManager:
-    def __init__(self, functions: Functions) -> None:
+    def __init__(self, functions: Functions, loop_whitelist: Set[str]) -> None:
         self.__already_summarized: Set[int] = set()
         self.__functions = functions
         self.__executing_addr = -1
+        self.__loop_whitelist = loop_whitelist
 
     def decide_configuration(self, kcfg: KCFG, node_id: str) -> Decision:
         node = kcfg.node(node_id)
@@ -90,10 +113,12 @@ class ExecutionManager:
             return self.__handle_invoke(first)
         if first.label.name == 'trap_WASM_Instr':
             return self.__handle_trap(instrs)
+        if first.label.name == 'infiniteLoop':
+            return self.__handle_infinite_loop(instrs)
         if first.label.name == 'elrondReverted':
             return Finish()
         if first.label.name == 'aLoop':
-            return Loop()
+            return self.__handle_loop()
         return Continue()
 
     def start_function(self, function_addr: int) -> None:
@@ -102,7 +127,22 @@ class ExecutionManager:
     def finish_function(self, function_addr: int) -> None:
         self.__already_summarized.add(function_addr)
 
+    def __handle_loop(self) -> Decision:
+        if str(self.__executing_addr) in self.__loop_whitelist:
+            return Continue()
+        return Loop()
+
     def __handle_trap(self, instrs: KSequence) -> Decision:
+        assert instrs.arity > 1
+        second = instrs.items[1]
+        if isinstance(second, KApply):
+            return Continue()
+        assert isinstance(second, KVariable), second
+        assert second.name == 'MyOtherInstructions', second
+        assert second.sort == K, second
+        return Finish()
+
+    def __handle_infinite_loop(self, instrs: KSequence) -> Decision:
         assert instrs.arity > 1
         second = instrs.items[1]
         if isinstance(second, KApply):

@@ -6,7 +6,13 @@ module ELROND-IMPL
   imports ELROND-CONFIGURATION
   imports WASM-TEXT
   imports LIST-BYTESW-EXTENSIONS
+  imports LIST-ESDTTRANSFER-EXTENSIONS
+  imports MAP-BYTESW-TO-BYTESW
+  imports MAP-BYTESW-TO-BYTESW-CURLY-BRACE
   imports MAP-INTW-TO-BYTESW
+  imports MAP-INTW-TO-BYTESW-CURLY-BRACE
+  imports MAP-INTW-TO-INTW
+  imports MAP-INTW-TO-INTW-CURLY-BRACE
 
   syntax Intw ::= wrap(Int) | wrapI(Int)
   syntax Int ::= unwrap(Intw) [function, total]
@@ -36,29 +42,72 @@ module ELROND-IMPL
         <locals> _:Map => .Map </locals>
 
   rule  <instrs>
-          elrond_trap("\"smallIntGetUnsignedArgument\"") => i64.const ?Argument:Int
+          elrond_trap("\"managedAsyncCall\"") => .K
           ...
         </instrs>
-    ensures 0 <=Int ?Argument andBool ?Argument <Int (1 <<Int 64)
 
   rule  <instrs>
-          elrond_trap("\"smallIntGetUnsignedArgument\"") => elrondError
+          elrond_trap("\"managedUpgradeFromSourceContract\"") => .K
           ...
         </instrs>
+
+  rule  <instrs>
+          elrond_trap("\"managedDeployFromSourceContract\"") => .K
+          ...
+        </instrs>
+
+  rule  <instrs>
+          elrond_trap("\"managedTransferValueExecute\"") => i32.const 0
+          ...
+        </instrs>
+
+  rule  <instrs>
+          elrond_trap("\"managedTransferValueExecute\"") => i32.const 1
+          ...
+        </instrs>
+
+  rule  <instrs>
+          elrond_trap("\"managedWriteLog\"") => .K
+          ...
+        </instrs>
+
+  // rule  <instrs>
+  //         elrond_trap("\"smallIntGetUnsignedArgument\"") => i64.const ?Argument:Int
+  //         ...
+  //       </instrs>
+  //   ensures 0 <=Int ?Argument andBool ?Argument <Int (1 <<Int 64)
+
+  // rule  <instrs>
+  //         elrond_trap("\"smallIntGetUnsignedArgument\"") => elrondError
+  //         ...
+  //       </instrs>
 
   rule  <instrs>
           elrond_trap("\"checkNoPayment\"") => .K
           ...
         </instrs>
+        <payments>
+            L:ListESDTTransfer
+        </payments>
+      requires size(L) ==Int 0
+
+  rule  <instrs>
+          elrond_trap("\"getNumESDTTransfers\"") => i32.const size(L)
+          ...
+        </instrs>
+        <payments>
+            L:ListESDTTransfer
+        </payments>
 
   rule  <instrs>
           elrond_trap("\"checkNoPayment\"") => elrondError
           ...
         </instrs>
+      [owise]
 
   rule  <wasm>
             <instrs>
-              elrond_trap("\"mBufferSetBytes\"") => i32.const ?_MBufferSetBytesResult:Int
+              elrond_trap("\"mBufferSetBytes\"") => i32.const 0
               ...
             </instrs>
             <locals>
@@ -76,11 +125,121 @@ module ELROND-IMPL
             </buffers>
             ...
         </elrond>
-    requires true #And #Ceil(substrBytes(Mem, Ptr, Ptr +Int Len))
+    requires true
+        #And #Ceil(substrBytes(Mem, Ptr, Ptr +Int Len))
 
   rule  <wasm>
             <instrs>
-              elrond_trap("\"mBufferAppendBytes\"") => i32.const ?_MBufferAppendBytesResult:Int
+              elrond_trap("\"mBufferSetBytes\"") => i32.const 1
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> _Handle:Int)
+                (1 |-> <i32> Ptr:Int)
+                (2 |-> <i32> Len:Int)
+            </locals>
+            <mdata> Mem:Bytes </mdata>
+            ...
+        </wasm>
+    requires true
+        #And (#Not (#Ceil(substrBytes(Mem, Ptr, Ptr +Int Len))))
+
+  rule  <wasm>
+            <instrs>
+              elrond_trap("\"mBufferGetByteSlice\"") => i32.const 0
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> SourceHandle:Int)
+                (1 |-> <i32> StartingPosition:Int)
+                (2 |-> <i32> SliceLength:Int)
+                (3 |-> <i32> ResultOffset:Int)
+            </locals>
+            <mdata>
+              Mem:Bytes
+              => #setBytesRange
+                ( Mem, ResultOffset
+                , substrBytes
+                  ( unwrap(M[wrap(SourceHandle)] orDefault wrap(.Bytes))
+                  , StartingPosition, SliceLength
+                  )
+                )
+            </mdata>
+            ...
+        </wasm>
+        <elrond>
+            <buffers>
+                M:MapIntwToBytesw
+            </buffers>
+            ...
+        </elrond>
+      requires wrap(SourceHandle) in_keys(M)
+        #And #Ceil(#setBytesRange
+                ( Mem, ResultOffset
+                , substrBytes
+                  ( unwrap(M[wrap(SourceHandle)] orDefault wrap(.Bytes))
+                  , StartingPosition, SliceLength
+                  )
+                )
+            )
+  rule  <wasm>
+            <instrs>
+              elrond_trap("\"mBufferGetByteSlice\"") => i32.const 1
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> _SourceHandle:Int)
+                (1 |-> <i32> _StartingPosition:Int)
+                (2 |-> <i32> _SliceLength:Int)
+                (3 |-> <i32> _ResultOffset:Int)
+            </locals>
+            ...
+        </wasm>
+        [owise]
+
+  rule  <wasm>
+            <instrs>
+              elrond_trap("\"mBufferCopyByteSlice\"") => i32.const 0
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> SourceHandle:Int)
+                (1 |-> <i32> StartingPosition:Int)
+                (2 |-> <i32> SliceLength:Int)
+                (3 |-> <i32> DestinationHandle:Int)
+            </locals>
+            ...
+        </wasm>
+        <elrond>
+            <buffers>
+                M:MapIntwToBytesw
+                => M
+                  [ wrap(DestinationHandle)
+                  <- wrap
+                    ( substrBytes
+                      ( unwrap(M[wrap(SourceHandle)] orDefault wrap(.Bytes))
+                      , StartingPosition, SliceLength
+                      )
+                    )
+                  ]
+            </buffers>
+            ...
+        </elrond>
+      requires wrap(SourceHandle) in_keys(M)
+          #And #Ceil(
+                  M [ wrap(DestinationHandle)
+                    <- wrap
+                      ( substrBytes
+                        ( unwrap(M[wrap(SourceHandle)] orDefault wrap(.Bytes))
+                        , StartingPosition, SliceLength
+                        )
+                      )
+                    ]
+              )
+
+  rule  <wasm>
+            <instrs>
+              elrond_trap("\"mBufferAppendBytes\"") => i32.const 0
               ...
             </instrs>
             <locals>
@@ -103,11 +262,27 @@ module ELROND-IMPL
             </buffers>
             ...
         </elrond>
-    requires true #And #Ceil(substrBytes(Mem, Ptr, Ptr +Int Len))
+    requires true
+        #And #Ceil(substrBytes(Mem, Ptr, Ptr +Int Len))
+        #And {true #Equals wrap(Handle) in_keys(M)}
 
   rule  <wasm>
             <instrs>
-              elrond_trap("\"mBufferAppend\"") => i32.const ?_MBufferAppendBytesResult:Int
+              elrond_trap("\"mBufferAppendBytes\"") => i32.const 1
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> _Handle:Int)
+                (1 |-> <i32> _Ptr:Int)
+                (2 |-> <i32> _Len:Int)
+            </locals>
+            ...
+        </wasm>
+      [owise]
+
+  rule  <wasm>
+            <instrs>
+              elrond_trap("\"mBufferAppend\"") => i32.const 0
               ...
             </instrs>
             <locals>
@@ -128,6 +303,137 @@ module ELROND-IMPL
             </buffers>
             ...
         </elrond>
+      requires wrap(HandleAccumulator) in_keys(M) andBool wrap(HandleData) in_keys(M)
+
+  rule  <wasm>
+            <instrs>
+              elrond_trap("\"mBufferAppend\"") => i32.const 1
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> _HandleAccumulator:Int)
+                (1 |-> <i32> _HandleData:Int)
+            </locals>
+            ...
+        </wasm>
+        <elrond>
+            <buffers>
+                _M:MapIntwToBytesw
+            </buffers>
+            ...
+        </elrond>
+      [owise]
+
+  rule  <wasm>
+            <instrs>
+              elrond_trap("\"mBufferEq\"")
+              => i32.const
+                #bool
+                  (   unwrap(M [ wrap(Handle1) ] orDefault wrap(.Bytes))
+                  ==K unwrap(M [ wrap(Handle2) ] orDefault wrap(.Bytes))
+                  )
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> Handle1:Int)
+                (1 |-> <i32> Handle2:Int)
+            </locals>
+            ...
+        </wasm>
+        <elrond>
+            <buffers>
+                M:MapIntwToBytesw
+            </buffers>
+            ...
+        </elrond>
+      requires wrap(Handle1) in_keys(M) andBool wrap(Handle2) in_keys(M)
+  rule  <wasm>
+            <instrs>
+              elrond_trap("\"mBufferEq\"") => i32.const -1
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> _Handle1:Int)
+                (1 |-> <i32> _Handle2:Int)
+            </locals>
+            ...
+        </wasm>
+      [owise]
+
+  rule  <wasm>
+            <instrs>
+              elrond_trap("\"mBufferStorageLoad\"") => i32.const 0
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> KeyHandle:Int)
+                (1 |-> <i32> DestinationHandle:Int)
+            </locals>
+            ...
+        </wasm>
+        <elrond>
+            <buffers>
+                M:MapIntwToBytesw
+                => M[ wrap(DestinationHandle)
+                    <-  S[M[wrap(KeyHandle)] orDefault wrap(.Bytes)]
+                        orDefault wrap(.Bytes)
+                    ]
+            </buffers>
+            <storage>
+                S:MapByteswToBytesw
+            </storage>
+            ...
+        </elrond>
+      requires wrap(KeyHandle) in_keys(M)
+  rule  <wasm>
+            <instrs>
+              elrond_trap("\"mBufferStorageLoad\"") => i32.const 1
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> _KeyHandle:Int)
+                (1 |-> <i32> _DestinationHandle:Int)
+            </locals>
+            ...
+        </wasm>
+      [owise]
+  rule  <wasm>
+            <instrs>
+              elrond_trap("\"mBufferStorageStore\"") => i32.const 0
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> KeyHandle:Int)
+                (1 |-> <i32> SourceHandle:Int)
+            </locals>
+            ...
+        </wasm>
+        <elrond>
+            <buffers>
+                M:MapIntwToBytesw
+            </buffers>
+            <storage>
+                S:MapByteswToBytesw
+                => S[  M[wrap(KeyHandle)] orDefault wrap(.Bytes)
+                    <- M[wrap(SourceHandle)] orDefault wrap(.Bytes)
+                    ]
+            </storage>
+            ...
+        </elrond>
+      requires (wrap(KeyHandle) in_keys(M)) andBool (wrap(SourceHandle) in_keys(M))
+      // TODO: SetStorage is fairly complex, this is not a proper implementation.
+  rule  <wasm>
+            <instrs>
+              elrond_trap("\"mBufferStorageStore\"") => i32.const 1
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> _KeyHandle:Int)
+                (1 |-> <i32> _SourceHandle:Int)
+            </locals>
+            ...
+        </wasm>
+      [owise]
 
   rule  <wasm>
             <instrs>
@@ -143,7 +449,124 @@ module ELROND-IMPL
             </buffers>
             ...
         </elrond>
-      ensures notBool wrap(?NewHandle) in_keys(M)
+      ensures notBool wrap(?NewHandle) in_keys(M) andBool ?NewHandle >Int 0
+
+  rule  <wasm>
+            <instrs>
+              elrond_trap("\"mBufferNewFromBytes\"") => i32.const ?NewHandle:Int
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> Ptr:Int)
+                (1 |-> <i32> Len:Int)
+            </locals>
+            <mdata> Mem:Bytes </mdata>
+            ...
+        </wasm>
+        <elrond>
+            <buffers>
+                M:MapIntwToBytesw
+                => M[wrap(?NewHandle) <- wrap(substrBytes(Mem, Ptr, Ptr +Int Len))]
+            </buffers>
+            ...
+        </elrond>
+    requires true
+        #And #Ceil(substrBytes(Mem, Ptr, Ptr +Int Len))
+    ensures notBool wrap(?NewHandle) in_keys(M) andBool ?NewHandle >Int 0
+
+  rule  <wasm>
+            <instrs>
+              elrond_trap("\"mBufferNewFromBytes\"") => i32.const -1
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> _Ptr:Int)
+                (1 |-> <i32> _Len:Int)
+            </locals>
+            ...
+        </wasm>
+      [owise]
+
+  rule  <wasm>
+            <instrs>
+              elrond_trap("\"mBufferFromBigIntUnsigned\"") => i32.const 0
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> HandleBuffer:Int)
+                (1 |-> <i32> HandleInt:Int)
+            </locals>
+            ...
+        </wasm>
+        <elrond>
+            <buffers>
+                M:MapIntwToBytesw
+                => M[ wrap(HandleBuffer)
+                    <- wrap(Int2Bytes(unwrap(N [ wrap(HandleInt) ] orDefault wrap(0)), LE, Signed))
+                    ]
+            </buffers>
+            <ints>
+                N:MapIntwToIntw
+            </ints>
+            ...
+        </elrond>
+        requires wrap(HandleInt) in_keys(N)
+
+  rule  <wasm>
+            <instrs>
+              elrond_trap("\"mBufferFromBigIntUnsigned\"") => i32.const 1
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> _HandleBuffer:Int)
+                (1 |-> <i32> _HandleInt:Int)
+            </locals>
+            ...
+        </wasm>
+      [owise]
+
+  rule  <wasm>
+            <instrs>
+              elrond_trap("\"mBufferToBigIntUnsigned\"") => i32.const 0
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> HandleBuffer:Int)
+                (1 |-> <i32> HandleInt:Int)
+            </locals>
+            ...
+        </wasm>
+        <elrond>
+            <buffers>
+                M:MapIntwToBytesw
+            </buffers>
+            <ints>
+                N:MapIntwToIntw
+                => N[ wrap(HandleInt)
+                    <- wrap
+                      ( Bytes2Int
+                        ( unwrap(M [ wrap(HandleBuffer) ] orDefault wrap(.Bytes))
+                        , LE, Signed  // TODO: Is this the right thing to do? The function name says otherwise
+                        )
+                      )
+                    ]
+            </ints>
+            ...
+        </elrond>
+        requires wrap(HandleBuffer) in_keys(M)
+
+  rule  <wasm>
+            <instrs>
+              elrond_trap("\"mBufferToBigIntUnsigned\"") => i32.const 1
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> _HandleBuffer:Int)
+                (1 |-> <i32> _HandleInt:Int)
+            </locals>
+            ...
+        </wasm>
+      [owise]
 
   rule  <wasm>
             <instrs>
@@ -160,7 +583,31 @@ module ELROND-IMPL
   rule  <wasm>
             <instrs>
               // TODO: Should append to the returned result, or something like that.
+              elrond_trap("\"bigIntFinishUnsigned\"") => .K
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> _Handle:Int)
+            </locals>
+            ...
+        </wasm>
+
+  rule  <wasm>
+            <instrs>
+              // TODO: Should append to the returned result, or something like that.
               elrond_trap("\"smallIntFinishUnsigned\"") => .K
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i64> _Value:Int)
+            </locals>
+            ...
+        </wasm>
+
+  rule  <wasm>
+            <instrs>
+              // TODO: Should append to the returned result, or something like that.
+              elrond_trap("\"smallIntFinishSigned\"") => .K
               ...
             </instrs>
             <locals>
@@ -235,17 +682,11 @@ module ELROND-IMPL
               ...
             </instrs>
             <locals>
-                (0 |-> <i32> Handle:Int)
+                (0 |-> <i32> _Handle:Int)
             </locals>
             ...
         </wasm>
-        <elrond>
-            <buffers>
-                M:MapIntwToBytesw
-            </buffers>
-            ...
-        </elrond>
-    requires notBool (wrap(Handle) in_keys(M))
+    [owise]
 
   rule  <wasm>
             <instrs>
@@ -315,6 +756,39 @@ module ELROND-IMPL
 
   rule  <wasm>
             <instrs>
+              elrond_trap("\"managedOwnerAddress\"") => .K
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> Handle:Int)
+            </locals>
+            ...
+        </wasm>
+        <elrond>
+            <buffers>
+                M:MapIntwToBytesw => M[wrap(Handle) <- wrap(Owner)]
+            </buffers>
+            <owner>
+                Owner:Bytes
+            </owner>
+            ...
+        </elrond>
+      requires Owner =/=K .Bytes
+
+  rule  <wasm>
+            <instrs>
+              elrond_trap("\"managedOwnerAddress\"") => .K
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> _Handle:Int)
+            </locals>
+            ...
+        </wasm>
+      [owise]
+
+  rule  <wasm>
+            <instrs>
               elrond_trap("\"managedGetOriginalTxHash\"") => .K
               ...
             </instrs>
@@ -344,9 +818,9 @@ module ELROND-IMPL
             ...
         </wasm>
         <elrond>
-            <buffers>
-                M:MapIntwToBytesw => M[wrap(Handle) <- wrap(Int2Bytes(CallValue, LE, Signed))]
-            </buffers>
+            <ints>
+                M:MapIntwToIntw => M[wrap(Handle) <- wrap(CallValue)]
+            </ints>
             <call-value>
                 CallValue:Int
             </call-value>
@@ -384,23 +858,24 @@ module ELROND-IMPL
               ...
             </instrs>
             <locals>
-                (0 |-> <i32> ArgId:Int)
+                (0 |-> <i32> _ArgId:Int)
             </locals>
             ...
         </wasm>
         <elrond>
             <arguments>
-                L:ListBytesw
+                _L:ListBytesw
             </arguments>
             ...
         </elrond>
-    requires notBool(
-        0 <=Int ArgId
-        andBool ArgId <Int size(L)
-        // TODO: use a total function for list access.
-        andBool 0 <=Int Bytes2Int(unwrap(L[ArgId] orDefault wrap(.Bytes)), LE, Signed)
-        andBool Bytes2Int(unwrap(L[ArgId] orDefault wrap(.Bytes)), LE, Signed) <Int 2 ^Int 64
-    )
+      [owise]
+    // requires notBool(
+    //     0 <=Int ArgId
+    //     andBool ArgId <Int size(L)
+    //     // TODO: use a total function for list access.
+    //     andBool 0 <=Int Bytes2Int(unwrap(L[ArgId] orDefault wrap(.Bytes)), LE, Signed)
+    //     andBool Bytes2Int(unwrap(L[ArgId] orDefault wrap(.Bytes)), LE, Signed) <Int 2 ^Int 64
+    // )
 
   rule  <wasm>
             <instrs>
@@ -476,20 +951,55 @@ module ELROND-IMPL
             ...
         </wasm>
         <elrond>
-            <buffers>
-                M:MapIntwToBytesw
+            <ints>
+                M:MapIntwToIntw
                 => M[ wrap(HandleDest)
                     <-  wrap
-                        ( Int2Bytes
-                          ( Bytes2Int(unwrap(M[wrap(Handle1)] orDefault wrap(.Bytes)), LE, Signed)
-                            +Int Bytes2Int(unwrap(M[wrap(Handle2)] orDefault wrap(.Bytes)), LE, Signed)
-                          , LE, Signed
-                          )
+                        ( unwrap(M[wrap(Handle1)] orDefault wrap(0))
+                        +Int unwrap(M[wrap(Handle2)] orDefault wrap(0))
                         )
                     ]
-            </buffers>
+            </ints>
             ...
         </elrond>
+
+  rule  <wasm>
+            <instrs>
+              elrond_trap("\"bigIntSign\"")
+              => i32.const
+                #if unwrap(M[wrap(Handle)] orDefault wrap(0)) <Int 0
+                #then -1
+                #else #if unwrap(M[wrap(Handle)] orDefault wrap(0)) >Int 0
+                #then 1
+                #else 0
+                #fi #fi
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> Handle:Int)
+            </locals>
+            ...
+        </wasm>
+        <elrond>
+            <ints>
+                M:MapIntwToIntw
+            </ints>
+            ...
+        </elrond>
+      requires wrap(Handle) in_keys(M)
+
+  rule  <wasm>
+            <instrs>
+              elrond_trap("\"bigIntSign\"")
+              => i32.const -2
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> _Handle:Int)
+            </locals>
+            ...
+        </wasm>
+      [owise]
 
   // syntax IdentifierToken ::= r"\\$[0-9a-zA-Z!$%&'*+/<>?_`|~=:\\@^.-]+" [token]
   // syntax  ::= "$__stack_pointer" [token]

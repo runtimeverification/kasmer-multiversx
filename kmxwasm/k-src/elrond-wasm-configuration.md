@@ -1,7 +1,6 @@
 ```k
 require "summaries.k"
 require "elrond-impl.md"
-require "elrond-lemmas.md"
 require "elrond-configuration.md"
 
 module ELROND-WASM-CONFIGURATION
