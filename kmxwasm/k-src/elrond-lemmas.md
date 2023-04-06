@@ -33,46 +33,6 @@ module ELROND-LEMMAS
   // rule 0 <=Int #Bytes2Int(_:Bytes, _:Endianness, Unsigned) => true
   //     [simplification, smt-lemma]
 
-  syntax MapIntwToBytesw ::= MapIntwToBytesw "{" key:Intw "<-" value:Bytesw "}"  [function, total]
-  rule M:MapIntwToBytesw{Key:Intw <- Value:Bytesw} => M (Key Int2Bytes|-> Value)
-    requires notBool Key in_keys(M)
-  rule (Key Int2Bytes|-> _:Bytesw M:MapIntwToBytesw){Key:Intw <- Value:Bytesw} => M (Key Int2Bytes|-> Value)
-  rule (M:MapIntwToBytesw{Key:Intw <- Value:Bytesw})(A:Intw Int2Bytes|-> B:Bytesw N:MapIntwToBytesw)
-      => (M (A Int2Bytes|-> B)) {Key <- Value} N
-      requires notBool A ==K B
-      [simplification]
-
-  rule M:MapIntwToBytesw{Key1:Intw <- Value1:Bytesw}[Key2:Intw <- Value2:Bytesw]
-      => ((M:MapIntwToBytesw[Key2 <- Value2]{Key1 <- Value1}) #And #Not ({Key1 #Equals Key2}))
-        #Or ((M:MapIntwToBytesw[Key2 <- Value2]) #And {Key1 #Equals Key2})
-      [simplification(20)]
-  rule M:MapIntwToBytesw[Key:Intw <- Value:Bytesw]
-      => M:MapIntwToBytesw{Key <- Value}
-      [simplification(100)]
-  rule M:MapIntwToBytesw{Key1:Intw <- _Value1:Bytesw}[Key2:Intw] orDefault Value2:Bytesw
-      => M[Key2] orDefault Value2
-      requires Key1 =/=K Key2
-      [simplification]
-  rule _M:MapIntwToBytesw{Key:Intw <- Value1:Bytesw}[Key:Intw] orDefault _Value2:Bytesw
-      => Value1
-      [simplification]
-  // rule M:MapIntwToBytesw{Key1:Intw <- Value1:Bytesw}[Key2:Intw] orDefault Value2:Bytesw
-  //     => (M[Key2] orDefault Value2 #And #Not ({Key1 #Equals Key2}))
-  //       #Or (Value1 #And {Key1 #Equals Key2})
-  //     [simplification]
-  rule M:MapIntwToBytesw{Key1:Intw <- Value1:Bytesw}[Key2:Intw]
-      => (M[Key2] #And #Not ({Key1 #Equals Key2}))
-        #Or (Value1 #And {Key1 #Equals Key2})
-      [simplification]
-
-  rule Key1:Intw in_keys(_:MapIntwToBytesw{Key1:Intw <- _:Bytesw})
-      => true
-      [simplification]
-  rule Key1:Intw in_keys(M:MapIntwToBytesw{Key2:Intw <- _:Bytesw})
-      => Key1 in_keys(M)
-      requires notBool Key1 ==K Key2
-      [simplification]
-
   rule Bytes2Int(Int2Bytes(Length:Int, Value:Int, E), E:Endianness, Unsigned)
       => Value modInt (2 ^Int (Length *Int 8))
       requires 0 <=Int Value
@@ -212,7 +172,7 @@ module ELROND-LEMMAS
 
   rule X modInt Y => X modIntTotal Y
       requires definedModInt(X, Y)
-      [simplification, symbolic]
+      [simplification, symbolic(X)]
 
 endmodule
 ```

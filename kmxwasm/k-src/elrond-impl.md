@@ -8,8 +8,11 @@ module ELROND-IMPL
   imports LIST-BYTESW-EXTENSIONS
   imports LIST-ESDTTRANSFER-EXTENSIONS
   imports MAP-BYTESW-TO-BYTESW
+  imports MAP-BYTESW-TO-BYTESW-CURLY-BRACE
   imports MAP-INTW-TO-BYTESW
+  imports MAP-INTW-TO-BYTESW-CURLY-BRACE
   imports MAP-INTW-TO-INTW
+  imports MAP-INTW-TO-INTW-CURLY-BRACE
 
   syntax Intw ::= wrap(Int) | wrapI(Int)
   syntax Int ::= unwrap(Intw) [function, total]

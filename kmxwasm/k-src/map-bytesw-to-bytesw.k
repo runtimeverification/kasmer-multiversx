@@ -159,3 +159,51 @@ module MAP-BYTESW-TO-BYTESW-KORE-SYMBOLIC
           #And {@Key in_keys(@M) #Equals false}
       [simplification]
 endmodule
+
+module MAP-BYTESW-TO-BYTESW-CURLY-BRACE
+  imports private BOOL
+  imports private K-EQUAL-SYNTAX
+  imports MAP-BYTESW-TO-BYTESW
+
+  syntax MapByteswToBytesw ::= MapByteswToBytesw "{" key:Bytesw "<-" value:Bytesw "}"
+      [function, total, klabel(MapByteswToBytesw:curly_update), symbol]
+  rule M:MapByteswToBytesw{Key <- Value} => M (Key Bytes2Bytes|-> Value)
+    requires notBool Key in_keys(M)
+  rule (Key Bytes2Bytes|-> _ M:MapByteswToBytesw){Key <- Value}
+      => M (Key Bytes2Bytes|-> Value)
+  rule (M:MapByteswToBytesw{Key <- Value})(A Bytes2Bytes|-> B N:MapByteswToBytesw)
+      => (M (A Bytes2Bytes|-> B)) {Key <- Value} N
+      requires notBool A ==K Key
+      [simplification]
+
+  rule M:MapByteswToBytesw{Key1 <- Value1}[Key2 <- Value2]
+      => ((M:MapByteswToBytesw[Key2 <- Value2]{Key1 <- Value1}) #And #Not ({Key1 #Equals Key2}))
+        #Or ((M:MapByteswToBytesw[Key2 <- Value2]) #And {Key1 #Equals Key2})
+      [simplification(20)]
+  rule M:MapByteswToBytesw[Key <- Value]
+      => M:MapByteswToBytesw{Key <- Value}
+      [simplification(100)]
+  rule M:MapByteswToBytesw{Key1 <- _Value1}[Key2] orDefault Value2
+      => M[Key2] orDefault Value2
+      requires Key1 =/=K Key2
+      [simplification]
+  rule _M:MapByteswToBytesw{Key <- Value1}[Key] orDefault _Value2
+      => Value1
+      [simplification]
+  // rule M:MapByteswToBytesw{Key1 <- Value1}[Key2] orDefault Value2
+  //     => (M[Key2] orDefault Value2 #And #Not ({Key1 #Equals Key2}))
+  //       #Or (Value1 #And {Key1 #Equals Key2})
+  //     [simplification]
+  rule M:MapByteswToBytesw{Key1 <- Value1}[Key2]
+      => (M[Key2] #And #Not ({Key1 #Equals Key2}))
+        #Or (Value1 #And {Key1 #Equals Key2})
+      [simplification]
+
+  rule Key1 in_keys(_:MapByteswToBytesw{Key1 <- _})
+      => true
+      [simplification]
+  rule Key1 in_keys(M:MapByteswToBytesw{Key2 <- _})
+      => Key1 in_keys(M)
+      requires notBool Key1 ==K Key2
+      [simplification]
+endmodule

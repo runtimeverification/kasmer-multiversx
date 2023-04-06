@@ -159,3 +159,51 @@ module MAP-INTW-TO-INTW-KORE-SYMBOLIC
           #And {@Key in_keys(@M) #Equals false}
       [simplification]
 endmodule
+
+module MAP-INTW-TO-INTW-CURLY-BRACE
+  imports private BOOL
+  imports private K-EQUAL-SYNTAX
+  imports MAP-INTW-TO-INTW
+
+  syntax MapIntwToIntw ::= MapIntwToIntw "{" key:Intw "<-" value:Intw "}"
+      [function, total, klabel(MapIntwToIntw:curly_update), symbol]
+  rule M:MapIntwToIntw{Key <- Value} => M (Key Int2Int|-> Value)
+    requires notBool Key in_keys(M)
+  rule (Key Int2Int|-> _ M:MapIntwToIntw){Key <- Value}
+      => M (Key Int2Int|-> Value)
+  rule (M:MapIntwToIntw{Key <- Value})(A Int2Int|-> B N:MapIntwToIntw)
+      => (M (A Int2Int|-> B)) {Key <- Value} N
+      requires notBool A ==K Key
+      [simplification]
+
+  rule M:MapIntwToIntw{Key1 <- Value1}[Key2 <- Value2]
+      => ((M:MapIntwToIntw[Key2 <- Value2]{Key1 <- Value1}) #And #Not ({Key1 #Equals Key2}))
+        #Or ((M:MapIntwToIntw[Key2 <- Value2]) #And {Key1 #Equals Key2})
+      [simplification(20)]
+  rule M:MapIntwToIntw[Key <- Value]
+      => M:MapIntwToIntw{Key <- Value}
+      [simplification(100)]
+  rule M:MapIntwToIntw{Key1 <- _Value1}[Key2] orDefault Value2
+      => M[Key2] orDefault Value2
+      requires Key1 =/=K Key2
+      [simplification]
+  rule _M:MapIntwToIntw{Key <- Value1}[Key] orDefault _Value2
+      => Value1
+      [simplification]
+  // rule M:MapIntwToIntw{Key1 <- Value1}[Key2] orDefault Value2
+  //     => (M[Key2] orDefault Value2 #And #Not ({Key1 #Equals Key2}))
+  //       #Or (Value1 #And {Key1 #Equals Key2})
+  //     [simplification]
+  rule M:MapIntwToIntw{Key1 <- Value1}[Key2]
+      => (M[Key2] #And #Not ({Key1 #Equals Key2}))
+        #Or (Value1 #And {Key1 #Equals Key2})
+      [simplification]
+
+  rule Key1 in_keys(_:MapIntwToIntw{Key1 <- _})
+      => true
+      [simplification]
+  rule Key1 in_keys(M:MapIntwToIntw{Key2 <- _})
+      => Key1 in_keys(M)
+      requires notBool Key1 ==K Key2
+      [simplification]
+endmodule
