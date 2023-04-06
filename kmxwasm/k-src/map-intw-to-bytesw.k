@@ -159,3 +159,51 @@ module MAP-INTW-TO-BYTESW-KORE-SYMBOLIC
           #And {@Key in_keys(@M) #Equals false}
       [simplification]
 endmodule
+
+module MAP-INTW-TO-BYTESW-CURLY-BRACE
+  imports private BOOL
+  imports private K-EQUAL-SYNTAX
+  imports MAP-INTW-TO-BYTESW
+
+  syntax MapIntwToBytesw ::= MapIntwToBytesw "{" key:Intw "<-" value:Bytesw "}"
+      [function, total, klabel(MapIntwToBytesw:curly_update), symbol]
+  rule M:MapIntwToBytesw{Key <- Value} => M (Key Int2Bytes|-> Value)
+    requires notBool Key in_keys(M)
+  rule (Key Int2Bytes|-> _ M:MapIntwToBytesw){Key <- Value}
+      => M (Key Int2Bytes|-> Value)
+  rule (M:MapIntwToBytesw{Key <- Value})(A Int2Bytes|-> B N:MapIntwToBytesw)
+      => (M (A Int2Bytes|-> B)) {Key <- Value} N
+      requires notBool A ==K Key
+      [simplification]
+
+  rule M:MapIntwToBytesw{Key1 <- Value1}[Key2 <- Value2]
+      => ((M:MapIntwToBytesw[Key2 <- Value2]{Key1 <- Value1}) #And #Not ({Key1 #Equals Key2}))
+        #Or ((M:MapIntwToBytesw[Key2 <- Value2]) #And {Key1 #Equals Key2})
+      [simplification(20)]
+  rule M:MapIntwToBytesw[Key <- Value]
+      => M:MapIntwToBytesw{Key <- Value}
+      [simplification(100)]
+  rule M:MapIntwToBytesw{Key1 <- _Value1}[Key2] orDefault Value2
+      => M[Key2] orDefault Value2
+      requires Key1 =/=K Key2
+      [simplification]
+  rule _M:MapIntwToBytesw{Key <- Value1}[Key] orDefault _Value2
+      => Value1
+      [simplification]
+  // rule M:MapIntwToBytesw{Key1 <- Value1}[Key2] orDefault Value2
+  //     => (M[Key2] orDefault Value2 #And #Not ({Key1 #Equals Key2}))
+  //       #Or (Value1 #And {Key1 #Equals Key2})
+  //     [simplification]
+  rule M:MapIntwToBytesw{Key1 <- Value1}[Key2]
+      => (M[Key2] #And #Not ({Key1 #Equals Key2}))
+        #Or (Value1 #And {Key1 #Equals Key2})
+      [simplification]
+
+  rule Key1 in_keys(_:MapIntwToBytesw{Key1 <- _})
+      => true
+      [simplification]
+  rule Key1 in_keys(M:MapIntwToBytesw{Key2 <- _})
+      => Key1 in_keys(M)
+      requires notBool Key1 ==K Key2
+      [simplification]
+endmodule

@@ -1,9 +1,26 @@
 import operator
 from typing import Callable, Dict, Iterable, List, Optional, Tuple, TypeVar
 
-from pyk.kast.inner import KApply, KAs, KInner, KLabel, KRewrite, KSequence, KSort, KToken, KVariable, top_down
+from pyk.kast.inner import (
+    KApply,
+    KAs,
+    KInner,
+    KLabel,
+    KRewrite,
+    KSequence,
+    KSort,
+    KToken,
+    KVariable,
+    bottom_up,
+    top_down,
+)
+from pyk.kast.manip import count_vars, push_down_rewrites
+from pyk.prelude.ml import mlAnd
 
 V = TypeVar('V')
+
+SET_BYTES_RANGE = '#setBytesRange(_,_,_)_WASM-DATA_Bytes_Bytes_Int_Bytes'
+DOT_BYTES = '.Bytes_BYTES-HOOKED_Bytes'
 
 
 def replace_child(term: KInner, parent_name: str, replacement: KInner) -> KInner:
@@ -191,3 +208,55 @@ def join_tree(label: str, leaves: List[KInner]) -> Optional[KInner]:
         else:
             tree = KApply(label, tree, leaf)
     return tree
+
+
+def underscore_for_unused_vars(kast: KInner, constraint: KInner) -> KInner:
+    num_occs = count_vars(mlAnd([kast, constraint]))
+
+    def _underscore_unused_var(_kast: KInner) -> KInner:
+        if type(_kast) is KVariable and num_occs[_kast.name] == 1:
+            name = _kast.name
+            prefix = ''
+            if name.startswith('?'):
+                prefix = '?'
+                name = name[1:]
+            if name.startswith('_'):
+                return _kast
+            return _kast.let(name=f'{prefix}_{name}')
+        return _kast
+
+    return bottom_up(_underscore_unused_var, kast)
+
+
+def make_rewrite(lhs: KInner, rhs: KInner) -> KInner:
+    def make_rewrite_if_needed(left: KInner, right: KInner) -> KInner:
+        if left == right:
+            return left
+        return KRewrite(left, right)
+
+    assert isinstance(lhs, KApply)
+    assert isinstance(rhs, KApply)
+    assert lhs.arity == rhs.arity, [lhs.arity, lhs.label, rhs.arity, rhs.label]
+    assert lhs.label == rhs.label
+    rw = lhs.let(args=[make_rewrite_if_needed(l, r) for (l, r) in zip(lhs.args, rhs.args, strict=True)])
+    return push_down_rewrites(rw)
+
+
+def has_questionmark_variables(term: KInner) -> bool:
+    def maybe_is_questionmark_variable(term: KInner) -> Optional[bool]:
+        if not isinstance(term, KVariable):
+            return None
+        if term.name.startswith('?'):
+            return True
+        return False
+
+    assert isinstance(term, KInner)
+    return kinner_top_down_fold(maybe_is_questionmark_variable, operator.or_, False, term)
+
+
+def bytes_to_string(b: str) -> str:
+    assert b.startswith('b"')
+    assert b.endswith('"')
+
+    b = b[2:-1]
+    return b
