@@ -33,12 +33,25 @@ module ELROND-LEMMAS
   // rule 0 <=Int #Bytes2Int(_:Bytes, _:Endianness, Unsigned) => true
   //     [simplification, smt-lemma]
 
+  rule Bytes2Int(#getBytesRange(_:Bytes, _:Int, N:Int), _:Endianness, _:Signedness) <Int M:Int
+        => true
+      requires 2 ^Int (8 *Int N) <=Int M
+      [simplification]
+  rule N <=Int Bytes2Int(_:Bytes, _:Endianness, Unsigned)
+        => true
+      requires N <=Int 0
+      [simplification]
+
   rule Bytes2Int(Int2Bytes(Length:Int, Value:Int, E), E:Endianness, Unsigned)
       => Value modInt (2 ^Int (Length *Int 8))
       requires 0 <=Int Value
       [simplification]
   rule Bytes2Int(Int2Bytes(Value:Int, E, S), E:Endianness, S:Signedness)
       => Value
+      [simplification]
+
+  rule 0 <=Int A +Int B => true
+      requires 0 <=Int A andBool 0 <=Int B
       [simplification]
 
   rule { _:Int #Equals undefined } => #Top  [simplification]
@@ -89,12 +102,19 @@ module ELROND-LEMMAS
       requires Index <=Int Start andBool End <=Int Index +Int lengthBytes(Src)
           andBool definedReplaceAtBytes(Dest, Index, Src)
       [simplification]
-  rule substrBytes(B:Bytes, 0:Int, L:Int) => B
-      requires lengthBytes(B) ==Int L
-      [simplification]
+  rule substrBytes(B:Bytes, 0:Int, Len:Int) => B
+      requires true
+          andBool definedSubstrBytes(B, 0, Len)
+          andBool Len ==Int lengthBytes(B)
 
   rule padRightBytes (B:Bytes, Length:Int, _Value:Int) => B
       requires Length <=Int lengthBytes(B)
+  rule padRightBytes(replaceAtBytes(Dest:Bytes, Pos:Int, Source:Bytes) #as _Ceil, Length:Int, Value:Int)
+      => replaceAtBytes(padRightBytes(Dest, Length, Value), Pos, Source)
+      [simplification]
+  rule padRightBytes(padRightBytes(B:Bytes, Length1:Int, Value:Int) #as _Ceil, Length2:Int, Value:Int)
+      => padRightBytes(B, maxInt (Length1, Length2), Value:Int)
+      [simplification]
 
   rule #getBytesRange(replaceAtBytes(Dest:Bytes, Index:Int, Source:Bytes), Start:Int, Len:Int)
       => #getBytesRange(Dest, Start, Len)

@@ -236,6 +236,20 @@ module ELROND-IMPL
                       )
                     ]
               )
+  rule  <wasm>
+            <instrs>
+              elrond_trap("\"mBufferCopyByteSlice\"") => i32.const 1
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> _SourceHandle:Int)
+                (1 |-> <i32> _StartingPosition:Int)
+                (2 |-> <i32> _SliceLength:Int)
+                (3 |-> <i32> _DestinationHandle:Int)
+            </locals>
+            ...
+        </wasm>
+      [owise]
 
   rule  <wasm>
             <instrs>
