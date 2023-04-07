@@ -104,7 +104,7 @@ class MyKPrint(KPrint):
 
         symbol_table['~Int_'] = lambda c1: f'~Int ({c1})'
         symbol_table['_modInt_'] = lambda c1, c2: f'({c1}) modInt ({c2})'
-        symbol_table['_modIntTotal_'] = lambda c1, c2: f'({c1}) modIntTotal ({c2})'
+        symbol_table['modIntTotal'] = lambda c1, c2: f'({c1}) modIntTotal ({c2})'
         symbol_table['_*Int_'] = lambda c1, c2: f'({c1}) *Int ({c2})'
         symbol_table['_/Int_'] = lambda c1, c2: f'({c1}) /Int ({c2})'
         symbol_table['_%Int_'] = lambda c1, c2: f'({c1}) %Int ({c2})'
@@ -212,9 +212,7 @@ def replace_bytes(term: KInner) -> KInner:
 
 
 def replace_bytes_c_term(term: CTerm) -> CTerm:
-    new_term = replace_bytes(term.config)
-    thing = mlAnd([new_term] + list(term.constraints), GENERATED_TOP_CELL)
-    return CTerm(thing)
+    return CTerm(replace_bytes(term.config), term.constraints)
 
 
 def make_apply(label: str, args: List[KInner]) -> KApply:

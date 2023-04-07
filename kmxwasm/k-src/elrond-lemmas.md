@@ -1,26 +1,10 @@
 ```k
+require "ceils.k"
+
+
 module ELROND-LEMMAS
+  imports public CEILS
   imports public ELROND-IMPL
-
-  syntax Bool ::= definedSubstrBytes(Bytes, startIndex: Int, endIndex: Int)  [function, total]
-  rule definedSubstrBytes(B:Bytes, StartIndex:Int, EndIndex:Int)
-      => (0 <=Int StartIndex) andBool (0 <=Int EndIndex)
-          andBool (StartIndex <Int lengthBytes(B))
-          andBool (EndIndex <=Int lengthBytes(B))
-
-  syntax Bool ::= definedReplaceAtBytes(dest: Bytes, index: Int, src: Bytes)  [function, total]
-  rule definedReplaceAtBytes(Dest:Bytes, Index:Int, Src:Bytes)
-      =>  (0 <=Int Index)
-          andBool (Index +Int lengthBytes(Src) <=Int lengthBytes(Dest))
-
-  syntax Bool ::= definedPadRightBytes(Bytes, length: Int, value: Int)  [function, total]
-  rule definedPadRightBytes(_B:Bytes, Length:Int, Value:Int)
-      =>  (0 <=Int Length)
-          andBool (0 <=Int Value)
-          andBool (Value <=Int 255)
-
-  syntax Bool ::= definedModInt(Int, Int)  [function, total]
-  rule definedModInt (_:Int, X:Int) => X =/=Int 0
 
   // // TODO: Should, perhaps, change domains.md to add a smtlib attribute to
   // // Bytes2Int instead of creating a new symbol that we control.
@@ -58,100 +42,64 @@ module ELROND-LEMMAS
   rule { (< _:IValType > _:Int) #Equals undefined } => #Bottom  [simplification]
   rule { (< _:ValType > _:Int) #Equals undefined } => #Bottom  [simplification]
 
-  rule #Ceil(replaceAtBytes (@Dest:Bytes, @Index:Int, @Src:Bytes))
-      =>  ( {definedReplaceAtBytes(@Dest, @Index, @Src) #Equals true}
-          #And #Ceil(@Dest)
-          )
-        #And
-          ( #Ceil(@Index)
-          #And #Ceil(@Src)
-          )
-        [simplification]
-  rule #Ceil(substrBytes(@B:Bytes, @StartIndex:Int, @EndIndex:Int))
-      =>  ( {definedSubstrBytes(@B, @StartIndex, @EndIndex) #Equals true}
-          #And #Ceil(@B)
-          )
-        #And
-          ( #Ceil(@StartIndex)
-          #And #Ceil(@EndIndex)
-          )
-        [simplification]
-  rule #Ceil(padRightBytes (@B:Bytes, @Length:Int, @Value:Int))
-      =>  ( {definedPadRightBytes(@B, @Length, @Value) #Equals true}
-          #And #Ceil(@B)
-          )
-        #And
-          ( #Ceil(@Length)
-          #And #Ceil(@Value)
-          )
-        [simplification]
-
   rule #Ceil(#signed(@T:IValType, @N:Int))
       => {0 <=Int @N andBool @N <Int #pow(@T) #Equals true}
         #And #Ceil(@T)
         #And #Ceil(@N)
         [simplification]
 
-  rule substrBytes(replaceAtBytes(Dest:Bytes, Index:Int, Src:Bytes), Start:Int, End:Int)
-      => substrBytes(Dest, Start, End)
+  rule substrBytesTotal(replaceAtBytesTotal(Dest:Bytes, Index:Int, Src:Bytes), Start:Int, End:Int)
+      => substrBytesTotal(Dest, Start, End)
       requires (End <=Int Index orBool Index +Int lengthBytes(Src) <=Int Start)
           andBool definedReplaceAtBytes(Dest, Index, Src)
       [simplification]
-  rule substrBytes(replaceAtBytes(Dest:Bytes, Index:Int, Src:Bytes), Start:Int, End:Int)
-      => substrBytes(Src, Start -Int Index, End -Int Index)
+  rule substrBytesTotal(replaceAtBytesTotal(Dest:Bytes, Index:Int, Src:Bytes), Start:Int, End:Int)
+      => substrBytesTotal(Src, Start -Int Index, End -Int Index)
       requires Index <=Int Start andBool End <=Int Index +Int lengthBytes(Src)
           andBool definedReplaceAtBytes(Dest, Index, Src)
       [simplification]
-  rule substrBytes(B:Bytes, 0:Int, Len:Int) => B
+  rule substrBytesTotal(B:Bytes, 0:Int, Len:Int) => B
       requires true
-          andBool definedSubstrBytes(B, 0, Len)
           andBool Len ==Int lengthBytes(B)
+      [simplification]
 
-  rule padRightBytes (B:Bytes, Length:Int, _Value:Int) => B
+  rule padRightBytesTotal (B:Bytes, Length:Int, _Value:Int) => B
       requires Length <=Int lengthBytes(B)
-  rule padRightBytes(replaceAtBytes(Dest:Bytes, Pos:Int, Source:Bytes) #as _Ceil, Length:Int, Value:Int)
-      => replaceAtBytes(padRightBytes(Dest, Length, Value), Pos, Source)
+  rule padRightBytesTotal(replaceAtBytesTotal(Dest:Bytes, Pos:Int, Source:Bytes) #as _Ceil, Length:Int, Value:Int)
+      => replaceAtBytesTotal(padRightBytesTotal(Dest, Length, Value), Pos, Source)
       [simplification]
-  rule padRightBytes(padRightBytes(B:Bytes, Length1:Int, Value:Int) #as _Ceil, Length2:Int, Value:Int)
-      => padRightBytes(B, maxInt (Length1, Length2), Value:Int)
+  rule padRightBytesTotal(padRightBytesTotal(B:Bytes, Length1:Int, Value:Int) #as _Ceil, Length2:Int, Value:Int)
+      => padRightBytesTotal(B, maxInt (Length1, Length2), Value:Int)
       [simplification]
 
-  rule #getBytesRange(replaceAtBytes(Dest:Bytes, Index:Int, Source:Bytes), Start:Int, Len:Int)
+  rule #getBytesRange(replaceAtBytesTotal(Dest:Bytes, Index:Int, Source:Bytes), Start:Int, Len:Int)
       => #getBytesRange(Dest, Start, Len)
       requires (Start +Int Len <=Int Index) orBool (Index +Int lengthBytes (Source) <=Int Start)
       [simplification]
-  rule #getBytesRange(replaceAtBytes(_Dest:Bytes, Index:Int, Source:Bytes), Start:Int, Len:Int)
+  rule #getBytesRange(replaceAtBytesTotal(_Dest:Bytes, Index:Int, Source:Bytes), Start:Int, Len:Int)
       => #getBytesRange(Source, Start -Int Index, Len)
       requires (Index <=Int Start) andBool (Start +Int Len <=Int Index +Int lengthBytes (Source))
       [simplification]
-  rule #getBytesRange(padRightBytes(B:Bytes, PadLen:Int, Val:Int), Start:Int, GetLen:Int)
+  rule #getBytesRange(padRightBytesTotal(B:Bytes, PadLen:Int, Val:Int), Start:Int, GetLen:Int)
       => #getBytesRange(B, Start, GetLen)
       requires true
           andBool definedPadRightBytes(B, PadLen, Val)
           andBool (PadLen <Int Start orBool Start +Int GetLen <Int lengthBytes(B))
       [simplification]
-  // rule #substrBytes(#replaceAtBytes(Dest:Bytes, Index:Int, Src:Bytes), Start:Int, End:Int)
-  //     => Dest
-  //     requires (End <=Int Index orBool Index +Int lengthBytes(Src) <=Int Start)
-  //         andBool definedReplaceAtBytes(Dest, Index, Src)
-  //     [simplification]
-  // rule #substrBytes(#replaceAtBytes(Dest:Bytes, Index:Int, Src:Bytes), Start:Int, End:Int)
-  //     => #substrBytes(Src, Start -Int Index, End -Int Index)
-  //     requires Index <=Int Start andBool End <=Int Index +Int lengthBytes(Src)
-  //         andBool definedReplaceAtBytes(Dest, Index, Src)
-  //     [simplification]
 
   rule lengthBytes(Int2Bytes(Len:Int, _:Int, _:Endianness)) => Len  [simplification]
-  rule lengthBytes(padRightBytes(B:Bytes, Length:Int, _Value:Int))
+  rule lengthBytes(padRightBytesTotal(B:Bytes, Length:Int, _Value:Int))
       => maxInt(lengthBytes(B:Bytes), Length:Int)
       [simplification]
-  rule lengthBytes(replaceAtBytes(Dest:Bytes, _Index:Int, _Src:Bytes) #as _Ceil)
+  rule lengthBytes(replaceAtBytesTotal(Dest:Bytes, _Index:Int, _Src:Bytes) #as _Ceil)
       => lengthBytes(Dest)
       [simplification]
-  // rule lengthBytes(#replaceAtBytes(Dest:Bytes, _Index:Int, _Src:Bytes) #as _Ceil)
-  //     => lengthBytes(Dest)
-  //     [simplification]
+  rule lengthBytes(substrBytesTotal(_:Bytes, Start:Int, End:Int))
+      => End -Int Start
+      [simplification]
   rule 0 <=Int lengthBytes(_:Bytes) => true  [simplification]
+
+  rule X -Int X => 0  [simplification]
 
   rule A:Int <=Int maxInt(B:Int, C:Int) => true
       requires A <=Int B orBool A <=Int C
@@ -185,14 +133,6 @@ module ELROND-LEMMAS
   rule 0 <=Int (_X modIntTotal Y) => true
       requires Y >Int 0
       [simplification]
-
-  syntax Int ::= Int "modIntTotal" Int  [function, total, klabel(_modIntTotal_), symbol, left, smt-hook(mod)]
-  rule _ modIntTotal 0 => 0
-  rule X modIntTotal Y => X modInt Y [concrete, simplification]
-
-  rule X modInt Y => X modIntTotal Y
-      requires definedModInt(X, Y)
-      [simplification, symbolic(X)]
 
 endmodule
 ```
