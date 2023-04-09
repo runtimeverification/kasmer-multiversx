@@ -5,6 +5,7 @@ require "ceils.k"
 module ELROND-LEMMAS
   imports public CEILS
   imports public ELROND-IMPL
+  // imports private INT-NORMALIZATION
 
   // // TODO: Should, perhaps, change domains.md to add a smtlib attribute to
   // // Bytes2Int instead of creating a new symbol that we control.
@@ -129,10 +130,122 @@ module ELROND-LEMMAS
       [simplification]
   rule (_X modIntTotal Y) <Int Y => true
       requires Y >Int 0
-      [simplification]
+      [simplification, smt-lemma]
   rule 0 <=Int (_X modIntTotal Y) => true
       requires Y >Int 0
+      [simplification, smt-lemma]
+
+  rule {(A modIntTotal C) #Equals (B modIntTotal C)} => #Top
+      requires A ==Int B
       [simplification]
+
+endmodule
+
+
+module INT-NORMALIZATION
+    imports BOOL
+    imports private CEILS
+    imports INT
+
+    syntax IntList ::= ".IntList" | Int ":" IntList
+    syntax Bool ::= differentIntStructure(IntList, IntList)  [function, total, no-evaluators]
+    syntax Bool ::= unevaluableDifferentIntStructure()  [function, total, no-evaluators]
+
+    rule differentIntStructure(.IntList, .IntList) => unevaluableDifferentIntStructure()
+
+    rule differentIntStructure(A1:Int : L1:IntList, A2:Int : L2:IntList)
+        => differentIntStructure(L1, L2)
+        requires A1 ==Int A2
+        [simplification(200), concrete(A1), concrete(A2)]
+
+    rule differentIntStructure(A1:Int +Int A2 : L1:IntList, B1:Int +Int B2 : L2:IntList)
+        => differentIntStructure(A1 : A2 : L1, B1 : B2 : L2)
+        [simplification]
+    rule differentIntStructure(_A1:Int +Int _A2 : _L1:IntList, _:Int : _L2:IntList)
+        => true
+        [simplification(100)]
+
+    rule differentIntStructure(A1:Int -Int A2 : L1:IntList, B1:Int -Int B2 : L2:IntList)
+        => differentIntStructure(A1 : A2 : L1, B1 : B2 : L2)
+        [simplification]
+    rule differentIntStructure(_A1:Int -Int _A2 : _L1:IntList, _:Int : _L2:IntList)
+        => true
+        [simplification(100)]
+
+    rule differentIntStructure(A1:Int *Int A2 : L1:IntList, B1:Int *Int B2 : L2:IntList)
+        => differentIntStructure(A1 : A2 : L1, B1 : B2 : L2)
+        [simplification]
+    rule differentIntStructure(_A1:Int *Int _A2 : _L1:IntList, _:Int : _L2:IntList)
+        => true
+        [simplification(100)]
+
+    rule differentIntStructure(A1:Int /Int A2 : L1:IntList, B1:Int /Int B2 : L2:IntList)
+        => differentIntStructure(A1 : A2 : L1, B1 : B2 : L2)
+        [simplification]
+    rule differentIntStructure(_A1:Int /Int _A2 : _L1:IntList, _:Int : _L2:IntList)
+        => true
+        [simplification(100)]
+
+    rule differentIntStructure(
+            A1:Int modIntTotal A2 : L1:IntList,
+            B1:Int modIntTotal B2 : L2:IntList
+        )
+        => differentIntStructure(A1 : A2 : L1, B1 : B2 : L2)
+        [simplification]
+    rule differentIntStructure(_A1:Int modIntTotal _A2 : _L1:IntList, _:Int : _L2:IntList)
+        => true
+        [simplification(100)]
+
+    syntax Int ::= normalizeModIntTotal(Int)  [function, total, no-evaluators]
+    rule normalizeModIntTotal(I:Int) => I
+        [simplification(200)]
+    rule normalizeModIntTotal(A +Int B)
+        => normalizeModIntTotal(A) +Int normalizeModIntTotal(B)
+        [simplification]
+    rule normalizeModIntTotal(A -Int B)
+        => normalizeModIntTotal(A) -Int normalizeModIntTotal(B)
+        [simplification]
+    rule normalizeModIntTotal(A *Int B)
+        => normalizeModIntTotal(A) *Int normalizeModIntTotal(B)
+        [simplification]
+    rule normalizeModIntTotal(A /Int B)
+        => normalizeModIntTotal(A) /Int normalizeModIntTotal(B)
+        [simplification]
+    rule normalizeModIntTotal(A modIntTotal B)
+        => normalizeModIntTotalHelper(A, B) modIntTotal normalizeModIntTotal(B)
+        [simplification]
+
+    syntax Int ::= normalizeModIntTotalHelper(Int, Int)  [function, total, no-evaluators]
+    rule normalizeModIntTotalHelper(I:Int, _) => I
+        [simplification(200)]
+    rule normalizeModIntTotalHelper(A +Int B, M)
+        => normalizeModIntTotalHelper(A, M) +Int normalizeModIntTotalHelper(B, M)
+        [simplification]
+    rule normalizeModIntTotalHelper(A -Int B, M)
+        => normalizeModIntTotalHelper(A, M) -Int normalizeModIntTotalHelper(B, M)
+        [simplification]
+    rule normalizeModIntTotalHelper(A *Int B, M)
+        => normalizeModIntTotalHelper(A, M) *Int normalizeModIntTotalHelper(B, M)
+        [simplification]
+    rule normalizeModIntTotalHelper(A /Int B, _)
+        => normalizeModIntTotal(A) /Int normalizeModIntTotal(B)
+        [simplification]
+    rule normalizeModIntTotalHelper(A modIntTotal M, M)
+        => normalizeModIntTotalHelper(A, M)
+        [simplification]
+    rule normalizeModIntTotalHelper(A modIntTotal N, M)
+        => normalizeModIntTotalHelper(A, N)
+        requires M =/=Int N
+        [simplification]
+
+    syntax Int ::= normalizeInt(Int)  [function, total]
+    rule normalizeInt(I) => normalizeModIntTotal(I)
+
+    rule A modIntTotal M => normalizeModIntTotalHelper(A, M) modIntTotal M
+        requires differentIntStructure(
+              A : .IntList,
+              normalizeModIntTotalHelper(A, M) : .IntList)
+        [simplification]
 
 endmodule
 ```

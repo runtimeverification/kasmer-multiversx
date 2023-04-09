@@ -132,7 +132,7 @@ module CEILS
 
 
     syntax Int ::= Int "modIntTotal" Int
-        [function, total, klabel(modIntTotal), symbol, no-evaluators]
+        [function, total, klabel(modIntTotal), symbol, no-evaluators, smtlib(modIntTotal)]
 
     rule Arg0:Int modIntTotal Arg1:Int
         => Arg0 modInt Arg1

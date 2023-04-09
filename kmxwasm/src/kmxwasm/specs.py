@@ -3,6 +3,7 @@ from typing import List, Tuple
 
 from pyk.kast.outer import KRule
 from pyk.ktool.kprove import KProve
+from pyk.prelude.ml import is_top
 
 from .kast import get_inner
 from .lazy_explorer import LazyExplorer
@@ -36,7 +37,9 @@ class Specs:
     @staticmethod
     def __prove(spec_path: Path, kprove: KProve) -> None:
         print(f'Proving {spec_path}', flush=True)
-        kprove.prove(spec_path)
+        final_state = kprove.prove(spec_path)
+        if not is_top(final_state):
+            raise ValueError(f'Failed to prove {spec_path}.')
         print('Proving done', flush=True)
 
     @staticmethod
