@@ -30,7 +30,15 @@ from .functions import (
     remove_all_functions_but_one_and_builtins,
 )
 from .identifiers import Identifiers, find_identifiers
-from .kast import DOT_BYTES, SET_BYTES_RANGE, bytes_to_string, extract_rewrite_parents, make_rewrite, replace_child
+from .kast import (
+    DOT_BYTES,
+    SET_BYTES_RANGE,
+    bytes_to_string,
+    extract_rewrite_parents,
+    has_unused_questionmark_variables,
+    make_rewrite,
+    replace_child,
+)
 from .lazy_explorer import LazyExplorer, kompile_semantics
 from .rules import RuleCreator, build_rewrite_requires_new
 from .specs import Specs, find_specs
@@ -96,7 +104,7 @@ class MyKPrint(KPrint):
 
         symbol_table['~Int_'] = lambda c1: f'~Int ({c1})'
         symbol_table['_modInt_'] = lambda c1, c2: f'({c1}) modInt ({c2})'
-        symbol_table['_modIntTotal_'] = lambda c1, c2: f'({c1}) modIntTotal ({c2})'
+        symbol_table['modIntTotal'] = lambda c1, c2: f'({c1}) modIntTotal ({c2})'
         symbol_table['_*Int_'] = lambda c1, c2: f'({c1}) *Int ({c2})'
         symbol_table['_/Int_'] = lambda c1, c2: f'({c1}) /Int ({c2})'
         symbol_table['_%Int_'] = lambda c1, c2: f'({c1}) %Int ({c2})'
@@ -204,9 +212,7 @@ def replace_bytes(term: KInner) -> KInner:
 
 
 def replace_bytes_c_term(term: CTerm) -> CTerm:
-    new_term = replace_bytes(term.config)
-    thing = mlAnd([new_term] + list(term.constraints), GENERATED_TOP_CELL)
-    return CTerm(thing)
+    return CTerm(replace_bytes(term.config), term.constraints)
 
 
 def make_apply(label: str, args: List[KInner]) -> KApply:
@@ -326,7 +332,7 @@ def make_claim(term: KInner, constraint: KInner, address: str, functions: Functi
     return (lhs, KClaim(body=rewrite, requires=full_constraint))
 
 
-def build_rewrite_requires(lhs_id: str, rhs_id: str, kcfg: KCFG) -> Tuple[KInner, KInner]:
+def build_rewrite_requires(lhs_id: str, rhs_id: str, kcfg: KCFG) -> Tuple[KInner, KInner, KInner]:
     lhs_node = kcfg.node(lhs_id)
     rhs_node = kcfg.node(rhs_id)
     return build_rewrite_requires_new(
@@ -339,8 +345,8 @@ def build_rewrite_requires(lhs_id: str, rhs_id: str, kcfg: KCFG) -> Tuple[KInner
 # configuration when calling `minimize_rule`. The rule is not valid without
 # those.
 def make_final_claim(lhs_id: str, rhs_id: str, kcfg: KCFG) -> KClaim:
-    (rewrite, constraint) = build_rewrite_requires(lhs_id=lhs_id, rhs_id=rhs_id, kcfg=kcfg)
-    return KClaim(body=rewrite, requires=constraint)
+    (rewrite, requires_constraint, ensures_constraint) = build_rewrite_requires(lhs_id=lhs_id, rhs_id=rhs_id, kcfg=kcfg)
+    return KClaim(body=rewrite, requires=requires_constraint, ensures=ensures_constraint)
 
 
 # It would be tempting to use cterm.build_rule or cterm.build_claim, however,
@@ -348,11 +354,11 @@ def make_final_claim(lhs_id: str, rhs_id: str, kcfg: KCFG) -> KClaim:
 # configuration when calling `minimize_rule`. The rule is not valid without
 # those.
 def make_final_rule(lhs_id: str, rhs_id: str, kcfg: KCFG) -> KRule:
-    (rewrite, constraint) = build_rewrite_requires(lhs_id=lhs_id, rhs_id=rhs_id, kcfg=kcfg)
+    (rewrite, requires_constraint, ensures_constraint) = build_rewrite_requires(lhs_id=lhs_id, rhs_id=rhs_id, kcfg=kcfg)
 
     att_dict = {'priority': str(GENERATED_RULE_PRIORITY)}
     rule_att = KAtt(atts=att_dict)
-    return KRule(body=rewrite, requires=constraint, att=rule_att)
+    return KRule(body=rewrite, requires=requires_constraint, ensures=ensures_constraint, att=rule_att)
 
 
 def write_json(term: KInner, output_file: Path) -> None:
@@ -360,19 +366,62 @@ def write_json(term: KInner, output_file: Path) -> None:
     output_file.write_text(json.dumps(term.to_dict()))
 
 
-def my_step(explorer: LazyExplorer, cfg: KCFG, node_id: str) -> List[str]:
+def debug_rewrite(start: CTerm, end: CTerm, printer: KPrint) -> None:
+    diff = make_rewrite(start.config, end.config)
+    children = extract_rewrite_parents(diff)
+    for child in children:
+        pretty = printer.pretty_print(child)
+        # if not cached:
+        print(pretty)
+        print()
+
+    for constraint in end.constraints:
+        if constraint in start.constraints:
+            prefix1 = '--'
+            prefix2 = '//'
+        else:
+            prefix1 = '++'
+            prefix2 = '**'
+        print(prefix1, printer.pretty_print(constraint), flush=True)
+        try:
+            print(prefix2, printer.pretty_print(ml_pred_to_bool(constraint)), flush=True)
+        except Exception:
+            print(prefix2, 'Cannot print bool constraint')
+
+
+def debug_step(start_node: KCFG.Node, cterm: CTerm, next_cterms: Iterable[CTerm], printer: KPrint) -> None:
+    first = True
+
+    print('cterm:')
+    debug_rewrite(start_node.cterm, cterm, printer)
+    first = False
+
+    print('next_cterms:')
+    for s in next_cterms:
+        if not first:
+            print('-' * 80)
+        first = False
+        debug_rewrite(start_node.cterm, s, printer)
+    print('next_cterms end')
+
+
+def my_step(explorer: LazyExplorer, cfg: KCFG, node_id: str) -> Tuple[List[str], bool]:
     node = cfg.node(node_id)
     out_edges: List[str] = []
     for split in cfg.splits(source_id=node.id):
-        for n, _ in split.targets:
+        for n in split.targets:
+            out_edges.append(n.id)
+    for branch in cfg.ndbranches(source_id=node.id):
+        for n in branch.targets:
             out_edges.append(n.id)
     for e in cfg.edges(source_id=node.id):
         out_edges.append(e.target.id)
     if len(out_edges) > 0:
-        return out_edges
+        return (out_edges, True)
     assert len(list(cfg.edges(source_id=node.id))) == 0
     assert len(list(cfg.covers(source_id=node.id))) == 0
     assert len(list(cfg.splits(source_id=node.id))) == 0
+    assert len(list(cfg.ndbranches(source_id=node.id))) == 0
     assert len(list(cfg.successors(node.id))) == 0
 
     print('Executing!', flush=True)
@@ -381,19 +430,41 @@ def my_step(explorer: LazyExplorer, cfg: KCFG, node_id: str) -> List[str]:
         if len(next_cterms) < 2:
             print(node.id)
             print(explorer.printer().pretty_print(node.cterm.config), flush=True)
-            for constraint in node.cterm.constraints:
-                print('--', explorer.printer().pretty_print(constraint), flush=True)
-            for constraint in node.cterm.constraints:
-                print('**', explorer.printer().pretty_print(ml_pred_to_bool(constraint)), flush=True)
+            debug_step(node, cterm, next_cterms, explorer.printer())
             raise ValueError(
                 f'Unable to take {1} steps from node (next={len(next_cterms)}), got {actual_depth} steps: {node.id}'
             )
-        branches = [mlAnd(c for c in s.constraints if c not in cterm.constraints) for s in next_cterms]
-        next_ids = cfg.split_on_constraints(node.id, branches)
-        for next_id in next_ids:
-            print(node.id, '-*>', next_id)
-        assert node.id not in next_ids
-        return next_ids
+        has_question = False
+        has_top = False
+        for ct in next_cterms:
+            has_constraint = False
+            for constraint in ct.constraints:
+                if not constraint in ct.constraints:
+                    if has_unused_questionmark_variables(constraint, used_in=ct.config):
+                        has_question = True
+                        break
+                    has_constraint = True
+            if not has_constraint:
+                has_top = True
+                break
+        if has_question or has_top:
+            next_ids = []
+            for ct in next_cterms:
+                next_node = cfg.get_or_create_node(ct)
+                next_ids.append(next_node.id)
+            cfg.create_ndbranch(node.id, next_ids)
+        else:
+            split_cond = [mlAnd(c for c in s.constraints if c not in cterm.constraints) for s in next_cterms]
+            next_ids = cfg.split_on_constraints(node.id, split_cond)
+
+            for next_id in next_ids:
+                print(node.id, '-*>', next_id)
+            if node.id in next_ids:
+                debug_step(node, cterm, next_cterms, explorer.printer())
+                raise ValueError(
+                    'Link form node to self, most likely caused by not completely rewriting the configuration.'
+                )
+        return (next_ids, False)
     if actual_depth != 1:
         write_json(node.cterm.config, DEBUG_DIR / 'stuck.json')
         print('cterm=', cterm)
@@ -405,14 +476,14 @@ def my_step(explorer: LazyExplorer, cfg: KCFG, node_id: str) -> List[str]:
     new_node = cfg.get_or_create_node(cterm)
     # TODO: This may be other things than mlTop()
     cfg.create_edge(node.id, new_node.id, depth=1)
-    return [new_node.id]
+    return ([new_node.id], False)
 
 
 def my_step_logging(explorer: LazyExplorer, kcfg: KCFG, node_id: str, branches: int) -> List[str]:
     prev_cterm = kcfg.node(node_id).cterm
     prev_config = prev_cterm.config
     # prev_config = replace_bytes(prev_config)
-    new_node_ids = my_step(explorer=explorer, cfg=kcfg, node_id=node_id)
+    (new_node_ids, cached) = my_step(explorer=explorer, cfg=kcfg, node_id=node_id)
     first = True
     print([node_id], '->', new_node_ids, f'{branches - 1} branches left', flush=True)
     for new_node_id in new_node_ids:
@@ -428,6 +499,7 @@ def my_step_logging(explorer: LazyExplorer, kcfg: KCFG, node_id: str, branches: 
         children = extract_rewrite_parents(diff)
         for child in children:
             pretty = explorer.printer().pretty_print(child)
+            # if not cached:
             print(pretty)
             print()
 
@@ -485,7 +557,7 @@ def execute_function(
 
     try:
         first_node_id = kcfg.get_unique_init().id
-        node_ids = my_step(explorer, kcfg, first_node_id)
+        (node_ids, _) = my_step(explorer, kcfg, first_node_id)
         assert len(node_ids) == 1
         lhs_id = node_ids[0]
         rhs_ids = []
@@ -729,7 +801,7 @@ def main(args: List[str]) -> None:
     sample_path = ROOT / 'kmxwasm' / 'samples' / f'{sample_name}.wat'
     if not sample_path.exists():
         print(f'Input file ({sample_path}) does not exit.')
-    blacklist = {'multisig-full': {'78'}}
+    blacklist = {'multisig-full': {'78', '113'}}
     loop_whitelist = {'sum-to-n': {'13'}}
     run_for_input(sample_path, sample_name, blacklist.get(sample_name, set()), loop_whitelist.get(sample_name, set()))
     # run_for_input(samples / 'multisig-full.wat', 'multisig-full', {'78'})

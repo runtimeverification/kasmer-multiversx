@@ -1,8 +1,10 @@
 ```k
+require "ceils.k"
 require "elrond-configuration.md"
 require "wasm-text.md"
 
 module ELROND-IMPL
+  imports CEILS
   imports ELROND-CONFIGURATION
   imports WASM-TEXT
   imports LIST-BYTESW-EXTENSIONS
@@ -236,6 +238,20 @@ module ELROND-IMPL
                       )
                     ]
               )
+  rule  <wasm>
+            <instrs>
+              elrond_trap("\"mBufferCopyByteSlice\"") => i32.const 1
+              ...
+            </instrs>
+            <locals>
+                (0 |-> <i32> _SourceHandle:Int)
+                (1 |-> <i32> _StartingPosition:Int)
+                (2 |-> <i32> _SliceLength:Int)
+                (3 |-> <i32> _DestinationHandle:Int)
+            </locals>
+            ...
+        </wasm>
+      [owise]
 
   rule  <wasm>
             <instrs>
@@ -449,7 +465,10 @@ module ELROND-IMPL
             </buffers>
             ...
         </elrond>
-      ensures notBool wrap(?NewHandle) in_keys(M) andBool ?NewHandle >Int 0
+      ensures true
+          andBool notBool wrap(?NewHandle) in_keys(M)
+          andBool 0 <Int ?NewHandle
+          andBool ?NewHandle <Int #pow(i32)
 
   rule  <wasm>
             <instrs>
@@ -472,7 +491,10 @@ module ELROND-IMPL
         </elrond>
     requires true
         #And #Ceil(substrBytes(Mem, Ptr, Ptr +Int Len))
-    ensures notBool wrap(?NewHandle) in_keys(M) andBool ?NewHandle >Int 0
+    ensures true
+        andBool notBool wrap(?NewHandle) in_keys(M)
+        andBool ?NewHandle >Int 0
+        andBool ?NewHandle <Int #pow(i32)
 
   rule  <wasm>
             <instrs>
@@ -571,7 +593,7 @@ module ELROND-IMPL
   rule  <wasm>
             <instrs>
               // TODO: Should append to the returned result, or something like that.
-              elrond_trap("\"mBufferFinish\"") => i32.const ?_MBufferFinishResult:Int
+              elrond_trap("\"mBufferFinish\"") => i32.const ?MBufferFinishResult:Int
               ...
             </instrs>
             <locals>
@@ -579,6 +601,9 @@ module ELROND-IMPL
             </locals>
             ...
         </wasm>
+      ensures true
+          andBool 0 <Int ?MBufferFinishResult
+          andBool ?MBufferFinishResult <Int #pow(i32)
 
   rule  <wasm>
             <instrs>
@@ -902,11 +927,13 @@ module ELROND-IMPL
         </wasm>
         <elrond>
             <gas>
-                PreviousGasLeft:Int
+                PreviousGasLeft:Int => ?NewGasLeft
             </gas>
             ...
         </elrond>
-      ensures ?NewGasLeft <Int PreviousGasLeft andBool 0 <=Int ?NewGasLeft
+      ensures true
+          andBool ?NewGasLeft <Int PreviousGasLeft
+          andBool 0 <=Int ?NewGasLeft
 
   rule <instrs>
           #import(MOD, Name, #funcDesc(... id: OID, type: TIDX))

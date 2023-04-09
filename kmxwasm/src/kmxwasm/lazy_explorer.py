@@ -4,6 +4,7 @@ from pathlib import Path
 from socket import AF_INET, SO_REUSEADDR, SOCK_STREAM, SOL_SOCKET, socket
 from typing import Any, Optional
 
+from pyk.cli_utils import BugReport
 from pyk.kast.outer import KAtt, KDefinition, KFlatModule, KImport, KProduction, KRequire, KTerminal
 from pyk.kcfg import KCFGExplore
 from pyk.ktool.kompile import KompileBackend, kompile
@@ -124,7 +125,7 @@ def make_kprove(definition_dir: Path) -> KProve:
     return KProve(
         definition_dir,
         bug_report=None
-        # bug_report=BugReport(Path('bug_report'))
+        # bug_report=BugReport(Path('bug-report'))
     )
 
 

@@ -1,5 +1,5 @@
 import operator
-from typing import Callable, Dict, Iterable, List, Optional, Tuple, TypeVar
+from typing import Callable, Dict, Iterable, List, Optional, Set, Tuple, TypeVar
 
 from pyk.kast.inner import (
     KApply,
@@ -248,6 +248,30 @@ def has_questionmark_variables(term: KInner) -> bool:
             return None
         if term.name.startswith('?'):
             return True
+        return False
+
+    assert isinstance(term, KInner)
+    return kinner_top_down_fold(maybe_is_questionmark_variable, operator.or_, False, term)
+
+
+def get_variables(term: KInner) -> Set[KVariable]:
+    def extract_variable(term_: KInner) -> Optional[Set[KVariable]]:
+        if not isinstance(term_, KVariable):
+            return None
+        return {term_}
+
+    return kinner_top_down_fold(extract_variable, operator.add, set(), term)
+
+
+def has_unused_questionmark_variables(term: KInner, *, used_in: KInner) -> bool:
+    all_variables = get_variables(used_in)
+
+    def maybe_is_questionmark_variable(term_: KInner) -> Optional[bool]:
+        if not isinstance(term_, KVariable):
+            return None
+        if term_.name.startswith('?'):
+            if term_ not in all_variables:
+                return True
         return False
 
     assert isinstance(term, KInner)

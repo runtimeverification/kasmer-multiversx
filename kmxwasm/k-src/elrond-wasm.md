@@ -1,5 +1,6 @@
 ```k
 require "summaries.k"
+require "ceils.k"
 require "elrond-impl.md"
 require "elrond-lemmas.md"
 require "elrond-configuration.md"
@@ -11,9 +12,11 @@ module ELROND-WASM-SYNTAX
 endmodule
 
 module ELROND-WASM
+  imports CEILS
   imports ELROND-IMPL
   imports ELROND-LEMMAS
   imports ELROND-WASM-CONFIGURATION
+  imports INT-SYMBOLIC-KORE
   imports SUMMARIES
   imports PROOF-EXTENSIONS
 

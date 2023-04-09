@@ -7,6 +7,7 @@ from pyk.kcfg import KCFG
 from pyk.prelude.bytes import BYTES, bytesToken
 from pyk.prelude.kbool import TRUE, andBool
 from pyk.prelude.kint import INT
+from pyk.prelude.ml import mlAnd
 
 from .kast import (
     DOT_BYTES,
@@ -99,25 +100,32 @@ def make_final_rule_new(
     rhs_constraints: Tuple[KInner, ...],
     priority: int,
 ) -> KRule:
-    (rewrite, constraint) = build_rewrite_requires_new(lhs, lhs_constraints, rhs, rhs_constraints)
-    rewrite = underscore_for_unused_vars(rewrite, constraint)
+    (rewrite, requires_constraint, ensures_constraint) = build_rewrite_requires_new(
+        lhs, lhs_constraints, rhs, rhs_constraints
+    )
+    rewrite = underscore_for_unused_vars(rewrite, mlAnd([requires_constraint, ensures_constraint]))
 
-    return KRule(body=rewrite, requires=constraint, att=default_atts(priority))
+    return KRule(body=rewrite, requires=requires_constraint, ensures=ensures_constraint, att=default_atts(priority))
 
 
 def build_rewrite_requires_new(
     lhs: KInner, lhs_constraints: Tuple[KInner, ...], rhs: KInner, rhs_constraints: Tuple[KInner, ...]
-) -> Tuple[KInner, KInner]:
+) -> Tuple[KInner, KInner, KInner]:
     lhs_config = unpack_bytes(lhs)
     rhs_config = unpack_bytes(rhs)
     rewrite = make_rewrite(lhs_config, rhs_config)
     rewrite = get_inner(rewrite, 0, '<elrond-wasm>')
     requires = [c for c in lhs_constraints if c != TRUE]
+    ensures = []
     for c in rhs_constraints:
-        if c != TRUE and c not in lhs_constraints and not has_questionmark_variables(c):
-            requires.append(c)
-    constraint = andBool([ml_pred_to_bool(c) for c in requires])
-    return (rewrite, constraint)
+        if c != TRUE and c not in lhs_constraints:
+            if not has_questionmark_variables(c):
+                requires.append(c)
+            else:
+                ensures.append(c)
+    requires_constraint = andBool([ml_pred_to_bool(c) for c in requires])
+    ensures_constraint = andBool([ml_pred_to_bool(c) for c in ensures])
+    return (rewrite, requires_constraint, ensures_constraint)
 
 
 # TODO: This is probably no longer needed and should be removed.
