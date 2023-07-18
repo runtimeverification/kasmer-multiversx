@@ -47,6 +47,9 @@ module SUM-TO-N-SPEC
       <commands>
         .K
       </commands>
+      <generatedCounter>
+        _GeneratedCounter:Int
+      </generatedCounter>
   requires LoopLimit <Int N
 
   claim
@@ -95,6 +98,9 @@ module SUM-TO-N-SPEC
       <commands>
         .K
       </commands>
+      <generatedCounter>
+        _GeneratedCounter:Int
+      </generatedCounter>
   requires true
       andBool 0 <=Int N
       andBool N <=Int LoopLimit
@@ -148,6 +154,9 @@ module SUM-TO-N-SPEC
       <commands>
         .K
       </commands>
+      <generatedCounter>
+        _GeneratedCounter:Int
+      </generatedCounter>
   requires true
       andBool 0 <=Int N
       andBool N <=Int LoopLimit

@@ -262,6 +262,9 @@ module ELROND-LEMMAS
   rule (_X modIntTotal Y) <Int Y => true
       requires Y >Int 0
       [simplification, smt-lemma]
+  rule (_X modIntTotal Y) <Int Z => true
+      requires Y >Int 0 andBool Y <=Int Z
+      [simplification]
   rule 0 <=Int (_X modIntTotal Y) => true
       requires Y >Int 0
       [simplification, smt-lemma]

@@ -565,7 +565,7 @@ def execute_functions(
             ) as explorer:
                 explorer.get()
             raise ValueError(
-                f'Cannot summarize {unprocessed_functions}, postponed={postponed_functions}, unprocessable={not_processable}, processed={processed_functions}'
+                f'Cannot summarize {sorted(unprocessed_functions)}, postponed={sorted(postponed_functions)}, unprocessable={sorted(not_processable)}, processed={sorted(processed_functions)}'
             )
         unprocessed_functions = postponed_functions
     with LazyExplorer(
@@ -577,7 +577,9 @@ def execute_functions(
         debug_id=DEBUG_ID,
     ) as explorer:
         explorer.get()
-    print(f'unprocessed={unprocessed_functions}, unprocessable={not_processable}, processed={processed_functions}')
+    print(
+        f'unprocessed={sorted(unprocessed_functions)}, unprocessable={sorted(not_processable)}, processed={sorted(processed_functions)}'
+    )
 
 
 class VariablesForGlobals:
@@ -708,6 +710,8 @@ def run_for_input(
         ('<curBlockRound>', 'MyCurBlockRound', INT),
         ('<curBlockEpoch>', 'MyCurBlockEpoch', INT),
         ('<curBlockRandomSeed>', 'MyCurBlockRandomSeed', BYTES),
+        # top
+        # ('<generatedCounter>', 'MyGeneratedCounter', INT),
     ]
     # TODO: Add constraints for the variables above.
 

@@ -5,10 +5,8 @@ from pyk.kast.outer import KRule
 from pyk.ktool.kprove import KProve
 from pyk.prelude.ml import is_top
 
-from .kast import get_inner
 from .lazy_explorer import LazyExplorer
 from .rules import RuleCreator
-from .wasm_cell import TOP_CELL
 
 
 class Specs:
@@ -47,8 +45,8 @@ class Specs:
     def __add_rules(spec_path: Path, rules: RuleCreator, kprove: KProve) -> None:
         claims = kprove.get_claims(spec_path)
         for c in claims:
-            body = get_inner(c.body, 0, TOP_CELL)
-            rule = KRule(body=body, requires=c.requires, ensures=c.ensures)
+            # body = get_inner(c.body, 0, TOP_CELL)
+            rule = KRule(body=c.body, requires=c.requires, ensures=c.ensures)
             rules.add_raw_rule(rule)
 
 

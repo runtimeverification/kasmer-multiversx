@@ -2,6 +2,8 @@ module CEILS-SYNTAX
     imports BOOL
     imports BYTES
     imports INT
+    imports LIST-BYTES
+    imports LIST-BYTES-EXTENSIONS
     imports WASM-DATA
 
     syntax Bool ::= definedSubstrBytes(Bytes, startIndex: Int, endIndex: Int)  [function, total]
@@ -10,6 +12,7 @@ module CEILS-SYNTAX
     syntax Bool ::= definedModInt(Int, Int)  [function, total]
     syntax Bool ::= definedShlInt(Int, Int)  [function, total]
     syntax Bool ::= definedShrInt(Int, Int)  [function, total]
+    syntax Bool ::= definedListBytesLookup(ListBytes, index: Int)  [function, total]
     syntax Bool ::= definedProjectBytes(KItem)  [function, total]
     syntax Bool ::= definedProjectInt(KItem)  [function, total]
     syntax Bool ::= definedMapLookup(Map, KItem)  [function, total]

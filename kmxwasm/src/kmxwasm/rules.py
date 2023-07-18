@@ -49,7 +49,6 @@ class RuleCreator:
         )
 
     def add_raw_rule(self, rule: KRule) -> None:
-        print('add_raw_rule: ', default_atts)
         self.__rules.append(rule.let(att=default_atts(self.__priority, len(self.__rules))))
 
     def summarize_rules(self) -> List[KRule]:

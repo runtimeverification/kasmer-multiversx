@@ -244,6 +244,33 @@ module CEILS
 
     // ------------------------------------
 
+    rule #Ceil(@Arg0:ListBytes[@Index:Int])
+        =>  (({ definedListBytesLookup(@Arg0, @Index)  #Equals true }
+          #And #Ceil(@Arg0))
+          #And #Ceil(@Index))
+        [simplification]
+
+    rule definedListBytesLookup(L:ListBytes, I:Int)
+        => I <Int size(L) andBool (0 -Int size(L)) <=Int I
+
+    rule Arg0:ListBytes[Index:Int] orDefault _:Bytes
+        => Arg0[Index]
+        requires definedListBytesLookup(Arg0, Index)
+        [concrete, simplification]
+
+    rule Arg0:ListBytes[Index:Int]
+        => Arg0:ListBytes[Index:Int] orDefault .Bytes
+        requires definedListBytesLookup(Arg0, Index)
+        [symbolic(Arg0), simplification]
+
+    rule Arg0:ListBytes[Index:Int]
+        => Arg0:ListBytes[Index:Int] orDefault .Bytes
+        requires definedListBytesLookup(Arg0, Index)
+        [symbolic(Index), simplification]
+
+
+    // ------------------------------------
+
     rule #Ceil({@Arg0:KItem}:>Bytes)
         =>  ({ definedProjectBytes(@Arg0)  #Equals true }
           #And #Ceil(@Arg0))
