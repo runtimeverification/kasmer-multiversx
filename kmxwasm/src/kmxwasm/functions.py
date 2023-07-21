@@ -61,6 +61,7 @@ class Functions:
         self.__addr_to_def = addr_to_def
 
     def addr_to_function(self, addr: str) -> WasmFunction:
+        assert addr in self.__addr_to_def, [addr, self.__addr_to_def.keys()]
         return self.__addr_to_def[addr]
 
     def addrs(self) -> Iterable[str]:

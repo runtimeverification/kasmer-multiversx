@@ -102,7 +102,7 @@ class LazyExplorer:
         (self.__summary_folder / 'summaries.k').write_text(definition_text)
 
 
-def kompile_semantics(k_dir: Path, definition_dir: Path) -> None:
+def kompile_semantics(k_dir: Path, definition_dir: Path, backend) -> None:
     print(f'Kompile to {definition_dir}', flush=True)
     _ = subprocess.run(['rm', '-r', definition_dir])
 
@@ -112,7 +112,7 @@ def kompile_semantics(k_dir: Path, definition_dir: Path) -> None:
     _ = kompile(
         k_dir / 'elrond-wasm.md',
         output_dir=definition_dir,
-        backend=KompileBackend.HASKELL,
+        backend=backend,
         main_module='ELROND-WASM',
         syntax_module='ELROND-WASM-SYNTAX',
         include_dirs=[k_dir, elrond_dir, wasm_dir],

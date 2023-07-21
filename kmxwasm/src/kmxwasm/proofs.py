@@ -15,6 +15,7 @@ from pyk.kast.outer import KClaim, KDefinition, KFlatModule
 from pyk.kast.pretty import SymbolTable
 from pyk.kcfg import KCFG
 from pyk.kore.rpc import KoreClientError
+from pyk.ktool.kompile import KompileBackend
 from pyk.ktool.kprint import KPrint
 from pyk.ktool.krun import KRunOutput, _krun
 from pyk.prelude.bytes import BYTES, bytesToken_from_str
@@ -52,7 +53,8 @@ sys.setrecursionlimit(4000)
 ROOT = Path(subprocess.check_output(['git', 'rev-parse', '--show-toplevel']).decode().strip())
 K_DIR = ROOT / 'kmxwasm' / 'k-src'
 BUILD_DIR = ROOT / '.build'
-DEFINITION_PARENT = BUILD_DIR / 'defn/haskell'
+DEFINITION_PARENT_HASKELL = BUILD_DIR / 'defn/haskell'
+DEFINITION_PARENT_LLVM = BUILD_DIR / 'defn/llvm'
 DEFINITION_NAME = 'elrond-wasm-kompiled'
 DATA_DIR = BUILD_DIR / 'data'
 JSON_DIR = DATA_DIR / 'json'
@@ -136,7 +138,7 @@ def print_kore_cfg(node_id: str, kcfg: KCFG, printer: KPrint) -> None:
 
 def krun(input_file: Path, output_file: Path, definition_dir: Path) -> None:
     print('Run', flush=True)
-    result = _krun(input_file=input_file, definition_dir=definition_dir, output=KRunOutput.JSON)
+    result = _krun(input_file=input_file, definition_dir=definition_dir, output=KRunOutput.JSON, depth=None)
     output_file.parent.mkdir(parents=True, exist_ok=True)
     output_file.write_text(result.stdout)
 
@@ -647,18 +649,28 @@ def run_for_input(
 ) -> None:
     json_dir = JSON_DIR / short_name
     summaries_dir = SUMMARIES_DIR / short_name
-    definitions_dir = DEFINITION_PARENT / short_name
-    main_definition_dir = definitions_dir / DEFINITION_NAME
+    haskell_definitions_dir = DEFINITION_PARENT_HASKELL / short_name
+    main_haskell_definition_dir = haskell_definitions_dir / DEFINITION_NAME
 
     if not DEBUG_ID:
-        kompile_semantics(k_dir=K_DIR, definition_dir=main_definition_dir)
+        kompile_semantics(k_dir=K_DIR, definition_dir=main_haskell_definition_dir, backend=KompileBackend.HASKELL)
+
+    printer = MyKPrint(main_haskell_definition_dir)
 
     krun_output_file = json_dir / 'krun.json'
     bytes_output_file = json_dir / 'bytes.json'
     if not bytes_output_file.exists():
         if not krun_output_file.exists():
-            krun(input_file, krun_output_file, main_definition_dir)
+            llvm_definitions_dir = DEFINITION_PARENT_LLVM / short_name
+            main_llvm_definition_dir = llvm_definitions_dir / DEFINITION_NAME
+            if not DEBUG_ID:
+                kompile_semantics(k_dir=K_DIR, definition_dir=main_llvm_definition_dir, backend=KompileBackend.LLVM)
+            krun(input_file, krun_output_file, main_llvm_definition_dir)
         term = load_json_krun(krun_output_file)
+
+        pretty = printer.pretty_print(term)
+        print(pretty, flush=True)
+
         write_json(term, bytes_output_file)
 
     term = load_json(bytes_output_file)
@@ -726,7 +738,6 @@ def run_for_input(
     constraints.append(leInt(intToken(0), KVariable('MyCallValue')))
     constraint = make_balanced_and_bool(constraints)
 
-    printer = MyKPrint(main_definition_dir)
     execution_decision = execution.ExecutionManager(functions, whitelisted_for_loops)
 
     term = sort_ac_collections(term)
@@ -743,7 +754,7 @@ def run_for_input(
         printer,
         json_dir,
         summaries_dir,
-        main_definition_dir,
+        main_haskell_definition_dir,
         execution_decision,
     )
 
