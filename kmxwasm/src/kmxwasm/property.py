@@ -9,11 +9,12 @@ from pyk.kcfg import KCFG
 from pyk.kcfg.show import KCFGShow
 from pyk.kore.rpc import KoreClientError
 
-from .build import kbuild_semantics
+from .build import HASKELL, LLVM, kbuild_semantics
 from .json import load_json_kcfg, load_json_kclaim, write_kcfg_json
 from .paths import KBUILD_DIR, KBUILD_ML_PATH, ROOT
 from .printers import print_node
 from .running import RunException, Stuck, Success, run_claim, split_edge
+from .wasm_krun_initializer import WasmKrunInitializer
 
 # TODO: Make this work outside of github projects.
 DEBUG_KCFG = ROOT / '.property' / 'kcfg.json'
@@ -50,7 +51,10 @@ class RunClaim(Action):
     depth: int
 
     def run(self) -> None:
-        with kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH) as tools:
+        with (
+            kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL) as tools,
+            kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=LLVM) as llvm_tools,
+        ):
             if self.is_k:
                 claims = tools.kprove.get_claims(self.claim_path)
                 if len(claims) != 1:
@@ -65,7 +69,14 @@ class RunClaim(Action):
                 kcfg = load_json_kcfg(DEBUG_KCFG)
                 for node_id in self.remove:
                     kcfg.remove_node(node_id)
-            result = run_claim(tools, claim, kcfg, run_id=self.run_node_id, depth=self.depth)
+            result = run_claim(
+                tools,
+                WasmKrunInitializer(llvm_tools),
+                claim=claim,
+                restart_kcfg=kcfg,
+                run_id=self.run_node_id,
+                depth=self.depth,
+            )
             write_kcfg_json(result.kcfg, DEBUG_KCFG)
 
             if isinstance(result, Stuck):
@@ -121,7 +132,7 @@ class BisectAfter(Action):
     node_id: int
 
     def run(self) -> None:
-        with kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH) as tools:
+        with kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL) as tools:
             kcfg = load_json_kcfg(DEBUG_KCFG)
 
             result = split_edge(tools, kcfg, start_node_id=self.node_id)
@@ -158,7 +169,7 @@ class ShowNode(Action):
     node_id: int
 
     def run(self) -> None:
-        with kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH) as tools:
+        with kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL) as tools:
             kcfg = load_json_kcfg(DEBUG_KCFG)
             print('Printing: ', self.node_id)
             node = kcfg.get_node(self.node_id)
@@ -171,7 +182,7 @@ class ShowNode(Action):
 @dataclass(frozen=True)
 class Tree(Action):
     def run(self) -> None:
-        with kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH) as tools:
+        with kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL) as tools:
             kcfg = load_json_kcfg(DEBUG_KCFG)
             show = KCFGShow(tools.printer)
             for line in show.pretty(kcfg):

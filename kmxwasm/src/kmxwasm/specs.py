@@ -39,7 +39,12 @@ class Specs:
     def __prove(spec_path: Path, kprove: KProve) -> None:
         print(f'Proving {spec_path}', flush=True)
         final_state = kprove.prove(spec_path)
-        if not is_top(final_state):
+        if not len(final_state) == 1:
+            raise ValueError(f'Failed to prove {spec_path}.')
+        final_cterm = final_state[0]
+        if final_cterm.constraints:
+            raise ValueError(f'Failed to prove {spec_path}.')
+        if not is_top(final_cterm.config):
             raise ValueError(f'Failed to prove {spec_path}.')
         print('Proving done', flush=True)
 
