@@ -156,7 +156,7 @@ def full_configuration(
 @pytest.fixture(scope='module')
 def tools(tmp_path_factory: TempPathFactory) -> Tools:
     build_path = tmp_path_factory.mktemp('kbuild')
-    tools = kbuild_semantics(build_path, KBUILD_ML_PATH)
+    tools = kbuild_semantics(output_dir=build_path, config_file=KBUILD_ML_PATH)
     return tools
 
 
@@ -219,5 +219,5 @@ class TestSimpleProofs:
         ids=[test_id for test_id, *_ in SIMPLE_PROOFS_DATA],
     )
     def test_run_claim(self, tools: Tools, test_id: str, claim: KClaim, success: bool) -> None:
-        result = run_claim(tools, claim)
+        result = run_claim(tools, claim, restart_kcfg=None, run_id=None, depth=1000)
         assert result == success

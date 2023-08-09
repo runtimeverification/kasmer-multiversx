@@ -7,9 +7,10 @@
 .kbuild
 .kprove-*
 .kore-repl-*
+.property
 .sessionCommands
 tmp
-kore-exec.tar.gz
+kore-*.tar.gz
 bug-report.tar
 
 # User-specific files

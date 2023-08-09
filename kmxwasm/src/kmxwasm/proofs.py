@@ -6,13 +6,12 @@ import sys
 import time
 import traceback
 from pathlib import Path
-from typing import Any, Iterable, List, Mapping, Optional, Set, Tuple
+from typing import Any, List, Mapping, Set, Tuple
 
 from pyk.cterm import CTerm
 from pyk.kast.inner import KApply, KInner, KLabel, KSequence, KSort, KToken, KVariable, bottom_up
 from pyk.kast.manip import ml_pred_to_bool, sort_ac_collections
-from pyk.kast.outer import KClaim, KDefinition, KFlatModule
-from pyk.kast.pretty import SymbolTable
+from pyk.kast.outer import KClaim, KDefinition
 from pyk.kcfg import KCFG
 from pyk.kore.rpc import KoreClientError
 from pyk.ktool.kprint import KPrint
@@ -22,7 +21,7 @@ from pyk.prelude.k import K
 from pyk.prelude.kbool import TRUE, andBool, notBool
 from pyk.prelude.kint import INT, intToken, leInt, ltInt
 from pyk.prelude.ml import mlAnd, mlEqualsFalse, mlEqualsTrue, mlNot
-from pyk.utils import BugReport, single
+from pyk.utils import single
 
 from . import execution, wasm_types
 from .functions import (
@@ -45,6 +44,7 @@ from .kast import (
 from .lazy_explorer import GENERATED_MODULE_NAME, LazyExplorer, kompile_semantics
 from .rules import RuleCreator
 from .specs import Specs, find_specs
+from .tools import my_patch_symbol_table
 from .wasm_types import ValType
 
 sys.setrecursionlimit(4000)
@@ -64,62 +64,6 @@ MAP = KSort('Map')
 
 # Setting this disables compilation.
 DEBUG_ID = ''  #'ca3493ec081b72857fe96a8b6d3b3f969505e6bc09d91d16eaff9995f2c551ad'
-
-
-class MyKPrint(KPrint):
-    def __init__(
-        self,
-        definition_dir: Path,
-        use_directory: Optional[Path] = None,
-        bug_report: Optional[BugReport] = None,
-        extra_unparsing_modules: Iterable[KFlatModule] = (),
-    ) -> None:
-        super().__init__(
-            definition_dir,
-            use_directory,
-            bug_report,
-            extra_unparsing_modules,
-            patch_symbol_table=MyKPrint._my_patch_symbol_table,
-        )
-
-    @classmethod
-    def _my_patch_symbol_table(cls, symbol_table: SymbolTable) -> None:
-        symbol_table['_|->_'] = lambda c1, c2: f'({c1} |-> {c2})'
-        symbol_table['_Map_'] = lambda c1, c2: f'({c1} {c2})'
-        symbol_table['_Int2Bytes|->_'] = lambda c1, c2: f'({c1} Int2Bytes|-> {c2})'
-        symbol_table['_MapIntwToBytesw_'] = lambda c1, c2: f'({c1} {c2})'
-        symbol_table['MapIntswToBytesw:curly_update'] = lambda c1, c2, c3: f'({c1}){{ {c2} <- {c3} }}'
-        symbol_table['_Bytes2Bytes|->_'] = lambda c1, c2: f'({c1} Bytes2Bytes|-> {c2})'
-        symbol_table['_MapByteswToBytesw_'] = lambda c1, c2: f'({c1} {c2})'
-        symbol_table['MapByteswToBytesw:curly_update'] = lambda c1, c2, c3: f'({c1}){{ {c2} <- {c3} }}'
-        symbol_table['_Int2Int|->_'] = lambda c1, c2: f'({c1} Int2Int|-> {c2})'
-        symbol_table['_MapIntwToIntw_'] = lambda c1, c2: f'({c1} {c2})'
-        symbol_table['MapIntwToIntw:curly_update'] = lambda c1, c2, c3: f'({c1}){{ {c2} <- {c3} }}'
-        symbol_table['.TabInstCellMap'] = lambda: '.Bag'
-
-        symbol_table['notBool_'] = lambda c1: f'notBool ({c1})'
-        symbol_table['_andBool_'] = lambda c1, c2: f'({c1}) andBool ({c2})'
-        symbol_table['_orBool_'] = lambda c1, c2: f'({c1}) orBool ({c2})'
-        symbol_table['_andThenBool_'] = lambda c1, c2: f'({c1}) andThenBool ({c2})'
-        symbol_table['_xorBool_'] = lambda c1, c2: f'({c1}) xorBool ({c2})'
-        symbol_table['_orElseBool_'] = lambda c1, c2: f'({c1}) orElseBool ({c2})'
-        symbol_table['_impliesBool_'] = lambda c1, c2: f'({c1}) impliesBool ({c2})'
-
-        symbol_table['~Int_'] = lambda c1: f'~Int ({c1})'
-        symbol_table['_modInt_'] = lambda c1, c2: f'({c1}) modInt ({c2})'
-        symbol_table['_modIntTotal_'] = lambda c1, c2: f'({c1}) modIntTotal ({c2})'
-        symbol_table['_*Int_'] = lambda c1, c2: f'({c1}) *Int ({c2})'
-        symbol_table['_/Int_'] = lambda c1, c2: f'({c1}) /Int ({c2})'
-        symbol_table['_%Int_'] = lambda c1, c2: f'({c1}) %Int ({c2})'
-        symbol_table['_^Int_'] = lambda c1, c2: f'({c1}) ^Int ({c2})'
-        symbol_table['_^%Int_'] = lambda c1, c2: f'({c1}) ^%Int ({c2})'
-        symbol_table['_+Int_'] = lambda c1, c2: f'({c1}) +Int ({c2})'
-        symbol_table['_-Int_'] = lambda c1, c2: f'({c1}) -Int ({c2})'
-        symbol_table['_>>Int_'] = lambda c1, c2: f'({c1}) >>Int ({c2})'
-        symbol_table['_<<Int_'] = lambda c1, c2: f'({c1}) <<Int ({c2})'
-        symbol_table['_&Int_'] = lambda c1, c2: f'({c1}) &Int ({c2})'
-        symbol_table['_xorInt_'] = lambda c1, c2: f'({c1}) xorInt ({c2})'
-        symbol_table['_|Int_'] = lambda c1, c2: f'({c1}) |Int ({c2})'
 
 
 def filter_bytes(term: KToken) -> KInner:
@@ -756,7 +700,7 @@ def run_for_input(
     constraints.append(leInt(intToken(0), KVariable('MyCallValue')))
     constraint = make_balanced_and_bool(constraints)
 
-    printer = MyKPrint(main_definition_dir)
+    printer = KPrint(main_definition_dir, patch_symbol_table=my_patch_symbol_table)
     execution_decision = execution.ExecutionManager(functions, whitelisted_for_loops)
 
     term = sort_ac_collections(term)
