@@ -4,10 +4,13 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 .build
+.kbuild
 .kprove-*
-.kore-repl-history
+.kore-repl-*
 .sessionCommands
 tmp
+kore-exec.tar.gz
+bug-report.tar
 
 # User-specific files
 *.rsuser

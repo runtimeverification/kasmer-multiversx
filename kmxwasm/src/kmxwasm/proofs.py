@@ -75,7 +75,11 @@ class MyKPrint(KPrint):
         extra_unparsing_modules: Iterable[KFlatModule] = (),
     ) -> None:
         super().__init__(
-            definition_dir, use_directory, bug_report, extra_unparsing_modules, MyKPrint._my_patch_symbol_table
+            definition_dir,
+            use_directory,
+            bug_report,
+            extra_unparsing_modules,
+            patch_symbol_table=MyKPrint._my_patch_symbol_table,
         )
 
     @classmethod
@@ -84,8 +88,39 @@ class MyKPrint(KPrint):
         symbol_table['_Map_'] = lambda c1, c2: f'({c1} {c2})'
         symbol_table['_Int2Bytes|->_'] = lambda c1, c2: f'({c1} Int2Bytes|-> {c2})'
         symbol_table['_MapIntwToBytesw_'] = lambda c1, c2: f'({c1} {c2})'
+        symbol_table['_MapIntwToBytesw_'] = lambda c1, c2: f'({c1} {c2})'
+        symbol_table['MapIntswToBytesw:curly_update'] = lambda c1, c2, c3: f'({c1}){{ {c2} <- {c3} }}'
+        symbol_table['_Bytes2Bytes|->_'] = lambda c1, c2: f'({c1} Bytes2Bytes|-> {c2})'
+        symbol_table['_MapByteswToBytesw_'] = lambda c1, c2: f'({c1} {c2})'
+        symbol_table['MapByteswToBytesw:curly_update'] = lambda c1, c2, c3: f'({c1}){{ {c2} <- {c3} }}'
+        symbol_table['_Int2Int|->_'] = lambda c1, c2: f'({c1} Int2Int|-> {c2})'
+        symbol_table['_MapIntwToIntw_'] = lambda c1, c2: f'({c1} {c2})'
+        symbol_table['MapIntwToIntw:curly_update'] = lambda c1, c2, c3: f'({c1}){{ {c2} <- {c3} }}'
         symbol_table['.TabInstCellMap'] = lambda: '.Bag'
+
         symbol_table['notBool_'] = lambda c1: f'notBool ({c1})'
+        symbol_table['_andBool_'] = lambda c1, c2: f'({c1}) andBool ({c2})'
+        symbol_table['_orBool_'] = lambda c1, c2: f'({c1}) orBool ({c2})'
+        symbol_table['_andThenBool_'] = lambda c1, c2: f'({c1}) andThenBool ({c2})'
+        symbol_table['_xorBool_'] = lambda c1, c2: f'({c1}) xorBool ({c2})'
+        symbol_table['_orElseBool_'] = lambda c1, c2: f'({c1}) orElseBool ({c2})'
+        symbol_table['_impliesBool_'] = lambda c1, c2: f'({c1}) impliesBool ({c2})'
+
+        symbol_table['~Int_'] = lambda c1: f'~Int ({c1})'
+        symbol_table['_modInt_'] = lambda c1, c2: f'({c1}) modInt ({c2})'
+        symbol_table['_modIntTotal_'] = lambda c1, c2: f'({c1}) modIntTotal ({c2})'
+        symbol_table['_*Int_'] = lambda c1, c2: f'({c1}) *Int ({c2})'
+        symbol_table['_/Int_'] = lambda c1, c2: f'({c1}) /Int ({c2})'
+        symbol_table['_%Int_'] = lambda c1, c2: f'({c1}) %Int ({c2})'
+        symbol_table['_^Int_'] = lambda c1, c2: f'({c1}) ^Int ({c2})'
+        symbol_table['_^%Int_'] = lambda c1, c2: f'({c1}) ^%Int ({c2})'
+        symbol_table['_+Int_'] = lambda c1, c2: f'({c1}) +Int ({c2})'
+        symbol_table['_-Int_'] = lambda c1, c2: f'({c1}) -Int ({c2})'
+        symbol_table['_>>Int_'] = lambda c1, c2: f'({c1}) >>Int ({c2})'
+        symbol_table['_<<Int_'] = lambda c1, c2: f'({c1}) <<Int ({c2})'
+        symbol_table['_&Int_'] = lambda c1, c2: f'({c1}) &Int ({c2})'
+        symbol_table['_xorInt_'] = lambda c1, c2: f'({c1}) xorInt ({c2})'
+        symbol_table['_|Int_'] = lambda c1, c2: f'({c1}) |Int ({c2})'
 
 
 def filter_bytes(term: KToken) -> KInner:
