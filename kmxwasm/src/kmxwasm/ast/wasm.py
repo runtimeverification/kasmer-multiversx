@@ -1,8 +1,9 @@
 from typing import Iterable
 
-from pyk.kast.inner import KApply, KInner
+from pyk.kast.inner import KApply, KInner, KSequence
 
 from .collections import cell_map, simple_list
+from .generic import set_ksequence_cell_contents
 
 # TODO: Move these to the wasm-semantics repository
 
@@ -33,3 +34,7 @@ def valStack(items: Iterable[KInner]) -> KInner:  # noqa: N802
 
 def optionalInt_empty() -> KInner:  # noqa: N802
     return KApply('.Int')
+
+
+def set_instrs_cell_contents(root: KInner, contents: KSequence) -> KInner:
+    return set_ksequence_cell_contents(root, '<instrs>', contents)

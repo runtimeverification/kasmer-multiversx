@@ -1,11 +1,17 @@
+import json
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import Any, Optional
 
+from pyk.kast.inner import KInner
+from pyk.kast.kast import kast_term
 from pyk.kast.pretty import SymbolTable
 from pyk.kcfg.explore import KCFGExplore
 from pyk.kore.rpc import KoreClient, KoreServer
 from pyk.ktool.kprint import KPrint
 from pyk.ktool.kprove import KProve
+from pyk.ktool.krun import KRunOutput, _krun
+from pyk.prelude.k import GENERATED_TOP_CELL
 
 
 class Tools:
@@ -55,6 +61,26 @@ class Tools:
             self.__explorer = KCFGExplore(self.printer, self.__kore_client)
         return self.__explorer
 
+    def krun(self, cfg: KInner) -> KInner:
+        with NamedTemporaryFile('w') as ntf:
+            pretty = self.printer.pretty_print(cfg)
+            Path('/mnt/data/runtime-verification/elrond-wasm-real-elrond/kmxwasm/tmp/krun.pretty').write_text(pretty)
+            pattern = self.printer.kast_to_kore(cfg, sort=GENERATED_TOP_CELL)
+            ntf.write(pattern.text)
+            Path('/mnt/data/runtime-verification/elrond-wasm-real-elrond/kmxwasm/tmp/krun.kore').write_text(
+                pattern.text
+            )
+            ntf.flush()
+            result = _krun(
+                input_file=Path(ntf.name),
+                definition_dir=self.__definition_dir,
+                output=KRunOutput.JSON,
+                term=True,
+                parser='cat',
+            )
+            value = json.loads(result.stdout)
+            return kast_term(value, KInner)  # type: ignore # https://github.com/python/mypy/issues/4717
+
 
 def my_patch_symbol_table(symbol_table: SymbolTable) -> None:
     symbol_table['_|->_'] = lambda c1, c2: f'({c1} |-> {c2})'
@@ -90,11 +116,14 @@ def my_patch_symbol_table(symbol_table: SymbolTable) -> None:
 
     symbol_table['~Int_'] = lambda c1: f'~Int ({c1})'
     symbol_table['_modInt_'] = lambda c1, c2: f'({c1}) modInt ({c2})'
-    symbol_table['_modIntTotal_'] = lambda c1, c2: f'({c1}) modIntTotal ({c2})'
+    symbol_table['modIntTotal'] = lambda c1, c2: f'({c1}) modIntTotal ({c2})'
+    symbol_table['_divInt_'] = lambda c1, c2: f'({c1}) divInt ({c2})'
+    symbol_table['divIntTotal'] = lambda c1, c2: f'({c1}) divIntTotal ({c2})'
     symbol_table['_*Int_'] = lambda c1, c2: f'({c1}) *Int ({c2})'
     symbol_table['_/Int_'] = lambda c1, c2: f'({c1}) /Int ({c2})'
-    symbol_table['_/IntTotal_'] = lambda c1, c2: f'({c1}) /Int ({c2})'
+    symbol_table['_/IntTotal_'] = lambda c1, c2: f'({c1}) /IntTotal ({c2})'
     symbol_table['_%Int_'] = lambda c1, c2: f'({c1}) %Int ({c2})'
+    symbol_table['_%IntTotal_'] = lambda c1, c2: f'({c1}) %IntTotal ({c2})'
     symbol_table['_^Int_'] = lambda c1, c2: f'({c1}) ^Int ({c2})'
     symbol_table['_^%Int_'] = lambda c1, c2: f'({c1}) ^%Int ({c2})'
     symbol_table['_+Int_'] = lambda c1, c2: f'({c1}) +Int ({c2})'
