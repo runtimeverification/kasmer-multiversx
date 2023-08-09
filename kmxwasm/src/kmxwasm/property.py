@@ -9,7 +9,7 @@ from pyk.kcfg import KCFG
 from pyk.kcfg.show import KCFGShow
 from pyk.kore.rpc import KoreClientError
 
-from .build import kbuild_semantics
+from .build import HASKELL, kbuild_semantics
 from .json import load_json_kcfg, load_json_kclaim, write_kcfg_json
 from .paths import KBUILD_DIR, KBUILD_ML_PATH, ROOT
 from .printers import print_node
@@ -50,7 +50,7 @@ class RunClaim(Action):
     depth: int
 
     def run(self) -> None:
-        with kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH) as tools:
+        with kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL) as tools:
             if self.is_k:
                 claims = tools.kprove.get_claims(self.claim_path)
                 if len(claims) != 1:
@@ -121,7 +121,7 @@ class BisectAfter(Action):
     node_id: int
 
     def run(self) -> None:
-        with kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH) as tools:
+        with kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL) as tools:
             kcfg = load_json_kcfg(DEBUG_KCFG)
 
             result = split_edge(tools, kcfg, start_node_id=self.node_id)
@@ -158,7 +158,7 @@ class ShowNode(Action):
     node_id: int
 
     def run(self) -> None:
-        with kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH) as tools:
+        with kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL) as tools:
             kcfg = load_json_kcfg(DEBUG_KCFG)
             print('Printing: ', self.node_id)
             node = kcfg.get_node(self.node_id)
@@ -171,7 +171,7 @@ class ShowNode(Action):
 @dataclass(frozen=True)
 class Tree(Action):
     def run(self) -> None:
-        with kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH) as tools:
+        with kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL) as tools:
             kcfg = load_json_kcfg(DEBUG_KCFG)
             show = KCFGShow(tools.printer)
             for line in show.pretty(kcfg):

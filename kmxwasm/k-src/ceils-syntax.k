@@ -8,10 +8,12 @@ module CEILS-SYNTAX
     syntax Bool ::= definedReplaceAtBytes(dest: Bytes, index: Int, src: Bytes)  [function, total]
     syntax Bool ::= definedPadRightBytes(Bytes, length: Int, value: Int)  [function, total]
     syntax Bool ::= definedModInt(Int, Int)  [function, total]
+    syntax Bool ::= definedDivInt(Int, Int)  [function, total]
     syntax Bool ::= definedShlInt(Int, Int)  [function, total]
     syntax Bool ::= definedShrInt(Int, Int)  [function, total]
     syntax Bool ::= definedPowInt(Int, Int)  [function, total]
-    syntax Bool ::= definedDivInt(Int, Int)  [function, total]
+    syntax Bool ::= definedTModInt(Int, Int)  [function, total]
+    syntax Bool ::= definedTDivInt(Int, Int)  [function, total]
     syntax Bool ::= definedLog2Int(Int)  [function, total]
     syntax Bool ::= definedProjectBytes(KItem)  [function, total]
     syntax Bool ::= definedProjectInt(KItem)  [function, total]
@@ -30,14 +32,18 @@ module CEILS-SYNTAX
         [function, total, klabel(padRightBytesTotal), symbol, no-evaluators]
     syntax Int ::= Int "modIntTotal" Int
         [function, total, klabel(modIntTotal), symbol, no-evaluators, smt-hook(mod)]
+    syntax Int ::= Int "divIntTotal" Int
+        [function, total, klabel(divIntTotal), symbol, no-evaluators, smt-hook(div)]
     syntax Int ::= Int "<<IntTotal" Int
         [function, total, klabel(shlIntTotal), symbol, no-evaluators]
     syntax Int ::= Int ">>IntTotal" Int
         [function, total, klabel(shrIntTotal), symbol, no-evaluators]
     syntax Int ::= Int "^IntTotal" Int
         [function, total, klabel(powIntTotal), symbol, no-evaluators]
+    syntax Int ::= Int "%IntTotal" Int
+        [function, total, klabel(tModIntTotal), symbol, no-evaluators, smtlib(tModInt)]
     syntax Int ::= Int "/IntTotal" Int
-        [function, total, klabel(divIntTotal), symbol, no-evaluators, smt-hook(div)]
+        [function, total, klabel(tDivIntTotal), symbol, no-evaluators, smtlib(tDivInt)]
     syntax Int ::= log2IntTotal(Int)
         [ function, total, klabel(log2IntTotal), symbol, no-evaluators,
           smtlib(log2IntTotal)

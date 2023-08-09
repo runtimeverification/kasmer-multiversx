@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from typing import Any, Mapping
 
+from pyk.kast import kast_term
 from pyk.kast.inner import KInner
 from pyk.kast.outer import KClaim
 from pyk.kcfg import KCFG
@@ -30,7 +31,7 @@ def load_json_kcfg(input_file: Path) -> KCFG:
 
 def load_json_kclaim(input_file: Path) -> KClaim:
     value = load_json_dict(input_file)
-    return KClaim.from_dict(value)
+    return kast_term(value, KClaim)
 
 
 def write_json(term_dict: dict[str, Any], output_file: Path) -> None:

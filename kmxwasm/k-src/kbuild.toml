@@ -13,3 +13,7 @@ backend='llvm'
 [targets.haskell]
 main-file = 'elrond-wasm.md'
 backend='haskell'
+
+[targets.lemma-proofs]
+main-file = 'lemmas/semantics/elrond-wasm-lemma-proofs.md'
+backend='haskell'

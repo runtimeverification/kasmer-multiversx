@@ -8,8 +8,6 @@ module ELROND-LEMMAS
   imports private SET
   imports private WASM-TEXT
 
-  rule size(_:List) >=Int 0 => true  [simplification, smt-lemma]
-
   rule Bytes2Int(#getBytesRange(_:Bytes, _:Int, N:Int), _:Endianness, _:Signedness) <Int M:Int
         => true
       requires 2 ^Int (8 *Int N) <=Int M
@@ -311,70 +309,6 @@ module ELROND-LEMMAS
   rule A:Int <Int 2 ^IntTotal ((( log2IntTotal(A) +Int 8) /IntTotal 8) *Int 8)
       => true
       [simplification]
-
-  rule  0 <=Int #bool ( _B ) => true
-    [simplification(), smt-lemma()]
-
-  rule  #bool ( _B ) <=Int 1 => true
-    [simplification(), smt-lemma()]
-
-  rule  #bool ( B:Bool ) <Int 1 => notBool (B:Bool)
-    [simplification()]
-
-  rule  { 0 #Equals #bool ( B:Bool ) } => { false #Equals B:Bool }
-    [simplification]
-
-  rule  { 1 #Equals #bool ( B:Bool ) } => { true #Equals B:Bool }
-    [simplification()]
-
-  rule  X:Int <=Int maxInt ( Y:Int , Z:Int ) => true
-    requires ( X:Int <=Int Y:Int
-      orBool ( X:Int <=Int Z:Int
-              ))
-    [simplification()]
-
-  rule  X:Int <Int maxInt ( Y:Int , Z:Int ) => true
-    requires ( X:Int <Int Y:Int
-      orBool ( X:Int <Int Z:Int
-              ))
-    [simplification()]
-
-  rule  X:Int >=Int maxInt ( Y:Int , Z:Int ) => true
-    requires ( X:Int >=Int Y:Int
-      andBool ( X:Int >=Int Z:Int
-              ))
-    [simplification()]
-
-  rule  X:Int >Int maxInt ( Y:Int , Z:Int ) => true
-    requires ( X:Int >Int Y:Int
-      andBool ( X:Int >Int Z:Int
-              ))
-    [simplification()]
-
-  rule  maxInt ( Y:Int , Z:Int ) >=Int X:Int => true
-    requires ( X:Int <=Int Y:Int
-      orBool ( X:Int <=Int Z:Int
-              ))
-    [simplification()]
-
-  rule  maxInt ( Y:Int , Z:Int ) >Int X:Int => true
-    requires ( X:Int <Int Y:Int
-      orBool ( X:Int <Int Z:Int
-              ))
-    [simplification()]
-
-  rule  maxInt ( Y:Int , Z:Int ) <=Int X:Int => true
-    requires ( X:Int >=Int Y:Int
-      andBool ( X:Int >=Int Z:Int
-              ))
-    [simplification()]
-
-  rule  maxInt ( Y:Int , Z:Int ) <Int X:Int => true
-    requires ( X:Int >Int Y:Int
-      andBool ( X:Int >Int Z:Int
-              ))
-    [simplification()]
-
 endmodule
 
 ```

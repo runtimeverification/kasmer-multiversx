@@ -20,7 +20,7 @@ from kmxwasm.ast.wasm import (
     tabInstCellMap,
     valStack,
 )
-from kmxwasm.build import kbuild_semantics
+from kmxwasm.build import HASKELL, kbuild_semantics
 from kmxwasm.paths import KBUILD_ML_PATH
 from kmxwasm.running import Success, run_claim
 from kmxwasm.tools import Tools
@@ -156,7 +156,7 @@ def full_configuration(
 @pytest.fixture(scope='module')
 def tools(tmp_path_factory: TempPathFactory) -> Tools:
     build_path = tmp_path_factory.mktemp('kbuild')
-    tools = kbuild_semantics(output_dir=build_path, config_file=KBUILD_ML_PATH)
+    tools = kbuild_semantics(output_dir=build_path, config_file=KBUILD_ML_PATH, target=HASKELL)
     return tools
 
 
