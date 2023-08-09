@@ -1,6 +1,7 @@
 ```k
 require "elrond-lemmas.md"
 require "elrond-semantics/foundry.md"
+require "lemmas/proven-elrond-lemmas.md"
 require "proof-extensions.md"
 require "specification-lemmas.md"
 require "wasm-semantics/kwasm-lemmas.md"
@@ -13,6 +14,7 @@ endmodule
 module ELROND-WASM
   imports ELROND-LEMMAS
   imports ELROND-WASM-NO-LOCAL-LEMMAS
+  imports PROVEN-ELROND-LEMMAS
 endmodule
 
 module ELROND-WASM-NO-LOCAL-LEMMAS
