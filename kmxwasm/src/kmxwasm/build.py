@@ -8,6 +8,8 @@ from .tools import Tools
 
 HASKELL = 'haskell'
 LLVM = 'llvm'
+LEMMA_PROOFS = 'lemma-proofs'
+LLVM = 'llvm'
 
 
 def kbuild_semantics(output_dir: Path, config_file: Path, target: str) -> Tools:
