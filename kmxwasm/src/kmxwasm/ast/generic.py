@@ -116,7 +116,27 @@ def get_with_path(root: KInner, path: list[str]) -> KInner:
                 raise ValueError(f'Path component found twice: {element!r}')
             found_arg = arg
         if not found_arg:
-            raise ValueError(f'Path component not found: {found_arg!r}')
+            raise ValueError(f'Path component not found: {element!r}')
+        root = found_arg
+    return root
+
+
+def find_with_path(root: KInner, path: list[str]) -> KInner | None:
+    assert path
+    for element in path:
+        assert isinstance(root, KApply)
+        assert root.args
+        found_arg: KInner | None = None
+        for arg in root.args:
+            if not isinstance(arg, KApply):
+                continue
+            if not arg.label.name == element:
+                continue
+            if found_arg:
+                raise ValueError(f'Path component found twice: {element!r}')
+            found_arg = arg
+        if not found_arg:
+            return None
         root = found_arg
     return root
 

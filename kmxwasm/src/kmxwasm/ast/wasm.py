@@ -1,12 +1,12 @@
 from typing import Iterable
 
-from pyk.kast.inner import KApply, KInner, KSequence
+from pyk.kast.inner import KApply, KInner, KSequence, KSort
 
 from .collections import cell_map, simple_list
 from .generic import set_ksequence_cell_contents
 
 # TODO: Move these to the wasm-semantics repository
-
+FUNCS_CELL_MAP=KSort('FuncDefCellMap')
 
 def funcDefCellMap(func_defs: Iterable[KInner]) -> KInner:  # noqa: N802
     return cell_map(name='FuncDefCellMap', items=func_defs)

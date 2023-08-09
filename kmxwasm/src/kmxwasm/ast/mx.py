@@ -3,13 +3,15 @@ from typing import Iterable
 from pyk.kast.inner import KApply, KInner, KSequence, KToken, collect
 
 from .collections import cell_map, full_list, k_map, simple_list
-from .generic import get_with_path, replace_with_path, set_ksequence_cell_contents, set_single_argument_kapply_contents
+from .generic import find_with_path, get_with_path, replace_with_path, set_ksequence_cell_contents, set_single_argument_kapply_contents
 
 COMMANDS_CELL_NAME = '<commands>'
 INSTRS_CELL_NAME = '<instrs>'
 K_CELL_NAME = '<k>'
 WASM_CELL_NAME = '<wasm>'
 CONTRACT_MOD_IDX_CELL_NAME = '<contractModIdx>'
+MAIN_STORE_CELL_NAME = '<mainStore>'
+FUNCS_CELL_NAME = '<funcs>'
 
 MANDOS_CELL_PATH = ['<foundry>', '<mandos>']
 NODE_CELL_PATH = MANDOS_CELL_PATH + ['<elrond>', '<node>']
@@ -21,6 +23,8 @@ K_CELL_PATH = MANDOS_CELL_PATH + [K_CELL_NAME]
 WASM_CELL_PATH = CALL_STATE_PATH + [WASM_CELL_NAME]
 INSTRS_CELL_PATH = WASM_CELL_PATH + [INSTRS_CELL_NAME]
 CONTRACT_MOD_IDX_CELL_PATH = CALL_STATE_PATH + [CONTRACT_MOD_IDX_CELL_NAME]
+
+FUNCS_PATH = WASM_CELL_PATH + [MAIN_STORE_CELL_NAME, FUNCS_CELL_NAME]
 
 
 # TODO: Move these to the elrond-semantics repository.
@@ -94,14 +98,18 @@ def get_first_command_name(root: KInner) -> str | None:
     return first.label.name
 
 
-def get_instrs_cell(root: KInner) -> KApply:
-    result = get_with_path(root, INSTRS_CELL_PATH)
+def get_instrs_cell(root: KInner) -> KApply | None:
+    result = find_with_path(root, INSTRS_CELL_PATH)
+    if not result:
+        return None
     assert isinstance(result, KApply)
     return result
 
 
-def instrs_cell_contents(root: KInner) -> KSequence:
+def instrs_cell_contents(root: KInner) -> KSequence | None:
     instrs = get_instrs_cell(root)
+    if not instrs:
+        return None
     assert len(instrs.args) == 1
     seq = instrs.args[0]
     assert isinstance(seq, KSequence)
@@ -110,6 +118,8 @@ def instrs_cell_contents(root: KInner) -> KSequence:
 
 def get_first_instr(root: KInner) -> KApply | None:
     seq = instrs_cell_contents(root)
+    if not seq:
+        return None
     if not seq.items:
         return None
     first = seq.items[0]

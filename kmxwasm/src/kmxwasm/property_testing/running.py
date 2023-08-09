@@ -26,10 +26,10 @@ CUT_POINT_RULES = [
     # This runs with the LLVM backend
     'ELROND-CONFIG.newWasmInstance',
     # These change the call stack
-    'ELROND-NODE.pushCallState',
-    'ELROND-NODE.popCallState',
-    'ELROND-NODE.dropCallState',
-    'FOUNDRY.endFoundryImmediately',
+    # 'ELROND-NODE.pushCallState',
+    # 'ELROND-NODE.popCallState',
+    # 'ELROND-NODE.dropCallState',
+    # 'FOUNDRY.endFoundryImmediately',
 ]
 
 
@@ -86,12 +86,12 @@ def run_claim(
         (kcfg, init_node_id, target_node_id) = KCFG.from_claim(tools.printer.definition, claim)
 
     kcfg_exploration = KCFGExploration(kcfg)
-    abstract_call_stack = CellAbstracter(
-        cell_path=CALL_STACK_PATH,
-        variable_root='AbstractCallStack',
-        variable_sort=LIST,
-        destination=target_node_id,
-    )
+    # abstract_call_stack = CellAbstracter(
+    #     cell_path=CALL_STACK_PATH,
+    #     variable_root='AbstractCallStack',
+    #     variable_sort=LIST,
+    #     destination=target_node_id,
+    # )
 
     try:
         processed: set[NodeIdLike] = {target_node_id}
@@ -136,12 +136,11 @@ def run_claim(
                             node=node,
                             logs=logs,
                             execute_depth=1,
-                            cut_point_rules=CUT_POINT_RULES,
                         )
                         t.measure()
                     else:
                         t = Timer('  Abstract')
-                        abstract_call_stack.abstract_node(kcfg, node.id)
+                        # abstract_call_stack.abstract_node(kcfg, node.id)
                         t.measure()
 
                         try:
@@ -168,7 +167,7 @@ def run_claim(
                             leaves = set(new_leaves(kcfg, non_final, final_node.id))
                             leaves.add(node.id)
                             t.measure()
-                            abstract_call_stack.concretize_kcfg(kcfg, leaves)
+                            # abstract_call_stack.concretize_kcfg(kcfg, leaves)
                             t.measure()
                     t = Timer('  Check final')
                     current_leaves = new_leaves(kcfg, non_final, final_node.id)
