@@ -6,7 +6,8 @@ from pyk.kcfg import KCFG
 from pyk.prelude.k import K
 
 from .functions import Functions
-from .kast import get_inner_path
+from .kast import get_inner
+from .wasm_cell import get_wasm_cell
 
 
 class Decision:
@@ -43,50 +44,6 @@ class ClaimNotAppliedForSummarizedFunction(Decision):
     function_name: str
 
 
-IMPLEMENTED_ELROND_FUNCTIONS = {
-    '$bigIntAdd',
-    '$bigIntFinishUnsigned',
-    '$bigIntGetCallValue',
-    '$bigIntGetUnsignedArgument',
-    '$bigIntSetInt64',
-    '$bigIntSign',
-    '$checkNoPayment',
-    '$getGasLeft',
-    '$getNumArguments',
-    '$getNumESDTTransfers',
-    '$managedAsyncCall',
-    '$managedCaller',
-    '$managedDeployFromSourceContract',
-    '$managedGetOriginalTxHash',
-    '$managedOwnerAddress',
-    '$managedSignalError',
-    '$managedTransferValueExecute',
-    '$managedUpgradeFromSourceContract',
-    '$managedWriteLog',
-    '$mBufferAppend',
-    '$mBufferAppendBytes',
-    '$mBufferCopyByteSlice',
-    '$mBufferEq',
-    '$mBufferFinish',
-    '$mBufferFromBigIntUnsigned',
-    '$mBufferGetArgument',
-    '$mBufferGetByteSlice',
-    '$mBufferGetLength',
-    '$mBufferNew',
-    '$mBufferNewFromBytes',
-    '$mBufferSetBytes',
-    '$mBufferStorageLoad',
-    '$mBufferStorageStore',
-    '$mBufferToBigIntUnsigned',
-    '$smallIntFinishSigned',
-    '$smallIntFinishUnsigned',
-    '$smallIntGetUnsignedArgument',
-    '$signalError',
-}
-
-# Checked up to (import "env" "mBufferStorageStore" (func $mBufferStorageStore (type 3)))
-
-
 class ExecutionManager:
     def __init__(self, functions: Functions, loop_whitelist: Set[str]) -> None:
         self.__already_summarized: Set[int] = set()
@@ -94,7 +51,7 @@ class ExecutionManager:
         self.__executing_addr = -1
         self.__loop_whitelist = loop_whitelist
 
-    def decide_configuration(self, kcfg: KCFG, node_id: str) -> Decision:
+    def decide_configuration(self, kcfg: KCFG, node_id: int) -> Decision:
         node = kcfg.node(node_id)
         instrs = get_instrs_child(node.cterm.config)
 
@@ -104,6 +61,8 @@ class ExecutionManager:
             return Finish()
 
         assert isinstance(instrs, KSequence)
+        if not instrs.items:
+            return Finish()
         assert instrs.items, instrs
 
         first = get_first_instruction(instrs)
@@ -158,9 +117,6 @@ class ExecutionManager:
         value = invoke.args[0]
         assert isinstance(value, KToken), value
         id = int(value.token)
-        if self.__is_elrond_function(id):
-            assert self.__function_name(id) in IMPLEMENTED_ELROND_FUNCTIONS
-            return Continue()
         if id == self.__executing_addr:
             return Continue()
         assert id in self.__already_summarized
@@ -172,10 +128,6 @@ class ExecutionManager:
         value = call.args[0]
         assert isinstance(value, KToken), value
         id = int(value.token)
-        if self.__is_elrond_function(id):
-            if self.__function_name(id) in IMPLEMENTED_ELROND_FUNCTIONS:
-                return Continue()
-            return UnimplementedElrondFunction(id, self.__function_name(id))
         if id in self.__already_summarized:
             return Continue()
         return UnsummarizedFunction(id, self.__function_name(id))
@@ -188,7 +140,8 @@ class ExecutionManager:
 
 
 def get_instrs_child(term: KInner) -> KInner:
-    instrs = get_inner_path(term, [(0, '<elrond-wasm>'), (1, '<wasm>'), (0, '<instrs>')])
+    wasm = get_wasm_cell(term)
+    instrs = get_inner(wasm, 0, '<instrs>')
     assert isinstance(instrs, KApply)
     assert instrs.arity == 1, instrs
     return instrs.args[0]

@@ -16,6 +16,7 @@ from .kast import (
     load_token,
     load_token_from_child,
 )
+from .wasm_cell import get_wasm_cell
 from .wasm_types import FuncType, ValType, VecType
 
 
@@ -209,11 +210,15 @@ def load_functions_from_store(term: KInner) -> Dict[str, WasmFunction]:
 
 
 def find_functions(term: KInner) -> Functions:
-    kwasm = get_inner_path(term, [(0, '<elrond-wasm>'), (1, '<wasm>')])
+    kwasm = get_wasm_cell(term)
     kmodule_instances = get_inner(kwasm, 5, '<moduleInstances>')
     assert isinstance(kmodule_instances, KApply), kmodule_instances
     assert len(kmodule_instances.args) == 1, kmodule_instances
-    kmodule_instance = get_inner_path(kmodule_instances, [(0, 'ModuleInstCellMapItem'), (1, '<moduleInst>')])
+    # Skip the first module as it seems to contain only builtins, which also
+    # exist in the second module.
+    kmodule_instance = get_inner_path(
+        kmodule_instances, [(0, '_ModuleInstCellMap_'), (1, 'ModuleInstCellMapItem'), (1, '<moduleInst>')]
+    )
     ktypes = get_inner(kmodule_instance, 2, '<types>')
     kfunc_addrs = get_inner(kmodule_instance, 4, '<funcAddrs>')
     kfunc_ids = get_inner_path(kmodule_instance, [(13, '<moduleMetadata>'), (2, '<funcIds>')])
