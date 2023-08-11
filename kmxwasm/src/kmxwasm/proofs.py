@@ -4,22 +4,25 @@ import json
 import subprocess
 import sys
 import time
+import traceback
 from pathlib import Path
 from typing import Any, Iterable, List, Mapping, Optional, Set, Tuple
 
-from pyk.cli_utils import BugReport
 from pyk.cterm import CTerm
 from pyk.kast.inner import KApply, KInner, KLabel, KSequence, KSort, KToken, KVariable, bottom_up
-from pyk.kast.manip import ml_pred_to_bool
-from pyk.kast.outer import KAtt, KClaim, KFlatModule, KRule
+from pyk.kast.manip import ml_pred_to_bool, sort_ac_collections
+from pyk.kast.outer import KClaim, KDefinition, KFlatModule
+from pyk.kast.pretty import SymbolTable
 from pyk.kcfg import KCFG
-from pyk.ktool.kprint import KPrint, SymbolTable
+from pyk.kore.rpc import KoreClientError
+from pyk.ktool.kprint import KPrint
 from pyk.ktool.krun import KRunOutput, _krun
-from pyk.prelude.bytes import BYTES, bytesToken
-from pyk.prelude.k import GENERATED_TOP_CELL, K
-from pyk.prelude.kbool import TRUE, andBool
+from pyk.prelude.bytes import BYTES, bytesToken_from_str
+from pyk.prelude.k import K
+from pyk.prelude.kbool import TRUE, andBool, notBool
 from pyk.prelude.kint import INT, intToken, leInt, ltInt
-from pyk.prelude.ml import mlAnd
+from pyk.prelude.ml import mlAnd, mlEqualsFalse, mlEqualsTrue, mlNot
+from pyk.utils import BugReport, single
 
 from . import execution, wasm_types
 from .functions import (
@@ -29,10 +32,18 @@ from .functions import (
     remove_all_function_id_to_addrs_but_one_and_builtins,
     remove_all_functions_but_one_and_builtins,
 )
-from .identifiers import Identifiers, find_identifiers
-from .kast import DOT_BYTES, SET_BYTES_RANGE, bytes_to_string, extract_rewrite_parents, make_rewrite, replace_child
-from .lazy_explorer import LazyExplorer, kompile_semantics
-from .rules import RuleCreator, build_rewrite_requires_new
+from .identifiers import Identifiers, escape_identifiers, find_identifiers
+from .kast import (
+    DOT_BYTES,
+    SET_BYTES_RANGE,
+    bytes_to_string,
+    extract_rewrite_parents,
+    make_rewrite,
+    replace_child,
+    replace_child_with_seq_variable,
+)
+from .lazy_explorer import GENERATED_MODULE_NAME, LazyExplorer, kompile_semantics
+from .rules import RuleCreator
 from .specs import Specs, find_specs
 from .wasm_types import ValType
 
@@ -47,17 +58,12 @@ DATA_DIR = BUILD_DIR / 'data'
 JSON_DIR = DATA_DIR / 'json'
 DEBUG_DIR = BUILD_DIR / 'debug'
 SUMMARIES_DIR = DATA_DIR / 'summaries'
-MACRO_CELLS = {
-    # <moduleInstances> needs MyExports as an argument
-    # '<moduleInstances>' : 'moduleInstancesMacro',
-    '<tabs>': 'tabsMacro',
-}
 
 GENERATED_RULE_PRIORITY = 20
 MAP = KSort('Map')
 
 # Setting this disables compilation.
-DEBUG_ID = ''  # '65c2eb70d28b5233e53205d46fb32e65a3edf97ce494dfb77ee227c49a29b021'
+DEBUG_ID = ''  #'ca3493ec081b72857fe96a8b6d3b3f969505e6bc09d91d16eaff9995f2c551ad'
 
 
 class MyKPrint(KPrint):
@@ -68,47 +74,18 @@ class MyKPrint(KPrint):
         bug_report: Optional[BugReport] = None,
         extra_unparsing_modules: Iterable[KFlatModule] = (),
     ) -> None:
-        super().__init__(definition_dir, use_directory, bug_report, extra_unparsing_modules)
+        super().__init__(
+            definition_dir, use_directory, bug_report, extra_unparsing_modules, MyKPrint._my_patch_symbol_table
+        )
 
     @classmethod
-    def _patch_symbol_table(cls, symbol_table: SymbolTable) -> None:
+    def _my_patch_symbol_table(cls, symbol_table: SymbolTable) -> None:
         symbol_table['_|->_'] = lambda c1, c2: f'({c1} |-> {c2})'
         symbol_table['_Map_'] = lambda c1, c2: f'({c1} {c2})'
         symbol_table['_Int2Bytes|->_'] = lambda c1, c2: f'({c1} Int2Bytes|-> {c2})'
         symbol_table['_MapIntwToBytesw_'] = lambda c1, c2: f'({c1} {c2})'
-        symbol_table['_MapIntwToBytesw_'] = lambda c1, c2: f'({c1} {c2})'
-        symbol_table['MapIntswToBytesw:curly_update'] = lambda c1, c2, c3: f'({c1}){{ {c2} <- {c3} }}'
-        symbol_table['_Bytes2Bytes|->_'] = lambda c1, c2: f'({c1} Bytes2Bytes|-> {c2})'
-        symbol_table['_MapByteswToBytesw_'] = lambda c1, c2: f'({c1} {c2})'
-        symbol_table['MapByteswToBytesw:curly_update'] = lambda c1, c2, c3: f'({c1}){{ {c2} <- {c3} }}'
-        symbol_table['_Int2Int|->_'] = lambda c1, c2: f'({c1} Int2Int|-> {c2})'
-        symbol_table['_MapIntwToIntw_'] = lambda c1, c2: f'({c1} {c2})'
-        symbol_table['MapIntwToIntw:curly_update'] = lambda c1, c2, c3: f'({c1}){{ {c2} <- {c3} }}'
         symbol_table['.TabInstCellMap'] = lambda: '.Bag'
-
         symbol_table['notBool_'] = lambda c1: f'notBool ({c1})'
-        symbol_table['_andBool_'] = lambda c1, c2: f'({c1}) andBool ({c2})'
-        symbol_table['_orBool_'] = lambda c1, c2: f'({c1}) orBool ({c2})'
-        symbol_table['_andThenBool_'] = lambda c1, c2: f'({c1}) andThenBool ({c2})'
-        symbol_table['_xorBool_'] = lambda c1, c2: f'({c1}) xorBool ({c2})'
-        symbol_table['_orElseBool_'] = lambda c1, c2: f'({c1}) orElseBool ({c2})'
-        symbol_table['_impliesBool_'] = lambda c1, c2: f'({c1}) impliesBool ({c2})'
-
-        symbol_table['~Int_'] = lambda c1: f'~Int ({c1})'
-        symbol_table['_modInt_'] = lambda c1, c2: f'({c1}) modInt ({c2})'
-        symbol_table['_modIntTotal_'] = lambda c1, c2: f'({c1}) modIntTotal ({c2})'
-        symbol_table['_*Int_'] = lambda c1, c2: f'({c1}) *Int ({c2})'
-        symbol_table['_/Int_'] = lambda c1, c2: f'({c1}) /Int ({c2})'
-        symbol_table['_%Int_'] = lambda c1, c2: f'({c1}) %Int ({c2})'
-        symbol_table['_^Int_'] = lambda c1, c2: f'({c1}) ^Int ({c2})'
-        symbol_table['_^%Int_'] = lambda c1, c2: f'({c1}) ^%Int ({c2})'
-        symbol_table['_+Int_'] = lambda c1, c2: f'({c1}) +Int ({c2})'
-        symbol_table['_-Int_'] = lambda c1, c2: f'({c1}) -Int ({c2})'
-        symbol_table['_>>Int_'] = lambda c1, c2: f'({c1}) >>Int ({c2})'
-        symbol_table['_<<Int_'] = lambda c1, c2: f'({c1}) <<Int ({c2})'
-        symbol_table['_&Int_'] = lambda c1, c2: f'({c1}) &Int ({c2})'
-        symbol_table['_xorInt_'] = lambda c1, c2: f'({c1}) xorInt ({c2})'
-        symbol_table['_|Int_'] = lambda c1, c2: f'({c1}) |Int ({c2})'
 
 
 def filter_bytes(term: KToken) -> KInner:
@@ -144,21 +121,8 @@ def filter_bytes(term: KToken) -> KInner:
 
     new_term = KApply(DOT_BYTES, ())
     for start, end in keep:
-        new_term = KApply(SET_BYTES_RANGE, (new_term, KToken(str(start), INT), bytesToken(bytes[start:end])))
+        new_term = KApply(SET_BYTES_RANGE, (new_term, KToken(str(start), INT), bytesToken_from_str(bytes[start:end])))
     return new_term
-
-
-def filter_bytes_callback(term: KInner) -> KInner:
-    if isinstance(term, KToken):
-        if term.sort == BYTES:
-            term = filter_bytes(term)
-            s = str(term)
-            pos = s.find(('\\x00' * 100))
-            pos -= 100
-            if pos < 0:
-                pos = 0
-            return term
-    return term
 
 
 def print_kore_cfg(node_id: str, kcfg: KCFG, printer: KPrint) -> None:
@@ -198,15 +162,8 @@ def load_json(input_file: Path) -> KInner:
     return KInner.from_dict(value)
 
 
-def replace_bytes(term: KInner) -> KInner:
-    term = bottom_up(filter_bytes_callback, term)
-    return term
-
-
-def replace_bytes_c_term(term: CTerm) -> CTerm:
-    new_term = replace_bytes(term.config)
-    thing = mlAnd([new_term] + list(term.constraints), GENERATED_TOP_CELL)
-    return CTerm(thing)
+def sort_ac_c_term(_definition: KDefinition, term: CTerm) -> CTerm:
+    return CTerm(sort_ac_collections(term.config), term.constraints)
 
 
 def make_apply(label: str, args: List[KInner]) -> KApply:
@@ -301,8 +258,8 @@ def generate_symbolic_function_call(function: WasmFunction) -> Tuple[KSequence, 
     stack: KInner = KVariable('MyStack', sort=KSort('ValStack'))
     for var, vtype in zip(variables, argument_types_list, strict=True):
         stack = KApply(
-            '_:__WASM-DATA_ValStack_Val_ValStack',
-            (KApply('<_>__WASM-DATA_IVal_IValType_Int', (make_type(vtype), var)), stack),
+            '_:__WASM-DATA-COMMON_ValStack_Val_ValStack',
+            (KApply('<_>__WASM-DATA-COMMON_IVal_IValType_Int', (make_type(vtype), var)), stack),
         )
     statements = [KApply('aNop'), make_a_call(function.address()), KVariable('MyOtherInstructions', sort=K)]
     call = make_statement_list(statements)
@@ -326,93 +283,117 @@ def make_claim(term: KInner, constraint: KInner, address: str, functions: Functi
     return (lhs, KClaim(body=rewrite, requires=full_constraint))
 
 
-def build_rewrite_requires(lhs_id: str, rhs_id: str, kcfg: KCFG) -> Tuple[KInner, KInner]:
-    lhs_node = kcfg.node(lhs_id)
-    rhs_node = kcfg.node(rhs_id)
-    return build_rewrite_requires_new(
-        lhs_node.cterm.config, lhs_node.cterm.constraints, rhs_node.cterm.config, rhs_node.cterm.constraints
-    )
-
-
-# It would be tempting to use cterm.build_rule or cterm.build_claim, however,
-# we should check first if those, say, remove function definitions from the
-# configuration when calling `minimize_rule`. The rule is not valid without
-# those.
-def make_final_claim(lhs_id: str, rhs_id: str, kcfg: KCFG) -> KClaim:
-    (rewrite, constraint) = build_rewrite_requires(lhs_id=lhs_id, rhs_id=rhs_id, kcfg=kcfg)
-    return KClaim(body=rewrite, requires=constraint)
-
-
-# It would be tempting to use cterm.build_rule or cterm.build_claim, however,
-# we should check first if those, say, remove function definitions from the
-# configuration when calling `minimize_rule`. The rule is not valid without
-# those.
-def make_final_rule(lhs_id: str, rhs_id: str, kcfg: KCFG) -> KRule:
-    (rewrite, constraint) = build_rewrite_requires(lhs_id=lhs_id, rhs_id=rhs_id, kcfg=kcfg)
-
-    att_dict = {'priority': str(GENERATED_RULE_PRIORITY)}
-    rule_att = KAtt(atts=att_dict)
-    return KRule(body=rewrite, requires=constraint, att=rule_att)
-
-
 def write_json(term: KInner, output_file: Path) -> None:
     output_file.parent.mkdir(parents=True, exist_ok=True)
     output_file.write_text(json.dumps(term.to_dict()))
 
 
-def my_step(explorer: LazyExplorer, cfg: KCFG, node_id: str) -> List[str]:
-    node = cfg.node(node_id)
-    out_edges: List[str] = []
-    for split in cfg.splits(source_id=node.id):
-        for n, _ in split.targets:
+def debug_cterm(term: CTerm, printer: KPrint) -> None:
+    pretty = printer.pretty_print(term.config)
+    print(pretty, flush=True)
+    print()
+
+    for constraint in term.constraints:
+        prefix1 = '++'
+        prefix2 = '**'
+        print(prefix1, printer.pretty_print(constraint), flush=True)
+        try:
+            print(prefix2, printer.pretty_print(ml_pred_to_bool(constraint)), flush=True)
+        except Exception:
+            print(prefix2, 'Cannot print bool constraint', flush=True)
+
+
+def my_step(explorer: LazyExplorer, kcfg: KCFG, node_id: int) -> List[int]:
+    node = kcfg.node(node_id)
+    out_edges: List[int] = []
+    for split in kcfg.splits(source_id=node.id):
+        for n in split.targets:
             out_edges.append(n.id)
-    for e in cfg.edges(source_id=node.id):
+    for branch in kcfg.ndbranches(source_id=node.id):
+        for n in branch.targets:
+            out_edges.append(n.id)
+    for e in kcfg.edges(source_id=node.id):
         out_edges.append(e.target.id)
     if len(out_edges) > 0:
         return out_edges
-    assert len(list(cfg.edges(source_id=node.id))) == 0
-    assert len(list(cfg.covers(source_id=node.id))) == 0
-    assert len(list(cfg.splits(source_id=node.id))) == 0
-    assert len(list(cfg.successors(node.id))) == 0
+    assert len(list(kcfg.edges(source_id=node.id))) == 0
+    assert len(list(kcfg.covers(source_id=node.id))) == 0
+    assert len(list(kcfg.splits(source_id=node.id))) == 0
+    assert len(list(kcfg.successors(node.id))) == 0
 
-    print('Executing!', flush=True)
-    actual_depth, cterm, next_cterms = explorer.get().cterm_execute(node.cterm, depth=1)
-    if actual_depth == 0:
-        if len(next_cterms) < 2:
-            print(node.id)
-            print(explorer.printer().pretty_print(node.cterm.config), flush=True)
-            for constraint in node.cterm.constraints:
-                print('--', explorer.printer().pretty_print(constraint), flush=True)
-            for constraint in node.cterm.constraints:
-                print('**', explorer.printer().pretty_print(ml_pred_to_bool(constraint)), flush=True)
-            raise ValueError(
-                f'Unable to take {1} steps from node (next={len(next_cterms)}), got {actual_depth} steps: {node.id}'
-            )
+    print(f'Executing {node.id}!', flush=True)
+    try:
+        (depth, cterm, next_cterms, next_node_logs) = explorer.get().cterm_execute(
+            node.cterm, depth=1, module_name=GENERATED_MODULE_NAME
+        )
+    except BaseException:
+        debug_cterm(node.cterm, explorer.printer())
+        raise
+
+    # Basic block
+    if depth > 0:
+        if len(next_cterms) != 0:
+            raise ValueError(f'Unexpected next cterms length {len(next_cterms)}: {node.id}')
+        cterm = sort_ac_c_term(explorer.printer().definition, cterm)
+        next_node = kcfg.create_node(cterm)
+        print(next_node_logs)
+        # TODO: This may be other things than mlTop()
+        kcfg.create_edge(node.id, next_node.id, depth=depth)
+        return [next_node.id]
+
+    # Stuck
+    if len(next_cterms) == 0:
+        print(node.id)
+        print(explorer.printer().pretty_print(node.cterm.config), flush=True)
+        for constraint in node.cterm.constraints:
+            print('--', explorer.printer().pretty_print(constraint), flush=True)
+        for constraint in node.cterm.constraints:
+            print('**', explorer.printer().pretty_print(ml_pred_to_bool(constraint)), flush=True)
+        write_json(node.cterm.config, DEBUG_DIR / 'stuck.json')
+        raise ValueError(f'Found stuck node {node.id}.')
+
+    # Cut Rule
+    if len(next_cterms) == 1:
+        cterm = sort_ac_c_term(explorer.printer().definition, cterm)
+        next_node = kcfg.create_node(cterm)
+        print(next_node_logs)
+        kcfg.create_edge(node.id, next_node.id, depth=depth)
+        return [next_node.id]
+
+    # Branch
+    if len(next_cterms) > 1:
         branches = [mlAnd(c for c in s.constraints if c not in cterm.constraints) for s in next_cterms]
-        next_ids = cfg.split_on_constraints(node.id, branches)
+        branch_and = mlAnd(branches)
+        branch_patterns = [
+            mlAnd([mlEqualsTrue(KVariable('B')), mlEqualsTrue(notBool(KVariable('B')))]),
+            mlAnd([mlEqualsTrue(notBool(KVariable('B'))), mlEqualsTrue(KVariable('B'))]),
+            mlAnd([mlEqualsTrue(KVariable('B')), mlEqualsFalse(KVariable('B'))]),
+            mlAnd([mlEqualsFalse(KVariable('B')), mlEqualsTrue(KVariable('B'))]),
+            mlAnd([mlNot(KVariable('B')), KVariable('B')]),
+            mlAnd([KVariable('B'), mlNot(KVariable('B'))]),
+        ]
+
+        # Split on branch patterns
+        if any(branch_pattern.match(branch_and) for branch_pattern in branch_patterns):
+            next_ids = kcfg.split_on_constraints(node.id, branches)
+
+        # NDBranch on successor nodes
+        else:
+            next_ids = [kcfg.create_node(sort_ac_c_term(explorer.printer().definition, ct)).id for ct in next_cterms]
+            print(next_node_logs)
+            kcfg.create_ndbranch(node.id, next_ids)
         for next_id in next_ids:
             print(node.id, '-*>', next_id)
         assert node.id not in next_ids
         return next_ids
-    if actual_depth != 1:
-        write_json(node.cterm.config, DEBUG_DIR / 'stuck.json')
-        print('cterm=', cterm)
-        print('cterms.len=', len(next_cterms), flush=True)
-        raise ValueError(f'Unable to take {1} steps from node, got {actual_depth} steps: {node.id}')
-    if len(next_cterms) != 0:
-        raise ValueError(f'Unexpected next cterms length {len(next_cterms)}: {node.id}')
-    cterm = replace_bytes_c_term(cterm)
-    new_node = cfg.get_or_create_node(cterm)
-    # TODO: This may be other things than mlTop()
-    cfg.create_edge(node.id, new_node.id, depth=1)
-    return [new_node.id]
+
+    raise ValueError('Unhandled case.')
 
 
-def my_step_logging(explorer: LazyExplorer, kcfg: KCFG, node_id: str, branches: int) -> List[str]:
+def my_step_logging(explorer: LazyExplorer, kcfg: KCFG, node_id: int, branches: int) -> List[int]:
     prev_cterm = kcfg.node(node_id).cterm
     prev_config = prev_cterm.config
-    # prev_config = replace_bytes(prev_config)
-    new_node_ids = my_step(explorer=explorer, cfg=kcfg, node_id=node_id)
+    new_node_ids = my_step(explorer=explorer, kcfg=kcfg, node_id=node_id)
     first = True
     print([node_id], '->', new_node_ids, f'{branches - 1} branches left', flush=True)
     for new_node_id in new_node_ids:
@@ -436,7 +417,10 @@ def my_step_logging(explorer: LazyExplorer, kcfg: KCFG, node_id: str, branches: 
                 print(explorer.printer().pretty_print(c))
                 print(c)
                 print()
-                pretty = explorer.printer().pretty_print(ml_pred_to_bool(c))
+                try:
+                    pretty = explorer.printer().pretty_print(ml_pred_to_bool(c))
+                except ValueError:
+                    pretty = traceback.format_exc()
                 print('requires:', pretty)
                 print()
     print('=' * 80, flush=True)
@@ -474,8 +458,10 @@ def execute_function(
         hacked_term = remove_all_function_id_to_addrs_but_one_and_builtins(hacked_term, function_addr, functions)
 
         # TODO: Set kcfg with a LHS only, not an entire claim.
+        hacked_term = sort_ac_collections(hacked_term)
         (_rule_creator, claim) = make_claim(hacked_term, constraint, function_addr, functions)
-        kcfg = KCFG.from_claim(explorer.printer().definition, claim)
+        kcfg, _init_node_id, target_node_id = KCFG.from_claim(explorer.printer().definition, claim)
+        kcfg.remove_node(target_node_id)
 
     debug = kcfg.get_node(DEBUG_ID)
     if debug:
@@ -484,7 +470,7 @@ def execute_function(
             kcfg.remove_node(e.target.id)
 
     try:
-        first_node_id = kcfg.get_unique_init().id
+        first_node_id = single(kcfg.root).id
         node_ids = my_step(explorer, kcfg, first_node_id)
         assert len(node_ids) == 1
         lhs_id = node_ids[0]
@@ -531,10 +517,10 @@ def execute_functions(
     printer: KPrint,
     state_path: Path,
     summaries_path: Path,
-    definition_path: Path,
+    definition_parent: Path,
     execution_decision: execution.ExecutionManager,
 ) -> None:
-    rules = RuleCreator(printer.definition, MACRO_CELLS, GENERATED_RULE_PRIORITY)
+    rules = RuleCreator(GENERATED_RULE_PRIORITY)
     unprocessed_functions: List[str] = [
         addr
         for addr in functions.addrs()
@@ -550,8 +536,7 @@ def execute_functions(
                 rules=rules,
                 identifiers=identifiers,
                 data_folder=summaries_path / function_addr,
-                definition_parent=definition_path / function_addr / DEFINITION_NAME,
-                k_dir=K_DIR,
+                definition_parent=definition_parent,
                 printer=printer,
                 debug_id=DEBUG_ID,
             ) as explorer:
@@ -574,8 +559,7 @@ def execute_functions(
                 rules=rules,
                 identifiers=identifiers,
                 data_folder=summaries_path / 'final',
-                definition_parent=definition_path / 'final',
-                k_dir=K_DIR,
+                definition_parent=definition_parent,
                 printer=printer,
                 debug_id=DEBUG_ID,
             ) as explorer:
@@ -588,8 +572,7 @@ def execute_functions(
         rules=rules,
         identifiers=identifiers,
         data_folder=summaries_path / 'final',
-        definition_parent=definition_path / 'final',
-        k_dir=K_DIR,
+        definition_parent=definition_parent,
         printer=printer,
         debug_id=DEBUG_ID,
     ) as explorer:
@@ -628,7 +611,7 @@ class VariablesForGlobals:
         val_type = k_type_to_val_type(typed_value.args[0])
 
         assert isinstance(typed_value, KApply), typed_value
-        assert typed_value.label.name == '<_>__WASM-DATA_IVal_IValType_Int', typed_value
+        assert typed_value.label.name == '<_>__WASM-DATA-COMMON_IVal_IValType_Int', typed_value
         assert typed_value.arity == 2, typed_value
 
         variable = make_variable(f'MyGlobal{self.__next_index}', val_type)
@@ -652,6 +635,11 @@ def replace_globals_with_variables(term: KInner) -> Tuple[KInner, List[KInner]]:
     return (new_term, replacer.constraints())
 
 
+# TODO: Move somewhere else, perhaps in pyk:
+LIST = KSort('List')
+SET = KSort('Set')
+
+
 def run_for_input(
     input_file: Path, short_name: str, blacklisted_functions: Set[str], whitelisted_for_loops: Set[str]
 ) -> None:
@@ -661,7 +649,7 @@ def run_for_input(
     main_definition_dir = definitions_dir / DEFINITION_NAME
 
     if not DEBUG_ID:
-        kompile_semantics(k_dir=K_DIR, summary_folder=None, definition_dir=main_definition_dir)
+        kompile_semantics(k_dir=K_DIR, definition_dir=main_definition_dir)
 
     krun_output_file = json_dir / 'krun.json'
     bytes_output_file = json_dir / 'bytes.json'
@@ -669,39 +657,75 @@ def run_for_input(
         if not krun_output_file.exists():
             krun(input_file, krun_output_file, main_definition_dir)
         term = load_json_krun(krun_output_file)
-        # TODO: Replace the config in the term
-        # assert not term.constraints
-        # print(term.constraints)
-        config = replace_bytes(term)
-        write_json(config, bytes_output_file)
+        write_json(term, bytes_output_file)
 
     term = load_json(bytes_output_file)
+
+    # TODO: We should not simply remove the top condition.
+    # However, due to
+    # https://github.com/runtimeverification/haskell-backend/issues/3562
+    # we get a spurious side condition. This is an attempt to change the
+    # term to what it should be if the bug was fixed.
+    if isinstance(term, KApply):
+        if term.label.name == '#And':
+            term = term.args[1]
+
+    term = escape_identifiers(term)
     identifiers = find_identifiers(term)
     functions = find_functions(term)
     specs = find_specs(input_file.parent / short_name)
 
-    # The exports field contains wasm strings that are not serialized properly.
-    term = replace_child(term, '<exports>', KVariable('MyExports', sort=MAP))
+    replacements = [
+        # The exports field contains wasm strings that are not serialized properly.
+        ('<exports>', 'MyExports', MAP),
+        # These are not needed and increase the execution + parsing time:
+        ('<funcIds>', 'MyFuncIds', MAP),
+        # Real symbolic inputs
+        # <elrond>
+        ('<bufferHeap>', 'MyBuffers', KSort('MapIntToBytes')),
+        ('<bigIntHeap>', 'MyInts', MAP),
+        # <elrond>/<node>/<callState>
+        ('<callArgs>', 'MyCallArgs', KSort('ListBytes')),
+        ('<caller>', 'MyCaller', BYTES),
+        ('<callee>', 'MyCallee', BYTES),
+        ('<callValue>', 'MyCallValue', INT),
+        ('<esdtTransfers>', 'MyEsdtTransfers', LIST),
+        ('<out>', 'MyOut', KSort('ListBytes')),
+        ('<interimStates>', 'MyInterimStates', LIST),
+        ('<logs>', 'MyLogs', LIST),
+        # <elrond>/<node>
+        ('<accounts>', 'MyAccounts', KSort('AccountCellMap')),
+        # ('<accounts>', 'MyAccounts', KSort('MapBytesToAccount')),
+        # <elrond>/<node>/<previousBlockInfo>
+        ('<prevBlockTimestamp>', 'MyPrevBlockTimestamp', INT),
+        ('<prevBlockNonce>', 'MyPrevBlockNonce', INT),
+        ('<prevBlockRound>', 'MyPrevBlockRound', INT),
+        ('<prevBlockEpoch>', 'MyPrevBlockEpoch', INT),
+        ('<prevBlockRandomSeed>', 'MyPrevBlockRandomSeed', BYTES),
+        # <elrond>/<node>/<currentBlockInfo>
+        ('<curBlockTimestamp>', 'MyCurBlockTimestamp', INT),
+        ('<curBlockNonce>', 'MyCurBlockNonce', INT),
+        ('<curBlockRound>', 'MyCurBlockRound', INT),
+        ('<curBlockEpoch>', 'MyCurBlockEpoch', INT),
+        ('<curBlockRandomSeed>', 'MyCurBlockRandomSeed', BYTES),
+    ]
+    # TODO: Add constraints for the variables above.
 
-    # These are not needed and increase the execution + parsing time:
-    term = replace_child(term, '<funcIds>', KVariable('MyFuncIds', sort=MAP))
+    for name, var_name, sort in replacements:
+        term = replace_child_with_seq_variable(term=term, parent_name=name, variable_name=var_name, sort=sort)
 
-    # Real symbolic inputs
-    term = replace_child(term, '<buffers>', KVariable('MyBuffers', sort=KSort('MapIntwToBytesw')))
-    term = replace_child(term, '<ints>', KVariable('MyInts', sort=KSort('MapIntwToIntw')))
-    term = replace_child(term, '<storage>', KVariable('MyStorage', sort=KSort('MapByteswToBytesw')))
-    term = replace_child(term, '<payments>', KVariable('MyPayments', sort=KSort('ListESDTTransfer')))
-    term = replace_child(term, '<caller>', KVariable('MyCaller', sort=BYTES))
-    term = replace_child(term, '<owner>', KVariable('MyCaller', sort=BYTES))
-    term = replace_child(term, '<gas>', KVariable('MyGas', sort=INT))
-    term = replace_child(term, '<call-value>', KVariable('MyCallValue', sort=INT))
-    term = replace_child(term, '<arguments>', KVariable('MyEndpointArguments', sort=KSort('ListBytesw')))
-    term = replace_child(term, '<original-tx-hash>', KVariable('MyOriginalTxHash', sort=BYTES))
+    # TODO: Check what is worth generalizing from
+    # <contractModIdx>, <moduleInst>, <memAddrs>, <memInst>, <mAddr>, <msize>
+    term = replace_child(term, '<contractModIdx>', intToken(1))
+
     term, constraints = replace_globals_with_variables(term)
+    constraints.append(leInt(intToken(0), KVariable('MyCallValue')))
     constraint = make_balanced_and_bool(constraints)
 
     printer = MyKPrint(main_definition_dir)
     execution_decision = execution.ExecutionManager(functions, whitelisted_for_loops)
+
+    term = sort_ac_collections(term)
 
     print(printer.pretty_print(constraint))
 
@@ -715,7 +739,7 @@ def run_for_input(
         printer,
         json_dir,
         summaries_dir,
-        definitions_dir,
+        main_definition_dir,
         execution_decision,
     )
 
@@ -731,7 +755,15 @@ def main(args: List[str]) -> None:
         print(f'Input file ({sample_path}) does not exit.')
     blacklist = {'multisig-full': {'78'}}
     loop_whitelist = {'sum-to-n': {'13'}}
-    run_for_input(sample_path, sample_name, blacklist.get(sample_name, set()), loop_whitelist.get(sample_name, set()))
+    try:
+        run_for_input(
+            sample_path, sample_name, blacklist.get(sample_name, set()), loop_whitelist.get(sample_name, set())
+        )
+    except KoreClientError as e:
+        print('args=', e.args)
+        print('code=', e.code)
+        print('data=', e.data)
+        raise
     # run_for_input(samples / 'multisig-full.wat', 'multisig-full', {'78'})
     # run_for_input(samples / 'sum-to-n.wat', 'sum-to-n', set())
     return
@@ -740,20 +772,32 @@ def main(args: List[str]) -> None:
 """
 Python debugging of RPC responses:
 
-import compress_bytes.compress_bytes as c
+import kmxwasm.proofs as proofs
 from pathlib import Path
 from pyk.ktool.kprint import KPrint
 from pyk.kore.syntax import Pattern
 
-my_kprint = KPrint(c.DEFINITION_DIR)
+# contract = 'multisig-full'
+contract = 'sum-to-n'
+my_kprint = KPrint(proofs.DEFINITION_PARENT / contract / proofs.DEFINITION_NAME)
 
-d = c.load_json_dict(c.DEBUG_DIR / 'response.log')
+-------------
+
+d = proofs.load_json_dict(c.DEBUG_DIR / 'response.log')
 
 d['result']['state']['term']['term']['args'][0]['args'][1]['args'][7]['args'][4]['args'][0]['args'][1]['args'][3]['args'][0]['value'] = '...removed-memory...'
 
 kore = Pattern.from_dict(d['result']['state']['term']['term'])
 pretty = my_kprint.kore_to_pretty(kore)
 print(pretty)
+
+
+----------------
+
+
+term = proofs.load_json(proofs.JSON_DIR / contract / 'bytes.json')
+print(my_kprint.pretty_print(term))
+
 """
 
 

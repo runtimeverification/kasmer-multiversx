@@ -1,6 +1,7 @@
 import operator
 from typing import Callable, Dict, Iterable, List, Optional, Tuple, TypeVar
 
+from pyk.cterm import CTerm
 from pyk.kast.inner import (
     KApply,
     KAs,
@@ -14,36 +15,101 @@ from pyk.kast.inner import (
     bottom_up,
     top_down,
 )
-from pyk.kast.manip import count_vars, push_down_rewrites
-from pyk.prelude.ml import mlAnd
+from pyk.kast.manip import push_down_rewrites
 
 V = TypeVar('V')
 
-SET_BYTES_RANGE = '#setBytesRange(_,_,_)_WASM-DATA_Bytes_Bytes_Int_Bytes'
+SET_BYTES_RANGE = '#setBytesRange(_,_,_)_WASM-DATA-COMMON_Bytes_Bytes_Int_Bytes'
 DOT_BYTES = '.Bytes_BYTES-HOOKED_Bytes'
 
 
-def replace_child(term: KInner, parent_name: str, replacement: KInner) -> KInner:
+def replace_child_with_generator(term: KInner, parent_name: str, replacement_fn: Callable[[], KInner]) -> KInner:
     def replace_child_callback(term: KInner) -> KInner:
         if not isinstance(term, KApply):
             return term
         if not term.label.name == parent_name:
             return term
         assert term.arity == 1, term
+        replacement = replacement_fn()
         return term.let(args=[replacement])
 
     return top_down(replace_child_callback, term)
 
 
-def replace_term(term: KInner, name: str, replacement: KInner) -> KInner:
+def replace_child_with_seq_variable(term: KInner, parent_name: str, variable_name: str, sort: KSort) -> KInner:
+    index = 0
+
+    def replacement_fn() -> KInner:
+        nonlocal index
+        result = KVariable(f'{variable_name}{index}', sort)
+        index += 1
+        return result
+
+    retv = replace_child_with_generator(term, parent_name, replacement_fn)
+    assert index, [parent_name, variable_name]
+    return retv
+
+
+def replace_child(term: KInner, parent_name: str, replacement: KInner) -> KInner:
+    replaced = False
+
+    def replacement_fn() -> KInner:
+        nonlocal replaced
+
+        assert not replaced, [parent_name, replacement]
+        replaced = True
+        return replacement
+
+    retv = replace_child_with_generator(term, parent_name, replacement_fn)
+    assert replaced, [parent_name]
+    return retv
+
+
+def replace_single_term(term: KInner, name: str, replacement: KInner) -> KInner:
+    replaced = False
+
     def replace_term_callback(term: KInner) -> KInner:
         if not isinstance(term, KApply):
             return term
         if not term.label.name == name:
             return term
+        nonlocal replaced
+        assert not replaced, [name, replacement]
+        replaced = True
         return replacement
 
-    return top_down(replace_term_callback, term)
+    retv = top_down(replace_term_callback, term)
+    assert replaced, [name]
+    return retv
+
+
+def replace_term_with_seq_variable(term: KInner, name: str, variable_name: str, sort: KSort) -> KInner:
+    index = 0
+
+    def replace_term_callback(term: KInner) -> KInner:
+        if not isinstance(term, KApply):
+            return term
+        if not term.label.name == name:
+            return term
+        nonlocal index
+        replacement = KVariable(f'{variable_name}{index}', sort)
+        index += 1
+        return replacement
+
+    retv = top_down(replace_term_callback, term)
+    assert index, [name, variable_name]
+    return retv
+
+
+def replace_variable(term: KInner, name: str, replacement: KInner) -> KInner:
+    def replace_callback(term: KInner) -> KInner:
+        if not isinstance(term, KVariable):
+            return term
+        if not term.name == name:
+            return term
+        return replacement
+
+    return top_down(replace_callback, term)
 
 
 def get_inner(term: KInner, idx: int, label: Optional[str]) -> KInner:
@@ -210,24 +276,6 @@ def join_tree(label: str, leaves: List[KInner]) -> Optional[KInner]:
     return tree
 
 
-def underscore_for_unused_vars(kast: KInner, constraint: KInner) -> KInner:
-    num_occs = count_vars(mlAnd([kast, constraint]))
-
-    def _underscore_unused_var(_kast: KInner) -> KInner:
-        if type(_kast) is KVariable and num_occs[_kast.name] == 1:
-            name = _kast.name
-            prefix = ''
-            if name.startswith('?'):
-                prefix = '?'
-                name = name[1:]
-            if name.startswith('_'):
-                return _kast
-            return _kast.let(name=f'{prefix}_{name}')
-        return _kast
-
-    return bottom_up(_underscore_unused_var, kast)
-
-
 def make_rewrite(lhs: KInner, rhs: KInner) -> KInner:
     def make_rewrite_if_needed(left: KInner, right: KInner) -> KInner:
         if left == right:
@@ -260,3 +308,117 @@ def bytes_to_string(b: str) -> str:
 
     b = b[2:-1]
     return b
+
+
+def k_equals(first: KInner, second: KInner) -> KInner:
+    return KApply('_==K_', [first, second])
+
+
+def process_kapply(processor: Callable[[KApply], None], name: str, term: KInner) -> None:
+    def process(t: KInner) -> KInner:
+        if not isinstance(t, KApply):
+            return t
+        if not t.label.name == name:
+            return t
+        processor(t)
+        return t
+
+    bottom_up(process, term)
+
+
+def fix_configuration_map_items_for_map(
+    parent: str, concat: str, element: str, unit: str, child: str, term: KInner
+) -> KInner:
+    def fix(t: KInner) -> KInner:
+        if not isinstance(t, KApply):
+            return t
+        if t.label.name in [parent, concat]:
+            assert t.arity in [1, 2], t.arity
+            new_args = []
+            for arg in t.args:
+                assert isinstance(arg, KApply)
+                if arg.label.name in [concat, element, unit]:
+                    new_args.append(arg)
+                    continue
+                assert arg.label.name == child, [arg.label.name, parent, concat, element, unit, child]
+                assert arg.arity > 1
+                new_args.append(KApply(element, (arg.args[0], arg)))
+            return t.let(args=new_args)
+        return t
+
+    return bottom_up(fix, term)
+
+
+def fix_configuration_map_items(term: KInner) -> KInner:
+    """Fixes the representation for configuration maps returned by the Haskell backend.
+
+    In axioms, configuration maps are represented something like this:
+    <parentCell>
+        mapConcat(
+            mapItem(
+                <keyCell> key </keyCell>,
+                <valueCell>
+                    <keyCell> key </keyCell>
+                    ...
+                </valueCell>
+            ),
+            mapConcat(...)
+        )
+    </parentCell>
+
+    However, the RPC server seems to return this instead:
+    <parentCell>
+        mapConcat(
+            <valueCell>
+                <keyCell> key </keyCell>
+                ...
+            </valueCell>,
+            mapConcat(...)
+        )
+    </parentCell>
+
+    This seems to work fine in most cases. However, when creating rules
+    on-the-fly, pyk notices that the sorts do not match, and replaces the above
+    with
+    <parentCell>
+        mapConcat(
+            inj{MapSort, ValueCellSort}(
+                <valueCell>
+                    <keyCell> key </keyCell>
+                    ...
+                </valueCell>
+            ),
+            mapConcat(...)
+        )
+    </parentCell>
+    and the Haskell backend does not seem to be able to apply these rules properly.
+    """
+    term = fix_configuration_map_items_for_map(
+        parent='<mems>',
+        concat='_MemInstCellMap_',
+        element='MemInstCellMapItem',
+        unit='.MemInstCellMap',
+        child='<memInst>',
+        term=term,
+    )
+    term = fix_configuration_map_items_for_map(
+        parent='<globals>',
+        concat='_GlobalInstCellMap_',
+        element='GlobalInstCellMapItem',
+        unit='.GlobalInstCellMap',
+        child='<globalInst>',
+        term=term,
+    )
+    term = fix_configuration_map_items_for_map(
+        parent='<moduleInstances>',
+        concat='_ModuleInstCellMap_',
+        element='ModuleInstCellMapItem',
+        unit='.ModuleInstCellMap',
+        child='<moduleInst>',
+        term=term,
+    )
+    return term
+
+
+def fix_configuration_map_items_cterm(cterm: CTerm) -> CTerm:
+    return CTerm(fix_configuration_map_items(cterm.config), cterm.constraints)

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Mapping, Optional, Set
 
-from pyk.kast.inner import KInner, KSort, KToken
+from pyk.kast.inner import KInner, KSort, KToken, bottom_up
 
 from .kast import kinner_top_down_fold
 
@@ -9,6 +9,17 @@ from .kast import kinner_top_down_fold
 @dataclass(frozen=True)
 class Identifiers:
     sort_to_ids: Mapping[KSort, Set[KToken]]
+
+
+def escape_identifiers(term: KInner) -> KInner:
+    def escape_identifier(term_: KInner) -> KInner:
+        if not isinstance(term_, KToken):
+            return term_
+        if not term_.sort.name == 'IdentifierToken':
+            return term_
+        return term_.let(token=term_.token.replace('"', '_Quot_'))
+
+    return bottom_up(escape_identifier, term)
 
 
 def find_identifiers(term: KInner) -> Identifiers:

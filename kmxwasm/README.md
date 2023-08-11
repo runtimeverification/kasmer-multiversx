@@ -48,6 +48,13 @@ Setup:
 ```bash
 cd kmxwasm
 poetry install
+
+git submodule update --init
+cd k-src/elrond-semantics/
+git submodule update --init
+# The following is not needed for the actual semantics, but for initializing
+# some dependencies of the wasm-semantics submodule.
+make kbuild-haskell
 ```
 
 Running, this is an example for the multisig contract:
