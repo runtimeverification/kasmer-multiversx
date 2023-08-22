@@ -1,12 +1,11 @@
 import subprocess
-from contextlib import closing
 from pathlib import Path
-from socket import AF_INET, SO_REUSEADDR, SOCK_STREAM, SOL_SOCKET, socket
 from typing import Any, Optional
 
 from pyk.kast.outer import KAtt, KDefinition, KFlatModule, KImport, KProduction, KRequire, KTerminal
 from pyk.kcfg import KCFGExplore
 from pyk.konvert import krule_to_kore
+from pyk.kore.rpc import KoreClient, KoreServer
 from pyk.kore.syntax import Import, Module, Sentence
 from pyk.ktool.kompile import KompileBackend, kompile
 from pyk.ktool.kprint import KPrint
@@ -39,6 +38,8 @@ class LazyExplorer:
         self.__debug_id = debug_id
         self.__explorer: Optional[KCFGExplore] = None
         self.__kprove: Optional[KProve] = None
+        self.__kore_server: Optional[KoreServer] = None
+        self.__kore_client: Optional[KoreClient] = None
 
     def __enter__(self) -> 'LazyExplorer':
         return self
@@ -47,12 +48,16 @@ class LazyExplorer:
         self.close()
 
     def close(self) -> None:
-        if self.__explorer:
-            self.__explorer.close()
+        if self.__kore_client:
+            self.__kore_client.close()
+        if self.__kore_server:
+            self.__kore_server.close()
 
     def get(self) -> KCFGExplore:
         if self.__explorer is None:
-            self.__explorer = make_explorer(self.get_kprove(), self.__debug_id != '', self.__make_summary_module())
+            (self.__explorer, self.__kore_server, self.__kore_client) = make_explorer(
+                self.get_kprove(), self.__debug_id != '', self.__make_summary_module()
+            )
         return self.__explorer
 
     def get_kprove(self) -> KProve:
@@ -125,25 +130,13 @@ def make_kprove(definition_dir: Path) -> KProve:
     return KProve(definition_dir, bug_report=BUG_REPORT)
 
 
-def make_explorer(kprove: KProve, is_debug: bool, module: Module) -> KCFGExplore:
+def make_explorer(kprove: KProve, is_debug: bool, module: Module) -> tuple[KCFGExplore, KoreServer, KoreClient]:
     if is_debug:
         port = 39425
     else:
-        port = free_port_on_host()
-    explorer = KCFGExplore(
-        kprove,
-        port=port,
-        bug_report=kprove._bug_report,
-    )
-    explorer._kore_rpc[1].add_module(module)
-    return explorer
-
-
-# Based on: https://stackoverflow.com/a/45690594
-# TODO: has an obvious race condition, replace with something better.
-def free_port_on_host(host: str = 'localhost') -> int:
-    with closing(socket(AF_INET, SOCK_STREAM)) as sock:
-        sock.bind((host, 0))
-        sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-        _, port = sock.getsockname()
-    return port
+        port = None
+    kore_server = KoreServer(kprove.definition_dir, kprove.main_module, port=port)
+    kore_client = KoreClient('localhost', kore_server.port)
+    explorer = KCFGExplore(kprove, kore_client)
+    kore_client.add_module(module)
+    return (explorer, kore_server, kore_client)
