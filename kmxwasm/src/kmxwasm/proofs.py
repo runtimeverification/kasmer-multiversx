@@ -125,7 +125,7 @@ def filter_bytes(term: KToken) -> KInner:
     return new_term
 
 
-def print_kore_cfg(node_id: str, kcfg: KCFG, printer: KPrint) -> None:
+def print_kore_cfg(node_id: int, kcfg: KCFG, printer: KPrint) -> None:
     cterm = kcfg.node(node_id).cterm
     kore = printer.kast_to_kore(cterm.config)
     print(printer.kore_to_pretty(kore))
