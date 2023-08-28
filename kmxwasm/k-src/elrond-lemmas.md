@@ -7,6 +7,7 @@ module ELROND-LEMMAS
   imports public ELROND
   imports public INT-KORE
   imports public SET
+  imports public WASM-TEXT
 
   rule size(_:List) >=Int 0 => true  [simplification, smt-lemma]
 

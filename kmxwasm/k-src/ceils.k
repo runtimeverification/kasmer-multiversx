@@ -305,4 +305,12 @@ module CEILS
         [symbolic(Key), simplification]
 
 
+    // -----------------------------------
+
+    rule #Ceil(#signed(@T:IValType, @N:Int))
+        => {0 <=Int @N andBool @N <Int #pow(@T) #Equals true}
+          #And #Ceil(@T)
+          #And #Ceil(@N)
+          [simplification]
+
 endmodule

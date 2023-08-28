@@ -4,6 +4,7 @@ from pyk.kast.inner import KApply, KInner, KSort, KVariable
 from pyk.kast.manip import ml_pred_to_bool
 from pyk.kast.outer import KAtt, KRule
 from pyk.kcfg import KCFG
+from pyk.kcfg.kcfg import NodeIdLike
 from pyk.prelude.kbool import TRUE, andBool
 
 from .kast import (
@@ -23,7 +24,7 @@ class RuleCreator:
         self.__rules: List[KRule] = []
         self.__priority = priority
 
-    def add_rule(self, lhs_id: int, rhs_id: int, kcfg: KCFG) -> None:
+    def add_rule(self, lhs_id: NodeIdLike, rhs_id: NodeIdLike, kcfg: KCFG) -> None:
         lhs_cterm = kcfg.node(lhs_id).cterm
         rhs_cterm = kcfg.node(rhs_id).cterm
 
