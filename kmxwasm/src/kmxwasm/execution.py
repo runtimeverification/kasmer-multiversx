@@ -3,6 +3,7 @@ from typing import Set
 
 from pyk.kast.inner import KApply, KInner, KSequence, KToken, KVariable
 from pyk.kcfg import KCFG
+from pyk.kcfg.kcfg import NodeIdLike
 from pyk.prelude.k import K
 
 from .functions import Functions
@@ -51,7 +52,7 @@ class ExecutionManager:
         self.__executing_addr = -1
         self.__loop_whitelist = loop_whitelist
 
-    def decide_configuration(self, kcfg: KCFG, node_id: int) -> Decision:
+    def decide_configuration(self, kcfg: KCFG, node_id: NodeIdLike) -> Decision:
         node = kcfg.node(node_id)
         instrs = get_instrs_child(node.cterm.config)
 

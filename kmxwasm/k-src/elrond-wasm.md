@@ -1,16 +1,17 @@
 ```k
 require "elrond-lemmas.md"
-require "elrond-wasm-configuration.md"
-require "kwasm-lemmas.md"
+require "wasm-semantics/kwasm-lemmas.md"
 require "proof-extensions.md"
+require "elrond-semantics/foundry.md"
 
 module ELROND-WASM-SYNTAX
   imports WASM-TEXT-SYNTAX
+  imports FOUNDRY-SYNTAX
 endmodule
 
 module ELROND-WASM
   imports ELROND-LEMMAS
-  imports ELROND-WASM-CONFIGURATION
+  imports FOUNDRY
   imports KWASM-LEMMAS
   imports MAP-KORE-SYMBOLIC
   imports PROOF-EXTENSIONS

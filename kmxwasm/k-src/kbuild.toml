@@ -1,0 +1,15 @@
+[project]
+name = "kmxwasm-semantics"
+version = "0.1.0"
+source = "."
+
+[dependencies]
+elrond-semantics={ path = "elrond-semantics" }
+
+[targets.llvm]
+main-file = 'elrond-wasm.md'
+backend='llvm'
+
+[targets.haskell]
+main-file = 'elrond-wasm.md'
+backend='haskell'

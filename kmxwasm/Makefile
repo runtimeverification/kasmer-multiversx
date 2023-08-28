@@ -90,9 +90,8 @@ kbuild-%: k-src/elrond-semantics/deps/wasm-semantics/blockchain-k-plugin/krypto.
 			--backend $* \
 			--md-selector k \
 			--emit-json \
-			-I k-src/elrond-semantics \
-			-I k-src/elrond-semantics/deps/wasm-semantics \
-			-I k-src/summaries \
+			-I k-src \
+			-I k-src/elrond-semantics/deps \
 			--directory ../.build/defn/haskell \
 			--main-module ELROND-WASM \
 			--syntax-module ELROND-WASM-SYNTAX \

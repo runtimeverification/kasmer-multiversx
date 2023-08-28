@@ -1,8 +1,9 @@
 ```k
-require "elrond.md"
+require "elrond-semantics/elrond.md"
 
 module PROOF-EXTENSIONS
   imports ELROND
+  imports WASM
 
   syntax Instr ::= "infiniteLoop"  [symbol, klabel(infiniteLoop)]
   rule <instrs> (infiniteLoop ~> _:KItem => infiniteLoop) ... </instrs>
