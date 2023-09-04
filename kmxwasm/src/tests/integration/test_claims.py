@@ -220,4 +220,4 @@ class TestSimpleProofs:
     )
     def test_run_claim(self, tools: Tools, test_id: str, claim: KClaim, success: bool) -> None:
         result = run_claim(tools, claim, restart_kcfg=None, run_id=None, depth=1000)
-        assert result == success
+        assert isinstance(result, Success) == success
