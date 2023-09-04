@@ -22,7 +22,7 @@ from kmxwasm.ast.wasm import (
 )
 from kmxwasm.build import kbuild_semantics
 from kmxwasm.paths import KBUILD_ML_PATH
-from kmxwasm.running import run_claim
+from kmxwasm.running import Success, run_claim
 from kmxwasm.tools import Tools
 
 sys.setrecursionlimit(1500000000)
