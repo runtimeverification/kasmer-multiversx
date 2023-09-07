@@ -88,5 +88,21 @@ def replace_wasm_cell(root: KInner, replacement: KInner) -> KInner:
     return bottom_up(replace_contents, root)
 
 
-def set_call_stack_cell_content(root:KInner, replacement: KInner) -> KInner:
-    return set_single_argument_kapply_contents(root, '<callState>')
+def set_call_stack_cell_content(root: KInner, replacement: KInner) -> KInner:
+    return set_single_argument_kapply_contents(root, '<callState>', replacement)
+
+
+def set_interim_states_cell_content(root: KInner, replacement: KInner) -> KInner:
+    return set_single_argument_kapply_contents(root, '<interimStates>', replacement)
+
+
+def set_accounts_cell_content(root: KInner, replacement: KInner) -> KInner:
+    return set_single_argument_kapply_contents(root, '<accounts>', replacement)
+
+
+def set_logging_cell_content(root: KInner, replacement: KInner) -> KInner:
+    return set_single_argument_kapply_contents(root, '<logging>', replacement)
+
+
+def set_generated_counter_cell_content(root: KInner, replacement: KInner) -> KInner:
+    return set_single_argument_kapply_contents(root, '<generatedCounter>', replacement)

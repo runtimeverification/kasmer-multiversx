@@ -8,14 +8,21 @@ from pyk.kcfg import KCFG
 from pyk.kcfg.kcfg import NodeIdLike
 from pyk.kore.rpc import LogEntry
 from pyk.prelude.collections import list_of
+from pyk.prelude.utils import token
 
 from .ast.elrond import (
+    accountCellMap,
     command_is_new_wasm_instance,
     commands_cell_contents,
     get_wasm_cell,
     replace_wasm_cell,
+    set_accounts_cell_content,
+    set_call_stack_cell_content,
     set_commands_cell_contents,
+    set_generated_counter_cell_content,
+    set_interim_states_cell_content,
     set_k_cell_contents,
+    set_logging_cell_content,
 )
 from .ast.wasm import set_instrs_cell_contents
 from .tools import Tools
@@ -234,6 +241,10 @@ def initialize_wasm_instance(tools: Tools, kcfg: KCFG, start_node: KCFG.Node) ->
     krun_cell = set_commands_cell_contents(krun_cell, KSequence([first]))
     krun_cell = set_instrs_cell_contents(krun_cell, KSequence([]))
     krun_cell = set_call_stack_cell_content(krun_cell, list_of([]))
+    krun_cell = set_interim_states_cell_content(krun_cell, list_of([]))
+    krun_cell = set_accounts_cell_content(krun_cell, accountCellMap([]))
+    krun_cell = set_logging_cell_content(krun_cell, token(''))
+    krun_cell = set_generated_counter_cell_content(krun_cell, token(0))
 
     krun_result = concrete_run(tools, krun_cell)
     wasm_cell = get_wasm_cell(krun_result)

@@ -1,7 +1,7 @@
-from pyk.kast.inner import KApply, KInner, KSequence, KVariable, bottom_up
+from pyk.kast.inner import KApply, KInner, KSequence, bottom_up
 
 
-def set_single_argument_kapply_contents(root: KInner, name: str, contents: KInner)
+def set_single_argument_kapply_contents(root: KInner, name: str, contents: KInner) -> KInner:
     def replace_contents(node: KInner) -> KInner:
         if not isinstance(node, KApply):
             return node
@@ -15,4 +15,3 @@ def set_single_argument_kapply_contents(root: KInner, name: str, contents: KInne
 
 def set_ksequence_cell_contents(root: KInner, name: str, contents: KSequence) -> KInner:
     return set_single_argument_kapply_contents(root, name, contents)
-

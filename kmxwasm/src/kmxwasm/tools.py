@@ -13,6 +13,7 @@ from pyk.ktool.kprove import KProve
 from pyk.ktool.krun import KRunOutput, _krun
 from pyk.prelude.k import GENERATED_TOP_CELL
 
+
 class Tools:
     def __init__(self, definition_dir: Path) -> None:
         self.__definition_dir = definition_dir
@@ -64,7 +65,9 @@ class Tools:
         with NamedTemporaryFile('w') as ntf:
             pattern = self.printer.kast_to_kore(cfg, sort=GENERATED_TOP_CELL)
             ntf.write(pattern.text)
-            Path('/mnt/data/runtime-verification/elrond-wasm-real-elrond/kmxwasm/tmp/krun.kore').write_text(pattern.text)
+            Path('/mnt/data/runtime-verification/elrond-wasm-real-elrond/kmxwasm/tmp/krun.kore').write_text(
+                pattern.text
+            )
             ntf.flush()
             result = _krun(
                 input_file=Path(ntf.name),
