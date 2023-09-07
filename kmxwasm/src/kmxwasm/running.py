@@ -42,7 +42,9 @@ class RunException(RunClaimResult):
     last_processed_node: NodeIdLike
 
 
-def run_claim(tools: Tools, claim: KClaim, restart_kcfg: KCFG | None, run_id: int | None, depth: int) -> RunClaimResult:
+def run_claim(
+    tools: Tools, llvm_tools: Tools, claim: KClaim, restart_kcfg: KCFG | None, run_id: int | None, depth: int
+) -> RunClaimResult:
     last_processed_node: NodeIdLike = -1
     init_node_id: NodeIdLike = -1
     target_node_id: NodeIdLike = -1
@@ -95,11 +97,15 @@ def run_claim(tools: Tools, claim: KClaim, restart_kcfg: KCFG | None, run_id: in
                 try:
                     if command_is_new_wasm_instance(node.cterm.config):
                         print('is new wasm')
-                        initialize_wasm_instance(tools, kcfg=kcfg, start_node=node)
+                        initialize_wasm_instance(llvm_tools, kcfg=kcfg, start_node=node)
                     else:
                         print('is not new wasm')
                         tools.explorer.extend(
-                            kcfg=kcfg, node=node, logs=logs, execute_depth=depth, cut_point_rules=['ELROND-CONFIG.newWasmInstance']
+                            kcfg=kcfg,
+                            node=node,
+                            logs=logs,
+                            execute_depth=depth,
+                            cut_point_rules=['ELROND-CONFIG.newWasmInstance'],
                         )
                     for node in kcfg.leaves:
                         if node.id not in non_final:
@@ -226,10 +232,12 @@ def initialize_wasm_instance(tools: Tools, kcfg: KCFG, start_node: KCFG.Node) ->
     krun_cell = set_k_cell_contents(start_cell, KSequence([]))
     krun_cell = set_commands_cell_contents(krun_cell, KSequence([first]))
     krun_cell = set_instrs_cell_contents(krun_cell, KSequence([]))
+
     krun_result = concrete_run(tools, krun_cell)
     wasm_cell = get_wasm_cell(krun_result)
     final_cell = replace_wasm_cell(start_cell, wasm_cell)
     final_cell = set_commands_cell_contents(final_cell, KSequence(commands_contents.items[1:]))
+
     final_cterm = CTerm(final_cell, start_node.cterm.constraints)
     final_node = kcfg.create_node(final_cterm)
     kcfg.create_edge(source_id=start_node.id, target_id=final_node.id, depth=1)

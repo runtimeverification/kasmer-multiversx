@@ -11,12 +11,11 @@ from pyk.kore.rpc import KoreClient, KoreServer
 from pyk.ktool.kprint import KPrint
 from pyk.ktool.kprove import KProve
 from pyk.ktool.krun import KRunOutput, _krun
-
+from pyk.prelude.k import GENERATED_TOP_CELL
 
 class Tools:
-    def __init__(self, definition_dir: Path, llvm_definition_dir: Path) -> None:
+    def __init__(self, definition_dir: Path) -> None:
         self.__definition_dir = definition_dir
-        self.__llvm_definition_dir = llvm_definition_dir
         self.__kprove: Optional[KProve] = None
         self.__explorer: Optional[KCFGExplore] = None
         self.__kore_server: Optional[KoreServer] = None
@@ -63,11 +62,16 @@ class Tools:
 
     def krun(self, cfg: KInner) -> KInner:
         with NamedTemporaryFile('w') as ntf:
-            pattern = self.printer.kast_to_kore(cfg)
+            pattern = self.printer.kast_to_kore(cfg, sort=GENERATED_TOP_CELL)
             ntf.write(pattern.text)
+            Path('/mnt/data/runtime-verification/elrond-wasm-real-elrond/kmxwasm/tmp/krun.kore').write_text(pattern.text)
             ntf.flush()
             result = _krun(
-                input_file=Path(ntf.name), definition_dir=self.__llvm_definition_dir, output=KRunOutput.JSON, term=True, parser='cat'
+                input_file=Path(ntf.name),
+                definition_dir=self.__definition_dir,
+                output=KRunOutput.JSON,
+                term=True,
+                parser='cat',
             )
             value = json.load(result.stdout)
             return kast_term(value, KInner)  # type: ignore # https://github.com/python/mypy/issues/4717

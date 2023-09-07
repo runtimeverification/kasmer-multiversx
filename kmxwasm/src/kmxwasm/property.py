@@ -9,7 +9,7 @@ from pyk.kcfg import KCFG
 from pyk.kcfg.show import KCFGShow
 from pyk.kore.rpc import KoreClientError
 
-from .build import HASKELL, kbuild_semantics
+from .build import HASKELL, LLVM, kbuild_semantics
 from .json import load_json_kcfg, load_json_kclaim, write_kcfg_json
 from .paths import KBUILD_DIR, KBUILD_ML_PATH, ROOT
 from .printers import print_node
@@ -50,7 +50,10 @@ class RunClaim(Action):
     depth: int
 
     def run(self) -> None:
-        with kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL) as tools:
+        with (
+            kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL) as tools,
+            kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=LLVM) as llvm_tools,
+        ):
             if self.is_k:
                 claims = tools.kprove.get_claims(self.claim_path)
                 if len(claims) != 1:
@@ -65,7 +68,9 @@ class RunClaim(Action):
                 kcfg = load_json_kcfg(DEBUG_KCFG)
                 for node_id in self.remove:
                     kcfg.remove_node(node_id)
-            result = run_claim(tools, claim, kcfg, run_id=self.run_node_id, depth=self.depth)
+            result = run_claim(
+                tools, llvm_tools=llvm_tools, claim=claim, restart_kcfg=kcfg, run_id=self.run_node_id, depth=self.depth
+            )
             write_kcfg_json(result.kcfg, DEBUG_KCFG)
 
             if isinstance(result, Stuck):
