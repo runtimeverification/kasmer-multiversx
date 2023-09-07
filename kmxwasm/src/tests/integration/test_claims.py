@@ -22,7 +22,7 @@ from kmxwasm.ast.wasm import (
 )
 from kmxwasm.build import kbuild_semantics
 from kmxwasm.paths import KBUILD_ML_PATH
-from kmxwasm.running import run_claim
+from kmxwasm.running import Success, run_claim
 from kmxwasm.tools import Tools
 
 sys.setrecursionlimit(1500000000)
@@ -156,7 +156,7 @@ def full_configuration(
 @pytest.fixture(scope='module')
 def tools(tmp_path_factory: TempPathFactory) -> Tools:
     build_path = tmp_path_factory.mktemp('kbuild')
-    tools = kbuild_semantics(build_path, KBUILD_ML_PATH)
+    tools = kbuild_semantics(output_dir=build_path, config_file=KBUILD_ML_PATH)
     return tools
 
 
@@ -219,5 +219,5 @@ class TestSimpleProofs:
         ids=[test_id for test_id, *_ in SIMPLE_PROOFS_DATA],
     )
     def test_run_claim(self, tools: Tools, test_id: str, claim: KClaim, success: bool) -> None:
-        result = run_claim(tools, claim)
-        assert result == success
+        result = run_claim(tools, claim, restart_kcfg=None, run_id=None, depth=1000)
+        assert isinstance(result, Success) == success

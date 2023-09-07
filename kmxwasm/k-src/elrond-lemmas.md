@@ -1,13 +1,12 @@
 ```k
 require "ceils.k"
 
-
 module ELROND-LEMMAS
-  imports public CEILS
-  imports public ELROND
-  imports public INT-KORE
-  imports public SET
-  imports public WASM-TEXT
+  imports private CEILS
+  imports private ELROND
+  imports private INT-KORE
+  imports private SET
+  imports private WASM-TEXT
 
   rule size(_:List) >=Int 0 => true  [simplification, smt-lemma]
 
@@ -27,9 +26,19 @@ module ELROND-LEMMAS
   rule Bytes2Int(Int2Bytes(Value:Int, E, S), E:Endianness, S:Signedness)
       => Value
       [simplification]
+  rule Bytes2Int(Int2Bytes(Value:Int, E, Signed), E:Endianness, Unsigned)
+      => Value
+      requires 0 <=Int Value
+      [simplification]
+
+  rule { b"" #Equals Int2Bytes(Len:Int, _Value:Int, _:Endianness)} => #Bottom
+      requires Len >Int 0
+      [simplification]
 
   rule 0 <=Int A +Int B => true
       requires 0 <=Int A andBool 0 <=Int B
+      [simplification]
+  rule {false #Equals B:Bool} => #Not ({true #Equals B:Bool})
       [simplification]
 
   rule { _:Int #Equals undefined } => #Top  [simplification]
@@ -230,28 +239,6 @@ module ELROND-LEMMAS
   rule X -Int X => 0  [simplification]
   rule X:KItem in (A:Set -Set B:Set) => (X in A) andBool notBool (X in B)  [simplification]
 
-  rule A:Int <=Int maxInt(B:Int, C:Int) => true
-      requires A <=Int B orBool A <=Int C
-      [simplification]
-  rule A:Int <Int maxInt(B:Int, C:Int) => true
-      requires A <Int B orBool A <Int C
-      [simplification]
-  rule A:Int >=Int maxInt(B:Int, C:Int) => A >=Int B andBool A >=Int C
-      [simplification]
-  rule A:Int >Int maxInt(B:Int, C:Int) => A >Int B andBool A >Int C
-      [simplification]
-
-  rule maxInt(B:Int, C:Int) >=Int A:Int => true
-      requires A <=Int B orBool A <=Int C
-      [simplification]
-  rule maxInt(B:Int, C:Int) >Int A:Int => true
-      requires A <Int B orBool A <Int C
-      [simplification]
-  rule maxInt(B:Int, C:Int) <=Int A:Int => A >=Int B andBool A >=Int C
-      [simplification]
-  rule maxInt(B:Int, C:Int) <Int A:Int => A >Int B andBool A >Int C
-      [simplification]
-
   rule (((X modIntTotal Y) +Int Z) +Int T) modIntTotal Y => (X +Int Z +Int T) modIntTotal Y
       [simplification]
   rule (((X modIntTotal Y) +Int Z) -Int T) modIntTotal Y => (X +Int Z -Int T) modIntTotal Y
@@ -272,6 +259,7 @@ module ELROND-LEMMAS
   rule {((X +Int Y) modIntTotal M) #Equals ((X +Int Z) modIntTotal M)}
       => {(Y modIntTotal M) #Equals (Z modIntTotal M)}
       [simplification]
+  rule X modIntTotal Y => X requires 0 <=Int X andBool X <Int Y
 
   rule {(A modIntTotal C) #Equals (B modIntTotal C)} => #Top
       requires A ==Int B
@@ -280,6 +268,112 @@ module ELROND-LEMMAS
   rule 0 <=Int #signedTotal(T:IValType, N:Int) => 0 <=Int N andBool N <Int #pow1(T)
       requires definedSigned(T, N)
       [simplification]
+
+  rule #signedTotal(IType:IValType, A:Int modIntTotal M:Int) => A
+      requires M ==Int #pow(IType)
+          andBool 0 -Int #pow1(IType) <=Int A
+          andBool A <Int #pow1(IType)
+      [simplification]
+
+  rule -1 <=Int #cmpInt(_:Int, _:Int) => true
+      [simplification, smt-lemma]
+  rule #cmpInt(_:Int, _:Int) <=Int 1 => true
+      [simplification, smt-lemma]
+
+  rule #cmpInt(A:Int, B:Int) <Int 0 => A <Int B
+      [simplification]
+  rule 0 <Int #cmpInt(A:Int, B:Int) => B <Int A
+      [simplification]
+
+  rule #cmpInt(A, B) modIntTotal M ==Int 0 => A ==Int B
+      requires M >Int 1
+      [simplification]
+
+  rule A &Int 255 => A requires 0 <=Int A andBool A <=Int 255
+      [simplification]
+
+  rule A +Int B <Int C => A <Int C -Int B
+      [simplification, concrete(B, C)]
+
+  rule 0 <=Int log2IntTotal(_:Int) => true
+      [simplification, smt-lemma]
+
+  rule {0 #Equals A ^IntTotal _B} => #Bottom
+      requires A =/=Int 0
+      [simplification(40)]
+  rule {A ^IntTotal _B #Equals 0} => #Bottom
+      requires A =/=Int 0
+      [simplification(40)]
+  rule {0 #Equals A ^IntTotal B} => {0 #Equals A}
+      requires B =/=Int 0
+      [simplification(50)]
+
+  rule A:Int <Int 2 ^IntTotal ((( log2IntTotal(A) +Int 8) /IntTotal 8) *Int 8)
+      => true
+      [simplification]
+
+  rule  0 <=Int #bool ( _B ) => true
+    [simplification(), smt-lemma()]
+
+  rule  #bool ( _B ) <=Int 1 => true
+    [simplification(), smt-lemma()]
+
+  rule  #bool ( B:Bool ) <Int 1 => notBool (B:Bool)
+    [simplification()]
+
+  rule  { 0 #Equals #bool ( B:Bool ) } => { false #Equals B:Bool }
+    [simplification]
+
+  rule  { 1 #Equals #bool ( B:Bool ) } => { true #Equals B:Bool }
+    [simplification()]
+
+  rule  X:Int <=Int maxInt ( Y:Int , Z:Int ) => true
+    requires ( X:Int <=Int Y:Int
+      orBool ( X:Int <=Int Z:Int
+              ))
+    [simplification()]
+
+  rule  X:Int <Int maxInt ( Y:Int , Z:Int ) => true
+    requires ( X:Int <Int Y:Int
+      orBool ( X:Int <Int Z:Int
+              ))
+    [simplification()]
+
+  rule  X:Int >=Int maxInt ( Y:Int , Z:Int ) => true
+    requires ( X:Int >=Int Y:Int
+      andBool ( X:Int >=Int Z:Int
+              ))
+    [simplification()]
+
+  rule  X:Int >Int maxInt ( Y:Int , Z:Int ) => true
+    requires ( X:Int >Int Y:Int
+      andBool ( X:Int >Int Z:Int
+              ))
+    [simplification()]
+
+  rule  maxInt ( Y:Int , Z:Int ) >=Int X:Int => true
+    requires ( X:Int <=Int Y:Int
+      orBool ( X:Int <=Int Z:Int
+              ))
+    [simplification()]
+
+  rule  maxInt ( Y:Int , Z:Int ) >Int X:Int => true
+    requires ( X:Int <Int Y:Int
+      orBool ( X:Int <Int Z:Int
+              ))
+    [simplification()]
+
+  rule  maxInt ( Y:Int , Z:Int ) <=Int X:Int => true
+    requires ( X:Int >=Int Y:Int
+      andBool ( X:Int >=Int Z:Int
+              ))
+    [simplification()]
+
+  rule  maxInt ( Y:Int , Z:Int ) <Int X:Int => true
+    requires ( X:Int >Int Y:Int
+      andBool ( X:Int >Int Z:Int
+              ))
+    [simplification()]
 
 endmodule
 
