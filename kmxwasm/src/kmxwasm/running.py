@@ -1,11 +1,22 @@
 import time
 from dataclasses import dataclass
 
+from pyk.cterm import CTerm
+from pyk.kast.inner import KInner, KSequence
 from pyk.kast.outer import KClaim
 from pyk.kcfg import KCFG
 from pyk.kcfg.kcfg import NodeIdLike
 from pyk.kore.rpc import LogEntry
 
+from .ast.elrond import (
+    command_is_new_wasm_instance,
+    commands_cell_contents,
+    get_wasm_cell,
+    replace_wasm_cell,
+    set_commands_cell_contents,
+    set_k_cell_contents,
+)
+from .ast.wasm import set_instrs_cell_contents
 from .tools import Tools
 
 
@@ -82,7 +93,14 @@ def run_claim(tools: Tools, claim: KClaim, restart_kcfg: KCFG | None, run_id: in
 
                 logs: dict[int, tuple[LogEntry, ...]] = {}
                 try:
-                    tools.explorer.extend(kcfg=kcfg, node=node, logs=logs, execute_depth=depth)
+                    if command_is_new_wasm_instance(node.cterm.config):
+                        print('is new wasm')
+                        initialize_wasm_instance(tools, kcfg=kcfg, start_node=node)
+                    else:
+                        print('is not new wasm')
+                        tools.explorer.extend(
+                            kcfg=kcfg, node=node, logs=logs, execute_depth=depth, cut_point_rules=['ELROND-CONFIG.newWasmInstance']
+                        )
                     for node in kcfg.leaves:
                         if node.id not in non_final:
                             non_final.add(node.id)
@@ -198,3 +216,25 @@ def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int) -> RunClaim
 def expandable_leaves(kcfg: KCFG, target_node_id: NodeIdLike) -> list[KCFG.Node]:
     return [node for node in kcfg.leaves if not node.id == target_node_id]
     # [node for node in kcfg.leaves if not node.id in processed]
+
+
+def initialize_wasm_instance(tools: Tools, kcfg: KCFG, start_node: KCFG.Node) -> None:
+    start_cell = start_node.cterm.config
+    commands_contents = commands_cell_contents(start_cell)
+    assert len(commands_contents) > 0
+    first = commands_contents.items[0]
+    krun_cell = set_k_cell_contents(start_cell, KSequence([]))
+    krun_cell = set_commands_cell_contents(krun_cell, KSequence([first]))
+    krun_cell = set_instrs_cell_contents(krun_cell, KSequence([]))
+    krun_result = concrete_run(tools, krun_cell)
+    wasm_cell = get_wasm_cell(krun_result)
+    final_cell = replace_wasm_cell(start_cell, wasm_cell)
+    final_cell = set_commands_cell_contents(final_cell, KSequence(commands_contents.items[1:]))
+    final_cterm = CTerm(final_cell, start_node.cterm.constraints)
+    final_node = kcfg.create_node(final_cterm)
+    kcfg.create_edge(source_id=start_node.id, target_id=final_node.id, depth=1)
+
+
+def concrete_run(tools: Tools, configuration: KInner) -> KInner:
+    print('*' * 30, 'Initializing WASM.')
+    return tools.krun(configuration)

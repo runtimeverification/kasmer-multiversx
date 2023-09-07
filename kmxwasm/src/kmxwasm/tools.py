@@ -1,16 +1,22 @@
+import json
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import Any, Optional
 
+from pyk.kast.inner import KInner
+from pyk.kast.kast import kast_term
 from pyk.kast.pretty import SymbolTable
 from pyk.kcfg.explore import KCFGExplore
 from pyk.kore.rpc import KoreClient, KoreServer
 from pyk.ktool.kprint import KPrint
 from pyk.ktool.kprove import KProve
+from pyk.ktool.krun import KRunOutput, _krun
 
 
 class Tools:
-    def __init__(self, definition_dir: Path) -> None:
+    def __init__(self, definition_dir: Path, llvm_definition_dir: Path) -> None:
         self.__definition_dir = definition_dir
+        self.__llvm_definition_dir = llvm_definition_dir
         self.__kprove: Optional[KProve] = None
         self.__explorer: Optional[KCFGExplore] = None
         self.__kore_server: Optional[KoreServer] = None
@@ -54,6 +60,17 @@ class Tools:
         if not self.__explorer:
             self.__explorer = KCFGExplore(self.printer, self.__kore_client)
         return self.__explorer
+
+    def krun(self, cfg: KInner) -> KInner:
+        with NamedTemporaryFile('w') as ntf:
+            pattern = self.printer.kast_to_kore(cfg)
+            ntf.write(pattern.text)
+            ntf.flush()
+            result = _krun(
+                input_file=Path(ntf.name), definition_dir=self.__llvm_definition_dir, output=KRunOutput.JSON, term=True, parser='cat'
+            )
+            value = json.load(result.stdout)
+            return kast_term(value, KInner)  # type: ignore # https://github.com/python/mypy/issues/4717
 
 
 def my_patch_symbol_table(symbol_table: SymbolTable) -> None:
