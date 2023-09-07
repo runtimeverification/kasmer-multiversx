@@ -7,6 +7,7 @@ from pyk.kast.outer import KClaim
 from pyk.kcfg import KCFG
 from pyk.kcfg.kcfg import NodeIdLike
 from pyk.kore.rpc import LogEntry
+from pyk.prelude.collections import list_of
 
 from .ast.elrond import (
     command_is_new_wasm_instance,
@@ -232,6 +233,7 @@ def initialize_wasm_instance(tools: Tools, kcfg: KCFG, start_node: KCFG.Node) ->
     krun_cell = set_k_cell_contents(start_cell, KSequence([]))
     krun_cell = set_commands_cell_contents(krun_cell, KSequence([first]))
     krun_cell = set_instrs_cell_contents(krun_cell, KSequence([]))
+    krun_cell = set_call_stack_cell_content(krun_cell, list_of([]))
 
     krun_result = concrete_run(tools, krun_cell)
     wasm_cell = get_wasm_cell(krun_result)

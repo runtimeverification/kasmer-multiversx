@@ -3,7 +3,7 @@ from typing import Iterable
 from pyk.kast.inner import KApply, KInner, KSequence, bottom_up, collect
 
 from .collections import cell_map, full_list, k_map, simple_list
-from .generic import set_ksequence_cell_contents
+from .generic import set_ksequence_cell_contents, set_single_argument_kapply_contents
 
 COMMANDS_CELL_NAME = '<commands>'
 WASM_CELL_NAME = '<wasm>'
@@ -86,3 +86,7 @@ def replace_wasm_cell(root: KInner, replacement: KInner) -> KInner:
         return replacement
 
     return bottom_up(replace_contents, root)
+
+
+def set_call_stack_cell_content(root:KInner, replacement: KInner) -> KInner:
+    return set_single_argument_kapply_contents(root, '<callState>')

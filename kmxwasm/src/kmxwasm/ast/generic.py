@@ -1,14 +1,18 @@
 from pyk.kast.inner import KApply, KInner, KSequence, KVariable, bottom_up
 
 
-def set_ksequence_cell_contents(root: KInner, name: str, contents: KSequence) -> KInner:
+def set_single_argument_kapply_contents(root: KInner, name: str, contents: KInner)
     def replace_contents(node: KInner) -> KInner:
         if not isinstance(node, KApply):
             return node
         if node.label.name != name:
             return node
         assert len(node.args) == 1
-        assert isinstance(node.args[0], KSequence) or isinstance(node.args[0], KVariable)
         return node.let(args=[contents])
 
     return bottom_up(replace_contents, root)
+
+
+def set_ksequence_cell_contents(root: KInner, name: str, contents: KSequence) -> KInner:
+    return set_single_argument_kapply_contents(root, name, contents)
+
