@@ -24,9 +24,6 @@ module CEILS
             andBool (Value <=Int 255)
 
 
-    rule definedModInt (_:Int, X:Int) => X =/=Int 0
-
-
     // ---------------------------------------
 
 
@@ -116,11 +113,18 @@ module CEILS
         [symbolic(Value), simplification]
 
 
+    //----------------------------------
+
+
+    rule definedModInt (_:Int, X:Int) => X =/=Int 0
+
     rule #Ceil(@Arg0:Int modInt @Arg1:Int)
         =>  (({ definedModInt(@Arg0, @Arg1)  #Equals true }
           #And #Ceil(@Arg0))
           #And #Ceil(@Arg1))
         [simplification]
+
+    rule _ modIntTotal 0 => 0
 
     rule Arg0:Int modIntTotal Arg1:Int
         => Arg0 modInt Arg1
@@ -186,6 +190,78 @@ module CEILS
         => Arg0 >>IntTotal Arg1
         requires definedShrInt(Arg0, Arg1)
         [symbolic(Arg1), simplification]
+
+
+    //-------------------------------------
+
+
+    rule definedPowInt(A:Int, B:Int) => A =/=Int 0 orBool B =/=Int 0
+
+    rule #Ceil(Arg0:Int ^Int Arg1:Int)
+        => { definedPowInt(Arg0, Arg1)  #Equals true }
+        [simplification]
+
+    rule Arg0:Int ^IntTotal Arg1:Int
+        => Arg0 ^Int Arg1
+        requires definedPowInt(Arg0, Arg1)
+        [concrete, simplification]
+
+    rule Arg0:Int ^Int Arg1:Int
+        => Arg0 ^IntTotal Arg1
+        requires definedPowInt(Arg0, Arg1)
+        [symbolic(Arg0), simplification]
+
+    rule Arg0:Int ^Int Arg1:Int
+        => Arg0 ^IntTotal Arg1
+        requires definedPowInt(Arg0, Arg1)
+        [symbolic(Arg1), simplification]
+
+
+    //-------------------------------------
+
+
+    rule definedDivInt(_:Int, Y:Int) => Y =/=Int 0
+
+    rule #Ceil(@Arg0:Int /Int @Arg1:Int)
+        =>  (({ definedDivInt(@Arg0, @Arg1)  #Equals true }
+          #And #Ceil(@Arg0))
+          #And #Ceil(@Arg1))
+        [simplification]
+
+    rule Arg0:Int /IntTotal Arg1:Int
+        => Arg0 /Int Arg1
+        requires definedDivInt(Arg0, Arg1)
+        [concrete, simplification]
+
+    rule Arg0:Int /Int Arg1:Int
+        => Arg0 /IntTotal Arg1
+        requires definedDivInt(Arg0, Arg1)
+        [symbolic(Arg0), simplification]
+
+    rule Arg0:Int /Int Arg1:Int
+        => Arg0 /IntTotal Arg1
+        requires definedDivInt(Arg0, Arg1)
+        [symbolic(Arg1), simplification]
+
+
+    //-------------------------------------
+
+
+    rule definedLog2Int (X:Int) => 0 <Int X
+
+
+    rule #Ceil(log2Int(X:Int)) => {true #Equals definedLog2Int(X)}
+      [simplification]
+
+    rule log2IntTotal(Arg0:Int)
+        => log2Int(Arg0)
+        requires definedLog2Int(Arg0)
+        [concrete, simplification]
+
+    rule log2Int(Arg0:Int)
+        => log2IntTotal(Arg0)
+        requires definedLog2Int(Arg0)
+        [symbolic(Arg0), simplification]
 
 
     //-------------------------------------

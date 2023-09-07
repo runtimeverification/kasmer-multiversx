@@ -10,6 +10,9 @@ module CEILS-SYNTAX
     syntax Bool ::= definedModInt(Int, Int)  [function, total]
     syntax Bool ::= definedShlInt(Int, Int)  [function, total]
     syntax Bool ::= definedShrInt(Int, Int)  [function, total]
+    syntax Bool ::= definedPowInt(Int, Int)  [function, total]
+    syntax Bool ::= definedDivInt(Int, Int)  [function, total]
+    syntax Bool ::= definedLog2Int(Int)  [function, total]
     syntax Bool ::= definedProjectBytes(KItem)  [function, total]
     syntax Bool ::= definedProjectInt(KItem)  [function, total]
     syntax Bool ::= definedMapLookup(Map, KItem)  [function, total]
@@ -26,11 +29,19 @@ module CEILS-SYNTAX
     syntax Bytes ::= padRightBytesTotal(Bytes, length: Int, value: Int)
         [function, total, klabel(padRightBytesTotal), symbol, no-evaluators]
     syntax Int ::= Int "modIntTotal" Int
-        [function, total, klabel(modIntTotal), symbol, no-evaluators, smtlib(modIntTotal)]
+        [function, total, klabel(modIntTotal), symbol, no-evaluators, smt-hook(mod)]
     syntax Int ::= Int "<<IntTotal" Int
         [function, total, klabel(shlIntTotal), symbol, no-evaluators]
     syntax Int ::= Int ">>IntTotal" Int
         [function, total, klabel(shrIntTotal), symbol, no-evaluators]
+    syntax Int ::= Int "^IntTotal" Int
+        [function, total, klabel(powIntTotal), symbol, no-evaluators]
+    syntax Int ::= Int "/IntTotal" Int
+        [function, total, klabel(divIntTotal), symbol, no-evaluators, smt-hook(div)]
+    syntax Int ::= log2IntTotal(Int)
+        [ function, total, klabel(log2IntTotal), symbol, no-evaluators,
+          smtlib(log2IntTotal)
+        ]
     syntax Bytes ::= projectBytesTotal(KItem)
         [function, total, klabel(projectBytesTotal), symbol, no-evaluators]
     syntax Int ::= projectIntTotal(KItem)
