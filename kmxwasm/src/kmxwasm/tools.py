@@ -63,13 +63,8 @@ class Tools:
 
     def krun(self, cfg: KInner) -> KInner:
         with NamedTemporaryFile('w') as ntf:
-            pretty = self.printer.pretty_print(cfg)
-            Path('/mnt/data/runtime-verification/elrond-wasm-real-elrond/kmxwasm/tmp/krun.pretty').write_text(pretty)
             pattern = self.printer.kast_to_kore(cfg, sort=GENERATED_TOP_CELL)
             ntf.write(pattern.text)
-            Path('/mnt/data/runtime-verification/elrond-wasm-real-elrond/kmxwasm/tmp/krun.kore').write_text(
-                pattern.text
-            )
             ntf.flush()
             result = _krun(
                 input_file=Path(ntf.name),
