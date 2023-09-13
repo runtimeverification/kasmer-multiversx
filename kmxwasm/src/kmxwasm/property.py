@@ -5,9 +5,11 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from pyk.kast.inner import KApply
 from pyk.kcfg import KCFG
 from pyk.kcfg.show import KCFGShow
 from pyk.kore.rpc import KoreClientError
+from pyk.prelude.utils import token
 
 from .build import HASKELL, LLVM, kbuild_semantics
 from .json import load_json_kcfg, load_json_kclaim, write_kcfg_json
@@ -63,6 +65,9 @@ class RunClaim(Action):
                 claim = claims[0]
             else:
                 claim = load_json_kclaim(self.claim_path)
+                # Fix the claim, it's not clear why these cells are being
+                # removed when generating claims.
+                claim = claim.let(body = KApply('<generatedTop>', [claim.body, KApply('<generatedCounter>', [token(0)])]))
 
             kcfg: KCFG | None = None
             if self.restart:
