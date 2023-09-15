@@ -52,7 +52,7 @@ def run_claim(
         assert len(roots) in [1, 2]
         if len(roots) == 1:
             init_node_id = roots[0].id
-            covers = set([cover.target.id for cover in kcfg.covers()])
+            covers = {cover.target.id for cover in kcfg.covers()}
             assert len(covers) == 1, covers
             target_node_id = covers.pop()
         else:
