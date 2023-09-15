@@ -3,10 +3,14 @@ from dataclasses import dataclass
 
 from pyk.kast.outer import KClaim
 from pyk.kcfg import KCFG
+from pyk.kcfg.exploration import KCFGExploration
 from pyk.kcfg.kcfg import NodeIdLike
 from pyk.kore.rpc import LogEntry
 
+from .ast.elrond import command_is_new_wasm_instance
+from .printers import print_node
 from .tools import Tools
+from .wasm_krun_initializer import WasmKrunInitializer
 
 
 @dataclass(frozen=True)
@@ -31,7 +35,14 @@ class RunException(RunClaimResult):
     last_processed_node: NodeIdLike
 
 
-def run_claim(tools: Tools, claim: KClaim, restart_kcfg: KCFG | None, run_id: int | None, depth: int) -> RunClaimResult:
+def run_claim(
+    tools: Tools,
+    wasm_initializer: WasmKrunInitializer,
+    claim: KClaim,
+    restart_kcfg: KCFG | None,
+    run_id: int | None,
+    depth: int,
+) -> RunClaimResult:
     last_processed_node: NodeIdLike = -1
     init_node_id: NodeIdLike = -1
     target_node_id: NodeIdLike = -1
@@ -55,6 +66,8 @@ def run_claim(tools: Tools, claim: KClaim, restart_kcfg: KCFG | None, run_id: in
                 target_node_id = roots[0].id
     else:
         (kcfg, init_node_id, target_node_id) = KCFG.from_claim(tools.printer.definition, claim)
+
+    kcfg_exploration = KCFGExploration(kcfg)
 
     try:
         processed: set[NodeIdLike] = {target_node_id}
@@ -82,7 +95,17 @@ def run_claim(tools: Tools, claim: KClaim, restart_kcfg: KCFG | None, run_id: in
 
                 logs: dict[int, tuple[LogEntry, ...]] = {}
                 try:
-                    tools.explorer.extend(kcfg=kcfg, node=node, logs=logs, execute_depth=depth)
+                    if command_is_new_wasm_instance(node.cterm.config):
+                        print('is new wasm')
+                        wasm_initializer.initialize(kcfg=kcfg, start_node=node)
+                    else:
+                        tools.explorer.extend(
+                            kcfg_exploration=kcfg_exploration,
+                            node=node,
+                            logs=logs,
+                            execute_depth=depth,
+                            cut_point_rules=['ELROND-CONFIG.newWasmInstance'],
+                        )
                     for node in kcfg.leaves:
                         if node.id not in non_final:
                             non_final.add(node.id)
@@ -128,6 +151,8 @@ def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int) -> RunClaim
             target_node_id = roots[0].id
     final_node = kcfg.node(target_node_id)
 
+    kcfg_exploration = KCFGExploration(kcfg)
+
     try:
         # preecompute the explorer to make time measurements more reliable.
         assert tools.explorer
@@ -153,7 +178,7 @@ def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int) -> RunClaim
 
         logs: dict[int, tuple[LogEntry, ...]] = {}
 
-        tools.explorer.extend(kcfg=kcfg, node=start, logs=logs, execute_depth=half_depth)
+        tools.explorer.extend(kcfg_exploration=kcfg_exploration, node=start, logs=logs, execute_depth=half_depth)
         middle_node: KCFG.Node | None = None
         for node in kcfg.leaves:
             if node.id in to_ignore:
@@ -168,7 +193,9 @@ def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int) -> RunClaim
         middle_time = time.time()
         print(f'{start.id} -> {middle_node.id}: {middle_time-start_time} sec')
 
-        tools.explorer.extend(kcfg=kcfg, node=middle_node, logs=logs, execute_depth=total_depth - half_depth)
+        tools.explorer.extend(
+            kcfg_exploration=kcfg_exploration, node=middle_node, logs=logs, execute_depth=total_depth - half_depth
+        )
         result_node: KCFG.Node | None = None
         for node in kcfg.leaves:
             if node.id in to_ignore:
@@ -179,6 +206,15 @@ def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int) -> RunClaim
         assert result_node
 
         csubst = tools.explorer.cterm_implies(result_node.cterm, destination.cterm)
+        if not csubst:
+            print('*' * 30, 'Antecedent', '*' * 30)
+            print_node(tools, result_node)
+            print('*' * 30, 'Consequent', '*' * 30)
+            print_node(tools, destination)
+            (success, reason) = tools.explorer.implication_failure_reason(
+                antecedent=result_node.cterm, consequent=destination.cterm
+            )
+            raise ValueError(f'Implies failure, {[success, reason]}')
         assert csubst is not None
 
         replaced_edge = kcfg.edge(source_id=middle_node.id, target_id=result_node.id)

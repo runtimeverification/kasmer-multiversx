@@ -141,15 +141,33 @@ module CEILS
         requires definedModInt(Arg0, Arg1)
         [symbolic(Arg1), simplification]
 
-    // rule Arg0:Int modInt Arg1:Int
-    //     => normalizeModIntTotalHelper(Arg0, Arg1) modIntTotal Arg1 // Arg0 modIntTotal Arg1
-    //     requires definedModInt(Arg0, Arg1)
-    //     [symbolic(Arg0), simplification]
+    //----------------------------------
 
-    // rule Arg0:Int modInt Arg1:Int
-    //     => normalizeModIntTotalHelper(Arg0, Arg1) modIntTotal Arg1 // Arg0 modIntTotal Arg1
-    //     requires definedModInt(Arg0, Arg1)
-    //     [symbolic(Arg1), simplification]
+
+    rule definedDivInt (_:Int, X:Int) => X =/=Int 0
+
+    rule #Ceil(@Arg0:Int divInt @Arg1:Int)
+        =>  (({ definedDivInt(@Arg0, @Arg1)  #Equals true }
+          #And #Ceil(@Arg0))
+          #And #Ceil(@Arg1))
+        [simplification]
+
+    rule _ divIntTotal 0 => 0
+
+    rule Arg0:Int divIntTotal Arg1:Int
+        => Arg0 divInt Arg1
+        requires definedDivInt(Arg0, Arg1)
+        [concrete, simplification]
+
+    rule Arg0:Int divInt Arg1:Int
+        => Arg0 divIntTotal Arg1
+        requires definedDivInt(Arg0, Arg1)
+        [symbolic(Arg0), simplification]
+
+    rule Arg0:Int divInt Arg1:Int
+        => Arg0 divIntTotal Arg1
+        requires definedDivInt(Arg0, Arg1)
+        [symbolic(Arg1), simplification]
 
     //----------------------------------
 
@@ -220,27 +238,54 @@ module CEILS
     //-------------------------------------
 
 
-    rule definedDivInt(_:Int, Y:Int) => Y =/=Int 0
+    rule definedTModInt(_:Int, Y:Int) => Y =/=Int 0
+
+    rule #Ceil(@Arg0:Int %Int @Arg1:Int)
+        =>  (({ definedTModInt(@Arg0, @Arg1)  #Equals true }
+          #And #Ceil(@Arg0))
+          #And #Ceil(@Arg1))
+        [simplification]
+
+    rule Arg0:Int %IntTotal Arg1:Int
+        => Arg0 %Int Arg1
+        requires definedTModInt(Arg0, Arg1)
+        [concrete, simplification]
+
+    rule Arg0:Int %Int Arg1:Int
+        => Arg0 %IntTotal Arg1
+        requires definedTModInt(Arg0, Arg1)
+        [symbolic(Arg0), simplification]
+
+    rule Arg0:Int %Int Arg1:Int
+        => Arg0 %IntTotal Arg1
+        requires definedTModInt(Arg0, Arg1)
+        [symbolic(Arg1), simplification]
+
+
+    //-------------------------------------
+
+
+    rule definedTDivInt(_:Int, Y:Int) => Y =/=Int 0
 
     rule #Ceil(@Arg0:Int /Int @Arg1:Int)
-        =>  (({ definedDivInt(@Arg0, @Arg1)  #Equals true }
+        =>  (({ definedTDivInt(@Arg0, @Arg1)  #Equals true }
           #And #Ceil(@Arg0))
           #And #Ceil(@Arg1))
         [simplification]
 
     rule Arg0:Int /IntTotal Arg1:Int
         => Arg0 /Int Arg1
-        requires definedDivInt(Arg0, Arg1)
+        requires definedTDivInt(Arg0, Arg1)
         [concrete, simplification]
 
     rule Arg0:Int /Int Arg1:Int
         => Arg0 /IntTotal Arg1
-        requires definedDivInt(Arg0, Arg1)
+        requires definedTDivInt(Arg0, Arg1)
         [symbolic(Arg0), simplification]
 
     rule Arg0:Int /Int Arg1:Int
         => Arg0 /IntTotal Arg1
-        requires definedDivInt(Arg0, Arg1)
+        requires definedTDivInt(Arg0, Arg1)
         [symbolic(Arg1), simplification]
 
 
@@ -388,5 +433,12 @@ module CEILS
           #And #Ceil(@T)
           #And #Ceil(@N)
           [simplification]
+
+    // -----------------------------------
+    // Other stuff
+    // -----------------------------------
+
+    rule I /IntTotal J => I divIntTotal J requires 0 <Int J
+    rule I %IntTotal J => I modIntTotal J requires 0 <Int J
 
 endmodule
