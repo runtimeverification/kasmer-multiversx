@@ -29,8 +29,11 @@ module ELROND-LEMMAS
       requires 0 <=Int Value
       [simplification]
 
-  rule { b"" #Equals Int2Bytes(Len:Int, _Value:Int, _E:Endianness)}:Bool
+  rule { b"" #Equals Int2Bytes(Len:Int, _Value:Int, _E:Endianness) }:Bool
       => {0 #Equals Len}
+      [simplification]
+  rule { b"" #Equals Int2Bytes(Value:Int, _E:Endianness, _S:Signedness) }:Bool
+      => {0 #Equals Value}
       [simplification]
 
   rule 0 <=Int A +Int B => true
