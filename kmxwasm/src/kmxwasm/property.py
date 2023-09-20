@@ -11,7 +11,7 @@ from pyk.kcfg.show import KCFGShow
 from pyk.kore.rpc import KoreClientError
 from pyk.prelude.utils import token
 
-from .build import HASKELL, LLVM, kbuild_semantics
+from .build import HASKELL, kbuild_semantics
 from .json import load_json_kcfg, load_json_kclaim, write_kcfg_json
 from .paths import KBUILD_DIR, KBUILD_ML_PATH, ROOT
 from .printers import print_node
@@ -50,10 +50,7 @@ class RunClaim(Action):
     kcfg_path: Path
 
     def run(self) -> None:
-        with (
-            kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL) as tools,
-            kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=LLVM) as llvm_tools,
-        ):
+        with kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL) as tools:
             if self.is_k:
                 claims = tools.kprove.get_claims(self.claim_path)
                 if len(claims) != 1:
@@ -73,7 +70,7 @@ class RunClaim(Action):
                     kcfg.remove_node(node_id)
             result = run_claim(
                 tools,
-                WasmKrunInitializer(llvm_tools),
+                WasmKrunInitializer(tools),
                 claim=claim,
                 restart_kcfg=kcfg,
                 run_id=self.run_node_id,

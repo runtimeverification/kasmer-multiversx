@@ -7,7 +7,7 @@ from pyk.kast.inner import KInner
 from pyk.kast.kast import kast_term
 from pyk.kast.pretty import SymbolTable
 from pyk.kcfg.explore import KCFGExplore
-from pyk.kore.rpc import KoreClient, KoreServer
+from pyk.kore.rpc import BoosterServer, KoreClient, KoreServer
 from pyk.ktool.kprint import KPrint
 from pyk.ktool.kprove import KProve
 from pyk.ktool.krun import KRunOutput, _krun
@@ -15,8 +15,9 @@ from pyk.prelude.k import GENERATED_TOP_CELL
 
 
 class Tools:
-    def __init__(self, definition_dir: Path) -> None:
+    def __init__(self, definition_dir: Path, llvm_definition_dir: Path | None) -> None:
         self.__definition_dir = definition_dir
+        self.__llvm_definition_dir = llvm_definition_dir
         self.__kprove: Optional[KProve] = None
         self.__explorer: Optional[KCFGExplore] = None
         self.__kore_server: Optional[KoreServer] = None
@@ -49,11 +50,20 @@ class Tools:
         if not self.__kore_server:
             if self.__kore_client:
                 raise RuntimeError('Non-null KoreClient with null KoreServer.')
-            self.__kore_server = KoreServer(
-                self.__definition_dir,
-                self.printer.main_module,
-                # port=39425,
-            )
+            if self.__llvm_definition_dir and False:
+                self.__kore_server = BoosterServer(
+                    self.__definition_dir,
+                    self.__llvm_definition_dir,
+                    self.printer.main_module,
+                    command='booster-rpc'
+                    # port=39425,
+                )
+            else:
+                self.__kore_server = KoreServer(
+                    self.__definition_dir,
+                    self.printer.main_module,
+                    # port=39425,
+                )
         if not self.__kore_client:
             self.__kore_client = KoreClient('localhost', self.__kore_server.port)
 
@@ -66,9 +76,13 @@ class Tools:
             pattern = self.printer.kast_to_kore(cfg, sort=GENERATED_TOP_CELL)
             ntf.write(pattern.text)
             ntf.flush()
+            if self.__llvm_definition_dir:
+                krun_dir = self.__llvm_definition_dir
+            else:
+                krun_dir = self.__definition_dir
             result = _krun(
                 input_file=Path(ntf.name),
-                definition_dir=self.__definition_dir,
+                definition_dir=krun_dir,
                 output=KRunOutput.JSON,
                 term=True,
                 parser='cat',
