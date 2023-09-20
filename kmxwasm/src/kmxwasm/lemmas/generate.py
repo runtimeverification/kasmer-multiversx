@@ -8,7 +8,7 @@ from pyk.prelude.kint import INT, eqInt, gtInt, leInt, ltInt
 from pyk.prelude.ml import mlEquals
 
 from ..build import LEMMA_PROOFS, kbuild_semantics
-from ..paths import KBUILD_DIR, KBUILD_ML_PATH, ROOT
+from ..property_testing.paths import KBUILD_DIR, KBUILD_ML_PATH, ROOT
 from .expression import (
     addInt,
     divIntTotal,

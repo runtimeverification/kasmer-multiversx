@@ -2,7 +2,7 @@ from pyk.kast.manip import ml_pred_to_bool
 from pyk.kcfg import KCFG
 from pyk.prelude.kbool import TRUE
 
-from .tools import Tools
+from ..tools import Tools
 
 
 def print_node(tools: Tools, node: KCFG.Node) -> None:
