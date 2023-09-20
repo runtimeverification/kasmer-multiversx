@@ -4,7 +4,7 @@ from pyk.kcfg import KCFG
 from pyk.prelude.collections import list_of, map_empty
 from pyk.prelude.utils import token
 
-from .ast.elrond import (
+from ..ast.elrond import (
     accountCellMap,
     commands_cell_contents,
     get_contract_mod_idx_cell,
@@ -25,8 +25,8 @@ from .ast.elrond import (
     set_k_cell_contents,
     set_logging_cell_content,
 )
-from .ast.wasm import set_instrs_cell_contents
-from .tools import Tools
+from ..ast.wasm import set_instrs_cell_contents
+from ..tools import Tools
 
 
 class WasmKrunInitializer:

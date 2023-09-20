@@ -13,10 +13,10 @@ from pyk.prelude.utils import token
 
 from .build import HASKELL, kbuild_semantics
 from .json import load_json_kcfg, load_json_kclaim, write_kcfg_json
-from .paths import KBUILD_DIR, KBUILD_ML_PATH, ROOT
-from .printers import print_node
-from .running import RunException, Stuck, Success, run_claim, split_edge
-from .wasm_krun_initializer import WasmKrunInitializer
+from .property_testing.paths import KBUILD_DIR, KBUILD_ML_PATH, ROOT
+from .property_testing.printers import print_node
+from .property_testing.running import RunException, Stuck, Success, run_claim, split_edge
+from .property_testing.wasm_krun_initializer import WasmKrunInitializer
 
 sys.setrecursionlimit(4000)
 

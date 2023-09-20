@@ -21,10 +21,10 @@ from kmxwasm.ast.wasm import (
     valStack,
 )
 from kmxwasm.build import HASKELL, kbuild_semantics
-from kmxwasm.paths import KBUILD_ML_PATH
-from kmxwasm.running import Success, run_claim
+from kmxwasm.property_testing.paths import KBUILD_ML_PATH
+from kmxwasm.property_testing.running import Success, run_claim
+from kmxwasm.property_testing.wasm_krun_initializer import WasmKrunInitializer
 from kmxwasm.tools import Tools
-from kmxwasm.wasm_krun_initializer import WasmKrunInitializer
 
 sys.setrecursionlimit(1500000000)
 
