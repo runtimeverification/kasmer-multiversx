@@ -15,9 +15,13 @@ from pyk.prelude.k import GENERATED_TOP_CELL
 
 
 class Tools:
-    def __init__(self, definition_dir: Path, llvm_definition_dir: Path | None) -> None:
+    def __init__(
+        self, definition_dir: Path, llvm_definition_dir: Path | None, llvm_library_definition_dir: Path, booster: bool
+    ) -> None:
         self.__definition_dir = definition_dir
         self.__llvm_definition_dir = llvm_definition_dir
+        self.__llvm_library_definition_dir = llvm_library_definition_dir
+        self.__booster = booster
         self.__kprove: Optional[KProve] = None
         self.__explorer: Optional[KCFGExplore] = None
         self.__kore_server: Optional[KoreServer] = None
@@ -50,12 +54,12 @@ class Tools:
         if not self.__kore_server:
             if self.__kore_client:
                 raise RuntimeError('Non-null KoreClient with null KoreServer.')
-            if self.__llvm_definition_dir and False:
+            if self.__booster:
                 self.__kore_server = BoosterServer(
                     self.__definition_dir,
-                    self.__llvm_definition_dir,
+                    self.__llvm_library_definition_dir,
                     self.printer.main_module,
-                    command='booster-rpc'
+                    command='kore-rpc-booster'
                     # port=39425,
                 )
             else:

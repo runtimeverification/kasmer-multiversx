@@ -17,3 +17,8 @@ backend='haskell'
 [targets.lemma-proofs]
 main-file = 'lemmas/semantics/elrond-wasm-lemma-proofs.md'
 backend='haskell'
+
+[targets.llvm-library]
+llvm-kompile-type='c'
+main-file = 'elrond-wasm.md'
+backend='llvm'

@@ -255,7 +255,7 @@ def main(args: list[str]) -> None:
     LEMMAS_FILE.write_text('```k\nmodule PROVEN-ELROND-LEMMAS\nendmodule\n```\n')
     HELPER_LEMMAS_FILE.write_text('```k\nmodule HELPER-LEMMAS\nendmodule\n```\n')
 
-    with kbuild_semantics(KBUILD_DIR, config_file=KBUILD_ML_PATH, target=LEMMA_PROOFS) as tools:
+    with kbuild_semantics(KBUILD_DIR, config_file=KBUILD_ML_PATH, target=LEMMA_PROOFS, booster=False) as tools:
         for lemma in LEMMAS:
             definition = lemma.make_definition()
             printed = tools.printer.pretty_print(definition)
@@ -270,7 +270,7 @@ def main(args: list[str]) -> None:
         printed_helper = tools.printer.pretty_print(helper_module)
         HELPER_LEMMAS_FILE.write_text('```k\n' + cleanup(printed_helper) + '\n```\n')
 
-    with kbuild_semantics(KBUILD_DIR, config_file=KBUILD_ML_PATH, target=LEMMA_PROOFS) as tools:
+    with kbuild_semantics(KBUILD_DIR, config_file=KBUILD_ML_PATH, target=LEMMA_PROOFS, booster=False) as tools:
         tools.printer
 
 

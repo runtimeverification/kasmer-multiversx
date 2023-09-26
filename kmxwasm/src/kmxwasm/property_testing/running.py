@@ -8,7 +8,8 @@ from pyk.kcfg.kcfg import NodeIdLike
 from pyk.kore.rpc import LogEntry
 from pyk.prelude.collections import LIST
 
-from ..ast.elrond import CALL_STACK_PATH, cfg_changes_call_stack, command_is_new_wasm_instance, get_first_instr_name
+from ..ast.elrond import CALL_STACK_PATH, cfg_changes_call_stack, command_is_new_wasm_instance,get_first_instr, get_first_instr_name, get_hostcall_name
+from ..timing import Timer
 from ..tools import Tools
 from .cell_abstracter import CellAbstracter
 from .implication import quick_implication_check
@@ -36,15 +37,6 @@ class Success(RunClaimResult):
 class RunException(RunClaimResult):
     exception: BaseException
     last_processed_node: NodeIdLike
-
-
-class Timer:
-    def __init__(self, message: str) -> None:
-        self.__message = message
-        self.__start = time.time()
-
-    def measure(self) -> None:
-        print(self.__message, time.time() - self.__start, 'sec.', flush=True)
 
 
 def run_claim(
@@ -96,7 +88,7 @@ def run_claim(
         while to_process:
             # print([node.id for node in to_process])
             while to_process:
-                node = to_process.pop()
+                node = to_process.pop(0)
                 processed.add(node.id)
                 current_time = time.time()
                 if last_processed_node != -1:
@@ -144,7 +136,14 @@ def run_claim(
                         try:
                             t = Timer('  Extend')
                             node = kcfg.node(node.id)
-                            print(f'  First instr: {get_first_instr_name(node.cterm.config)}', flush=True)
+                            processing: list[str] = []
+                            instr = get_first_instr(node.cterm.config)
+                            if instr is not None:
+                                processing = ['<instrs>', instr.label.name]
+                                call_name = get_hostcall_name(instr)
+                                if call_name is not None:
+                                    processing.append(call_name)
+                            print(f'  First: {processing}', flush=True)
                             tools.explorer.extend(
                                 kcfg_exploration=kcfg_exploration,
                                 node=node,
@@ -169,7 +168,8 @@ def run_claim(
                             abstract_call_stack.concretize_kcfg(kcfg, leaves)
                             t.measure()
                     t = Timer('  Check final')
-                    for node_id in new_leaves(kcfg, non_final, final_node.id):
+                    current_leaves = new_leaves(kcfg, non_final, final_node.id)
+                    for node_id in current_leaves:
                         non_final.add(node_id)
                         node = kcfg.node(node_id)
                         if quick_implication_check(node.cterm.config, final_node.cterm.config):
@@ -182,7 +182,10 @@ def run_claim(
                         raise
                     for node in kcfg.stuck:
                         return Stuck(kcfg, stuck_node_id=node.id, final_node_id=final_node.id)
-            to_process = expandable_leaves(kcfg, target_node_id)
+            if run_id is not None:
+                to_process += [kcfg.node(node_id) for node_id in current_leaves]
+            else:
+                to_process = expandable_leaves(kcfg, target_node_id)
 
         if last_processed_node != -1:
             print('Node', last_processed_node, 'took', current_time - last_time, 'sec.')

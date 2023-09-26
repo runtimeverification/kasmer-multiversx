@@ -1,23 +1,36 @@
-import time
 from pathlib import Path
 
 from pyk.kbuild.kbuild import KBuild
 from pyk.kbuild.package import Package
 
+from .timing import Timer
 from .tools import Tools
 
 HASKELL = 'haskell'
 LLVM = 'llvm'
+LLVM_LIBRARY = 'llvm-library'
 LEMMA_PROOFS = 'lemma-proofs'
 
 
-def kbuild_semantics(output_dir: Path, config_file: Path, target: str) -> Tools:
+def kbuild_semantics(output_dir: Path, config_file: Path, target: str, booster: bool) -> Tools:
     kbuild = KBuild(output_dir)
     package = Package.create(config_file)
-    start_time = time.time()
+
+    t = Timer(f'Kompiling {target}:')
     kbuild.kompile(package, target)
-    mid_time = time.time()
-    print('Kompiling', target, ':', mid_time - start_time, 'sec')
+    t.measure()
+
+    t = Timer(f'Kompiling {LLVM}:')
     kbuild.kompile(package, LLVM)
-    print('Kompiling', LLVM, ':', time.time() - mid_time, 'sec')
-    return Tools(kbuild.definition_dir(package, target), kbuild.definition_dir(package, LLVM))
+    t.measure()
+
+    t = Timer(f'Kompiling {LLVM_LIBRARY}:')
+    kbuild.kompile(package, LLVM_LIBRARY)
+    t.measure()
+
+    return Tools(
+        definition_dir=kbuild.definition_dir(package, target),
+        llvm_definition_dir=kbuild.definition_dir(package, LLVM),
+        llvm_library_definition_dir=kbuild.definition_dir(package, LLVM_LIBRARY),
+        booster=booster,
+    )
