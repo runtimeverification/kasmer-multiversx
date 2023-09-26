@@ -8,7 +8,8 @@ module ELROND-LEMMAS
   imports private SET
   imports private WASM-TEXT
 
-  rule size(_:List) >=Int 0 => true  [simplification, smt-lemma]
+  rule  ( size ( _L:List ) >=Int 0 => true )
+    [simplification(), smt-lemma()]
 
   rule Bytes2Int(#getBytesRange(_:Bytes, _:Int, N:Int), _:Endianness, _:Signedness) <Int M:Int
         => true
@@ -31,8 +32,8 @@ module ELROND-LEMMAS
       requires 0 <=Int Value
       [simplification]
 
-  rule { b"" #Equals Int2Bytes(Len:Int, _Value:Int, _:Endianness)} => #Bottom
-      requires Len >Int 0
+  rule { b"" #Equals Int2Bytes(Len:Int, _Value:Int, _E:Endianness)}:Bool
+      => {0 #Equals Len}
       [simplification]
 
   rule 0 <=Int A +Int B => true
@@ -308,8 +309,23 @@ module ELROND-LEMMAS
       requires B =/=Int 0
       [simplification(50)]
 
-  rule A:Int <Int 2 ^IntTotal ((( log2IntTotal(A) +Int 8) /IntTotal 8) *Int 8)
+  // log2IntTotal(X) is the index of the highest bit. This means that
+  // X < 2^(log2IntTotal(X) + 1) since the highest bit of the right term
+  // has a higher index.
+  // We need
+  // 2^(log2IntTotal(X) + 1) <= 2 ^IntTotal (((log2IntTotal(X) +Int 8) divIntTotal 8) *Int 8)
+  // which is equivalent to
+  // log2IntTotal(X) + 1 <= ((log2IntTotal(X) +Int 8) divIntTotal 8) *Int 8.
+  // Let us denote log2IntTotal(X) by Y >= 0
+  // Y + 1 <= (Y divIntTotal 8 + 1) *Int 8.
+  // Y + 1 <= (Y divIntTotal 8) *Int 8 + 8.
+  // Y <= (Y divIntTotal 8) *Int 8 + 7.
+  // Let A be Y divIntTotal 8
+  // Let B be Y modIntTotal 8.
+  // A * 8 + B <= A * 8 + 7, which is obviously true.
+  rule A:Int <Int 2 ^IntTotal ((( log2IntTotal(A) +Int 8) divIntTotal 8) *Int 8)
       => true
+      requires 0 <Int A
       [simplification]
 
   rule  0 <=Int #bool ( _B ) => true
@@ -325,12 +341,6 @@ module ELROND-LEMMAS
     [simplification]
 
   rule  { 1 #Equals #bool ( B:Bool ) } => { true #Equals B:Bool }
-    [simplification()]
-
-  rule  X:Int <=Int maxInt ( Y:Int , Z:Int ) => true
-    requires ( X:Int <=Int Y:Int
-      orBool ( X:Int <=Int Z:Int
-              ))
     [simplification()]
 
   rule  X:Int <Int maxInt ( Y:Int , Z:Int ) => true
