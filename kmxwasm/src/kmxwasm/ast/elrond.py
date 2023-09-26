@@ -1,6 +1,6 @@
 from typing import Iterable
 
-from pyk.kast.inner import KApply, KInner, KSequence, collect
+from pyk.kast.inner import KApply, KInner, KSequence, KToken, collect
 
 from .collections import cell_map, full_list, k_map, simple_list
 from .generic import get_with_path, replace_with_path, set_ksequence_cell_contents, set_single_argument_kapply_contents
@@ -108,15 +108,31 @@ def instrs_cell_contents(root: KInner) -> KSequence:
     return seq
 
 
-def get_first_instr_name(root: KInner) -> str | None:
+def get_first_instr(root: KInner) -> KApply | None:
     seq = instrs_cell_contents(root)
     if not seq.items:
         return None
     first = seq.items[0]
     if not isinstance(first, KApply):
         return None
+    return first
+
+
+def get_first_instr_name(root: KInner) -> str | None:
+    first = get_first_instr(root)
+    if first is None:
+        return None
     return first.label.name
 
+
+def get_hostcall_name(hostcall: KApply) -> str | None:
+    if hostcall.label.name != 'hostCall':
+        return None
+    assert hostcall.arity > 1
+    arg = hostcall.args[1]
+    if not isinstance(arg, KToken):
+        return None
+    return arg.token
 
 def command_is_new_wasm_instance(root: KInner) -> bool:
     command = get_first_command_name(root)

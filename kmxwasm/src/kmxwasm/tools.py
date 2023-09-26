@@ -3,6 +3,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Any, Optional
 
+from pyk.utils import BugReport
 from pyk.kast.inner import KInner
 from pyk.kast.kast import kast_term
 from pyk.kast.pretty import SymbolTable
@@ -14,10 +15,17 @@ from pyk.ktool.krun import KRunOutput, _krun
 from pyk.prelude.k import GENERATED_TOP_CELL
 
 
+USE_BUG_REPORT = False
+
+
 class Tools:
-    def __init__(self, definition_dir: Path, llvm_definition_dir: Path | None) -> None:
+    def __init__(
+        self, definition_dir: Path, llvm_definition_dir: Path | None, llvm_library_definition_dir: Path, booster: bool
+    ) -> None:
         self.__definition_dir = definition_dir
         self.__llvm_definition_dir = llvm_definition_dir
+        self.__llvm_library_definition_dir = llvm_library_definition_dir
+        self.__booster = booster
         self.__kprove: Optional[KProve] = None
         self.__explorer: Optional[KCFGExplore] = None
         self.__kore_server: Optional[KoreServer] = None
@@ -47,15 +55,20 @@ class Tools:
 
     @property
     def explorer(self) -> KCFGExplore:
+        bug_report = None
+        if (USE_BUG_REPORT):
+            bug_report = BugReport(Path('bug-report'))
         if not self.__kore_server:
             if self.__kore_client:
                 raise RuntimeError('Non-null KoreClient with null KoreServer.')
-            if self.__llvm_definition_dir and False:
+            if self.__booster:
                 self.__kore_server = BoosterServer(
                     self.__definition_dir,
-                    self.__llvm_definition_dir,
+                    self.__llvm_library_definition_dir,
                     self.printer.main_module,
-                    command='booster-rpc'
+                    command=('kore-rpc-booster'),
+                    # command=('kore-rpc-booster', '-l', 'Rewrite'),
+                    bug_report=bug_report
                     # port=39425,
                 )
             else:
@@ -65,7 +78,11 @@ class Tools:
                     # port=39425,
                 )
         if not self.__kore_client:
-            self.__kore_client = KoreClient('localhost', self.__kore_server.port)
+            self.__kore_client = KoreClient(
+                'localhost',
+                self.__kore_server.port,
+                bug_report=bug_report
+            )
 
         if not self.__explorer:
             self.__explorer = KCFGExplore(self.printer, self.__kore_client)

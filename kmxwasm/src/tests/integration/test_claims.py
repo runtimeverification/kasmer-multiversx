@@ -157,7 +157,7 @@ def full_configuration(
 @pytest.fixture(scope='module')
 def tools(tmp_path_factory: TempPathFactory) -> Tools:
     build_path = tmp_path_factory.mktemp('kbuild')
-    tools = kbuild_semantics(output_dir=build_path, config_file=KBUILD_ML_PATH, target=HASKELL)
+    tools = kbuild_semantics(output_dir=build_path, config_file=KBUILD_ML_PATH, target=HASKELL, booster=True)
     return tools
 
 
