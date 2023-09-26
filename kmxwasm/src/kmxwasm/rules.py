@@ -1,10 +1,8 @@
-from typing import List, Tuple
+from typing import TYPE_CHECKING, List, Tuple
 
 from pyk.kast.inner import KApply, KInner, KSort, KVariable
 from pyk.kast.manip import ml_pred_to_bool
 from pyk.kast.outer import KAtt, KRule
-from pyk.kcfg import KCFG
-from pyk.kcfg.kcfg import NodeIdLike
 from pyk.prelude.kbool import TRUE, andBool
 
 from .kast import (
@@ -15,6 +13,11 @@ from .kast import (
     replace_single_term,
     replace_term_with_seq_variable,
 )
+
+if TYPE_CHECKING:
+    from pyk.kcfg import KCFG
+    from pyk.kcfg.kcfg import NodeIdLike
+
 
 RULE_TOP_CELL = '<generatedTop>'
 

@@ -1,9 +1,13 @@
+from typing import TYPE_CHECKING
+
 from pyk.cterm import CTerm
 from pyk.kast.inner import KInner, KSort, KVariable
-from pyk.kcfg import KCFG
-from pyk.kcfg.kcfg import NodeIdLike
 
 from ..ast.generic import get_single_argument_kapply_contents_path, replace_contents_with_path
+
+if TYPE_CHECKING:
+    from pyk.kcfg import KCFG
+    from pyk.kcfg.kcfg import NodeIdLike
 
 
 class CellAbstracter:

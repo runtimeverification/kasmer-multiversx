@@ -1,8 +1,12 @@
+from typing import TYPE_CHECKING
+
 from pyk.kast.manip import ml_pred_to_bool
-from pyk.kcfg import KCFG
 from pyk.prelude.kbool import TRUE
 
-from ..tools import Tools
+if TYPE_CHECKING:
+    from pyk.kcfg import KCFG
+
+    from ..tools import Tools
 
 
 def print_node(tools: Tools, node: KCFG.Node) -> None:

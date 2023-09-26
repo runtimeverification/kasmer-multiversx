@@ -1,17 +1,19 @@
 import json
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from pyk.kast.inner import KInner
 from pyk.kast.kast import kast_term
-from pyk.kast.pretty import SymbolTable
 from pyk.kcfg.explore import KCFGExplore
 from pyk.kore.rpc import BoosterServer, KoreClient, KoreServer
-from pyk.ktool.kprint import KPrint
 from pyk.ktool.kprove import KProve
 from pyk.ktool.krun import KRunOutput, _krun
 from pyk.prelude.k import GENERATED_TOP_CELL
+
+if TYPE_CHECKING:
+    from pyk.kast.pretty import SymbolTable
+    from pyk.ktool.kprint import KPrint
 
 
 class Tools:

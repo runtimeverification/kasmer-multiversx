@@ -1,6 +1,9 @@
-from pyk.kast.inner import KInner
+from typing import TYPE_CHECKING
 
 from .kast import get_inner_path
+
+if TYPE_CHECKING:
+    from pyk.kast.inner import KInner
 
 TOP_CELL = '<elrond-wasm>'
 

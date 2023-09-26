@@ -6,7 +6,7 @@ import sys
 import time
 import traceback
 from pathlib import Path
-from typing import Any, List, Mapping, Set, Tuple
+from typing import TYPE_CHECKING, Any, List, Mapping, Set, Tuple
 
 from pyk.cterm import CTerm
 from pyk.kast.inner import KApply, KInner, KLabel, KSequence, KSort, KToken, KVariable, bottom_up
@@ -45,7 +45,9 @@ from .lazy_explorer import GENERATED_MODULE_NAME, LazyExplorer, kompile_semantic
 from .rules import RuleCreator
 from .specs import Specs, find_specs
 from .tools import my_patch_symbol_table
-from .wasm_types import ValType
+
+if TYPE_CHECKING:
+    from .wasm_types import ValType
 
 sys.setrecursionlimit(4000)
 

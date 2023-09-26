@@ -4,9 +4,9 @@ import argparse
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from pyk.kast.inner import KApply
-from pyk.kcfg import KCFG
 from pyk.kcfg.show import KCFGShow
 from pyk.kore.rpc import KoreClientError
 from pyk.prelude.utils import token
@@ -18,6 +18,10 @@ from .property_testing.printers import print_node
 from .property_testing.running import RunException, Stuck, Success, run_claim, split_edge
 from .property_testing.wasm_krun_initializer import WasmKrunInitializer
 from .timing import Timer
+
+if TYPE_CHECKING:
+    from pyk.kcfg import KCFG
+
 
 sys.setrecursionlimit(4000)
 

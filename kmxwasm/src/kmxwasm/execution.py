@@ -1,14 +1,17 @@
 from dataclasses import dataclass
-from typing import Set
+from typing import TYPE_CHECKING, Set
 
 from pyk.kast.inner import KApply, KInner, KSequence, KToken, KVariable
-from pyk.kcfg import KCFG
-from pyk.kcfg.kcfg import NodeIdLike
 from pyk.prelude.k import K
 
-from .functions import Functions
 from .kast import get_inner
 from .wasm_cell import get_wasm_cell
+
+if TYPE_CHECKING:
+    from pyk.kcfg import KCFG
+    from pyk.kcfg.kcfg import NodeIdLike
+
+    from .functions import Functions
 
 
 class Decision:

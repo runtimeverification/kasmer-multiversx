@@ -1,11 +1,13 @@
 import json
-from pathlib import Path
-from typing import Any, Mapping
+from typing import TYPE_CHECKING, Any, Mapping
 
 from pyk.kast import kast_term
 from pyk.kast.inner import KInner
 from pyk.kast.outer import KClaim
 from pyk.kcfg import KCFG
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def load_json_dict(input_file: Path) -> Mapping[str, Any]:

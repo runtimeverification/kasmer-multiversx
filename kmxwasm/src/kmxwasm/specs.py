@@ -1,14 +1,18 @@
-from pathlib import Path
-from typing import List, Tuple
+from typing import TYPE_CHECKING, List, Tuple
 
 from pyk.kast.outer import KRule
-from pyk.ktool.kprove import KProve
 from pyk.prelude.ml import is_top
 
 from .kast import get_inner
-from .lazy_explorer import LazyExplorer
-from .rules import RuleCreator
 from .wasm_cell import TOP_CELL
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from pyk.ktool.kprove import KProve
+
+    from .lazy_explorer import LazyExplorer
+    from .rules import RuleCreator
 
 
 class Specs:

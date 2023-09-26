@@ -134,6 +134,7 @@ def get_hostcall_name(hostcall: KApply) -> str | None:
         return None
     return arg.token
 
+
 def command_is_new_wasm_instance(root: KInner) -> bool:
     command = get_first_command_name(root)
     if not command:

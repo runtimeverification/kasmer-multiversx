@@ -1,6 +1,6 @@
 import subprocess
 from pathlib import Path
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from pyk.kast.outer import KAtt, KDefinition, KFlatModule, KImport, KProduction, KRequire, KTerminal
 from pyk.kcfg import KCFGExplore
@@ -8,12 +8,15 @@ from pyk.konvert import krule_to_kore
 from pyk.kore.rpc import KoreClient, KoreServer
 from pyk.kore.syntax import Import, Module, Sentence
 from pyk.ktool.kompile import KompileBackend, kompile
-from pyk.ktool.kprint import KPrint
 from pyk.ktool.kprove import KProve
 from pyk.utils import BugReport
 
-from .identifiers import Identifiers
-from .rules import RuleCreator
+if TYPE_CHECKING:
+    from pyk.ktool.kprint import KPrint
+
+    from .identifiers import Identifiers
+    from .rules import RuleCreator
+
 
 BUG_REPORT: BugReport | None = BugReport(Path('bug-report'))
 # BUG_REPORT = None

@@ -1,10 +1,14 @@
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from pyk.kbuild.kbuild import KBuild
 from pyk.kbuild.package import Package
 
 from .timing import Timer
 from .tools import Tools
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
 
 HASKELL = 'haskell'
 LLVM = 'llvm'

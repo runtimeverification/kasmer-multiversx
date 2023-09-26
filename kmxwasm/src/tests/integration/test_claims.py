@@ -1,5 +1,5 @@
 import sys
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 import pytest
 from pyk.kast.inner import KApply, KInner, KRewrite, KSequence, KVariable
@@ -8,7 +8,6 @@ from pyk.prelude.bytes import bytesToken
 from pyk.prelude.collections import list_empty, map_empty, map_of, set_empty
 from pyk.prelude.kbool import FALSE, TRUE
 from pyk.prelude.kint import intToken
-from pytest import TempPathFactory
 
 from kmxwasm.ast.elrond import accountCellMap, bytesStack, listBytes, mapIntToBytes
 from kmxwasm.ast.wasm import (
@@ -24,7 +23,12 @@ from kmxwasm.build import HASKELL, kbuild_semantics
 from kmxwasm.property_testing.paths import KBUILD_ML_PATH
 from kmxwasm.property_testing.running import Success, run_claim
 from kmxwasm.property_testing.wasm_krun_initializer import WasmKrunInitializer
-from kmxwasm.tools import Tools
+
+if TYPE_CHECKING:
+    from pytest import TempPathFactory
+
+    from kmxwasm.tools import Tools
+
 
 sys.setrecursionlimit(1500000000)
 

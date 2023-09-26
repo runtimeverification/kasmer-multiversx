@@ -1,6 +1,7 @@
+from typing import TYPE_CHECKING
+
 from pyk.cterm import CTerm
 from pyk.kast.inner import KInner, KSequence
-from pyk.kcfg import KCFG
 from pyk.prelude.collections import list_of, map_empty
 from pyk.prelude.utils import token
 
@@ -26,7 +27,11 @@ from ..ast.elrond import (
     set_logging_cell_content,
 )
 from ..ast.wasm import set_instrs_cell_contents
-from ..tools import Tools
+
+if TYPE_CHECKING:
+    from pyk.kcfg import KCFG
+
+    from ..tools import Tools
 
 
 class WasmKrunInitializer:

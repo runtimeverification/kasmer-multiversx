@@ -1,20 +1,30 @@
 import time
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
-from pyk.kast.outer import KClaim
 from pyk.kcfg import KCFG
 from pyk.kcfg.exploration import KCFGExploration
-from pyk.kcfg.kcfg import NodeIdLike
-from pyk.kore.rpc import LogEntry
 from pyk.prelude.collections import LIST
 
-from ..ast.elrond import CALL_STACK_PATH, cfg_changes_call_stack, command_is_new_wasm_instance,get_first_instr, get_first_instr_name, get_hostcall_name
+from ..ast.elrond import (
+    CALL_STACK_PATH,
+    cfg_changes_call_stack,
+    command_is_new_wasm_instance,
+    get_first_instr,
+    get_hostcall_name,
+)
 from ..timing import Timer
-from ..tools import Tools
 from .cell_abstracter import CellAbstracter
 from .implication import quick_implication_check
 from .printers import print_node
-from .wasm_krun_initializer import WasmKrunInitializer
+
+if TYPE_CHECKING:
+    from pyk.kast.outer import KClaim
+    from pyk.kcfg.kcfg import NodeIdLike
+    from pyk.kore.rpc import LogEntry
+
+    from ..tools import Tools
+    from .wasm_krun_initializer import WasmKrunInitializer
 
 
 @dataclass(frozen=True)
