@@ -1,7 +1,7 @@
 ```k
 require "ceils.k"
 
-module ELROND-LEMMAS
+module ELROND-LEMMAS  [symbolic]
   imports private CEILS
   imports private ELROND
   imports private INT-KORE

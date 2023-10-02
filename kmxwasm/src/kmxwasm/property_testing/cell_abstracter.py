@@ -7,14 +7,14 @@ from ..ast.generic import get_single_argument_kapply_contents_path, replace_cont
 
 
 class CellAbstracter:
-    def __init__(self, cell_path: list[str], variable_root: str, variable_sort: KSort):
+    def __init__(self, cell_path: list[str], variable_root: str, variable_sort: KSort, destination: NodeIdLike):
         self.__cell_path = cell_path
         self.__variable_root = variable_root
         self.__variable_sort = variable_sort
         self.__variable_index = 0
         self.__last_variable: KVariable | None = None
         self.__last_actual_value: KInner | None = None
-        self.__should_be_concrete: set[NodeIdLike] = set()
+        self.__should_be_concrete: set[NodeIdLike] = {destination}
 
     def abstract_node(self, kcfg: KCFG, node_id: NodeIdLike) -> None:
         node = kcfg.node(node_id)
@@ -33,7 +33,7 @@ class CellAbstracter:
         for node in kcfg.nodes:
             if node.id in with_variable:
                 continue
-            if node in self.__should_be_concrete:
+            if node.id in self.__should_be_concrete:
                 continue
             self.__concretize_node(kcfg, node.id, allow_missing_variable=True)
         for node_id in with_variable:

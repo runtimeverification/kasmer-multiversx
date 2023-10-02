@@ -6,7 +6,7 @@ from ..tools import Tools
 
 
 def print_node(tools: Tools, node: KCFG.Node) -> None:
-    pretty = tools.printer.pretty_print(node.cterm.config)
+    pretty = tools.printer.pretty_print(node.cterm.config, sort_collections=True)
     print(pretty)
     for c in node.cterm.constraints:
         if c != TRUE:
