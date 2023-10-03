@@ -3,7 +3,6 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Any, Optional
 
-from pyk.utils import BugReport
 from pyk.kast.inner import KInner
 from pyk.kast.kast import kast_term
 from pyk.kast.pretty import SymbolTable
@@ -13,7 +12,7 @@ from pyk.ktool.kprint import KPrint
 from pyk.ktool.kprove import KProve
 from pyk.ktool.krun import KRunOutput, _krun
 from pyk.prelude.k import GENERATED_TOP_CELL
-
+from pyk.utils import BugReport
 
 USE_BUG_REPORT = False
 
@@ -56,7 +55,7 @@ class Tools:
     @property
     def explorer(self) -> KCFGExplore:
         bug_report = None
-        if (USE_BUG_REPORT):
+        if USE_BUG_REPORT:
             bug_report = BugReport(Path('bug-report'))
         if not self.__kore_server:
             if self.__kore_client:
@@ -78,11 +77,7 @@ class Tools:
                     # port=39425,
                 )
         if not self.__kore_client:
-            self.__kore_client = KoreClient(
-                'localhost',
-                self.__kore_server.port,
-                bug_report=bug_report
-            )
+            self.__kore_client = KoreClient('localhost', self.__kore_server.port, bug_report=bug_report)
 
         if not self.__explorer:
             self.__explorer = KCFGExplore(self.printer, self.__kore_client)
