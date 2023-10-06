@@ -56,7 +56,6 @@ class Lemma:
         rhs_vars = free_vars(self.rhs)
         var_occurrences = count_vars(mlAnd([KRewrite(self.lhs, self.rhs), self.requires]))
         v_subst: dict[str, KVariable] = {}
-        vremap_subst: dict[str, KVariable] = {}
         for v in var_occurrences:
             new_v = v
             if var_occurrences[v] == 1:
@@ -65,7 +64,6 @@ class Lemma:
                 new_v = '?' + new_v
             if new_v != v:
                 v_subst[v] = KVariable(new_v)
-                vremap_subst[new_v] = KVariable(v)
 
         lhs = Subst(v_subst)(self.lhs)
         rhs = self.rhs  # apply_existential_substitutions(Subst(v_subst)(self.rhs))
