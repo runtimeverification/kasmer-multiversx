@@ -8,7 +8,7 @@ module PROOF-SYNTAX
                           | split(Bool, ProofOperationList, ProofOperationList)  [klabel(proofSplit), symbol]
                           | DestructOperation
                           | ProofUserOperation
-  syntax ProofOperationList ::= List{ProofOperation, ";"}  [klabel(proofOperationList)]
+  syntax ProofOperationList ::= List{ProofOperation, ";"}  [klabel(proofOperationList), symbol]
 
   syntax ProofUserOperation
   syntax DestructOperation

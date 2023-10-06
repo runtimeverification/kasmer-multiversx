@@ -138,5 +138,5 @@ def mandos_cell(*args: KInner) -> KApply:
 
 def proofOperationList(proof: Iterable[KInner]) -> KInner:  # noqa: N802
     return simple_list(
-        concat_label='proofOperationList', empty_label='.List{"proofOperationList"}_BytesStack', items=proof
+        concat_label='proofOperationList', empty_label='.List{"proofOperationList"}', items=proof
     )

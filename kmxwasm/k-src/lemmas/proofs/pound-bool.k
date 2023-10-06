@@ -6,7 +6,7 @@ module POUND-BOOL
 
     claim  <mandos>
            <k>
-             ( runProof ( proofOperationList ( split ( B:Bool , .List{"proofOperationList"}_BytesStack (  ) , .List{"proofOperationList"}_BytesStack (  ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) => end )
+             ( runProof ( split ( B:Bool , .ProofOperationList , .ProofOperationList ) ; .ProofOperationList ) => end )
              ...
            </k>
            <commands>
@@ -22,7 +22,7 @@ module POUND-BOOL
 
     claim  <mandos>
            <k>
-             ( runProof ( proofOperationList ( split ( B:Bool , .List{"proofOperationList"}_BytesStack (  ) , .List{"proofOperationList"}_BytesStack (  ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) => end )
+             ( runProof ( split ( B:Bool , .ProofOperationList , .ProofOperationList ) ; .ProofOperationList ) => end )
              ...
            </k>
            <commands>
@@ -38,7 +38,7 @@ module POUND-BOOL
 
     claim  <mandos>
            <k>
-             ( runProof ( proofOperationList ( split ( B:Bool , .List{"proofOperationList"}_BytesStack (  ) , .List{"proofOperationList"}_BytesStack (  ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) => end )
+             ( runProof ( split ( B:Bool , .ProofOperationList , .ProofOperationList ) ; .ProofOperationList ) => end )
              ...
            </k>
            <commands>
@@ -54,7 +54,7 @@ module POUND-BOOL
 
     claim  <mandos>
            <k>
-             ( runProof ( proofOperationList ( split ( B:Bool , .List{"proofOperationList"}_BytesStack (  ) , .List{"proofOperationList"}_BytesStack (  ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) => end )
+             ( runProof ( split ( B:Bool , .ProofOperationList , .ProofOperationList ) ; .ProofOperationList ) => end )
              ...
            </k>
            <commands>
@@ -71,7 +71,7 @@ module POUND-BOOL
 
     claim  <mandos>
            <k>
-             ( runProof ( proofOperationList ( split ( B:Bool , .List{"proofOperationList"}_BytesStack (  ) , .List{"proofOperationList"}_BytesStack (  ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) => end )
+             ( runProof ( split ( B:Bool , .ProofOperationList , .ProofOperationList ) ; .ProofOperationList ) => end )
              ...
            </k>
            <commands>

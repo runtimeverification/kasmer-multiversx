@@ -6,7 +6,7 @@ module LIST-SIZE
 
     claim  <mandos>
            <k>
-             ( runProof ( proofOperationList ( basicListInduction ( L:List ) , .List{"proofOperationList"}_BytesStack (  ) ) ) => end )
+             ( runProof ( basicListInduction ( L:List ) ; .ProofOperationList ) => end )
              ...
            </k>
            <commands>

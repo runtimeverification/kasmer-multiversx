@@ -6,7 +6,7 @@ module MOD-INT-TOTAL
 
     claim  <mandos>
            <k>
-             ( runProof ( proofOperationList ( var ( X:Int ) , proofOperationList ( var ( Y:Int ) , proofOperationList ( var ( Z:Int ) , proofOperationList ( var ( T:Int ) , proofOperationList ( var ( M:Int ) , .List{"proofOperationList"}_BytesStack (  ) ) ) ) ) ) ) => end )
+             ( runProof ( var ( X:Int ) ; var ( Y:Int ) ; var ( Z:Int ) ; var ( T:Int ) ; var ( M:Int ) ; .ProofOperationList ) => end )
              ...
            </k>
            <commands>
@@ -22,7 +22,7 @@ module MOD-INT-TOTAL
 
     claim  <mandos>
            <k>
-             ( runProof ( proofOperationList ( var ( X:Int ) , proofOperationList ( var ( Y:Int ) , proofOperationList ( var ( Z:Int ) , proofOperationList ( var ( T:Int ) , proofOperationList ( var ( M:Int ) , .List{"proofOperationList"}_BytesStack (  ) ) ) ) ) ) ) => end )
+             ( runProof ( var ( X:Int ) ; var ( Y:Int ) ; var ( Z:Int ) ; var ( T:Int ) ; var ( M:Int ) ; .ProofOperationList ) => end )
              ...
            </k>
            <commands>
@@ -38,7 +38,7 @@ module MOD-INT-TOTAL
 
     claim  <mandos>
            <k>
-             ( runProof ( proofOperationList ( var ( X:Int ) , proofOperationList ( var ( Y:Int ) , proofOperationList ( var ( Z:Int ) , proofOperationList ( var ( T:Int ) , proofOperationList ( var ( M:Int ) , .List{"proofOperationList"}_BytesStack (  ) ) ) ) ) ) ) => end )
+             ( runProof ( var ( X:Int ) ; var ( Y:Int ) ; var ( Z:Int ) ; var ( T:Int ) ; var ( M:Int ) ; .ProofOperationList ) => end )
              ...
            </k>
            <commands>
@@ -54,7 +54,7 @@ module MOD-INT-TOTAL
 
     claim  <mandos>
            <k>
-             ( runProof ( proofOperationList ( var ( X:Int ) , proofOperationList ( var ( Y:Int ) , proofOperationList ( var ( Z:Int ) , proofOperationList ( var ( T:Int ) , proofOperationList ( var ( M:Int ) , .List{"proofOperationList"}_BytesStack (  ) ) ) ) ) ) ) => end )
+             ( runProof ( var ( X:Int ) ; var ( Y:Int ) ; var ( Z:Int ) ; var ( T:Int ) ; var ( M:Int ) ; .ProofOperationList ) => end )
              ...
            </k>
            <commands>
@@ -70,7 +70,7 @@ module MOD-INT-TOTAL
 
     claim  <mandos>
            <k>
-             ( runProof ( proofOperationList ( var ( X:Int ) , proofOperationList ( var ( Y:Int ) , proofOperationList ( var ( Z:Int ) , proofOperationList ( var ( T:Int ) , proofOperationList ( var ( M:Int ) , .List{"proofOperationList"}_BytesStack (  ) ) ) ) ) ) ) => end )
+             ( runProof ( var ( X:Int ) ; var ( Y:Int ) ; var ( Z:Int ) ; var ( T:Int ) ; var ( M:Int ) ; .ProofOperationList ) => end )
              ...
            </k>
            <commands>
@@ -87,7 +87,7 @@ module MOD-INT-TOTAL
 
     claim  <mandos>
            <k>
-             ( runProof ( proofOperationList ( var ( X:Int ) , proofOperationList ( var ( Y:Int ) , proofOperationList ( var ( Z:Int ) , proofOperationList ( var ( T:Int ) , proofOperationList ( var ( M:Int ) , .List{"proofOperationList"}_BytesStack (  ) ) ) ) ) ) ) => end )
+             ( runProof ( var ( X:Int ) ; var ( Y:Int ) ; var ( Z:Int ) ; var ( T:Int ) ; var ( M:Int ) ; .ProofOperationList ) => end )
              ...
            </k>
            <commands>
@@ -104,7 +104,7 @@ module MOD-INT-TOTAL
 
     claim  <mandos>
            <k>
-             ( runProof ( proofOperationList ( var ( X:Int ) , proofOperationList ( var ( Y:Int ) , proofOperationList ( var ( Z:Int ) , proofOperationList ( var ( T:Int ) , proofOperationList ( var ( M:Int ) , .List{"proofOperationList"}_BytesStack (  ) ) ) ) ) ) ) => end )
+             ( runProof ( var ( X:Int ) ; var ( Y:Int ) ; var ( Z:Int ) ; var ( T:Int ) ; var ( M:Int ) ; .ProofOperationList ) => end )
              ...
            </k>
            <commands>
@@ -123,7 +123,7 @@ module MOD-INT-TOTAL
 
     claim  <mandos>
            <k>
-             ( runProof ( proofOperationList ( var ( X:Int ) , proofOperationList ( var ( Y:Int ) , proofOperationList ( var ( Z:Int ) , proofOperationList ( var ( T:Int ) , proofOperationList ( var ( M:Int ) , .List{"proofOperationList"}_BytesStack (  ) ) ) ) ) ) ) => end )
+             ( runProof ( var ( X:Int ) ; var ( Y:Int ) ; var ( Z:Int ) ; var ( T:Int ) ; var ( M:Int ) ; .ProofOperationList ) => end )
              ...
            </k>
            <commands>
@@ -140,7 +140,7 @@ module MOD-INT-TOTAL
 
     claim  <mandos>
            <k>
-             ( runProof ( proofOperationList ( var ( X:Int ) , proofOperationList ( var ( Y:Int ) , proofOperationList ( var ( Z:Int ) , proofOperationList ( var ( T:Int ) , proofOperationList ( var ( M:Int ) , .List{"proofOperationList"}_BytesStack (  ) ) ) ) ) ) ) => end )
+             ( runProof ( var ( X:Int ) ; var ( Y:Int ) ; var ( Z:Int ) ; var ( T:Int ) ; var ( M:Int ) ; .ProofOperationList ) => end )
              ...
            </k>
            <commands>

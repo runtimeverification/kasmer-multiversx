@@ -6,7 +6,7 @@ module MAX-INEQUALITIES
 
     claim  <mandos>
            <k>
-             ( runProof ( proofOperationList ( var ( X:Int ) , proofOperationList ( split ( Y:Int <=Int Z:Int , proofOperationList ( split ( X:Int <Int Z:Int , .List{"proofOperationList"}_BytesStack (  ) , proofOperationList ( split ( Z:Int <Int X:Int , .List{"proofOperationList"}_BytesStack (  ) , .List{"proofOperationList"}_BytesStack (  ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) , .List{"proofOperationList"}_BytesStack (  ) ) , proofOperationList ( split ( Y:Int <Int Z:Int , .List{"proofOperationList"}_BytesStack (  ) , proofOperationList ( split ( Y:Int <Int X:Int , .List{"proofOperationList"}_BytesStack (  ) , .List{"proofOperationList"}_BytesStack (  ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) ) => end )
+             ( runProof ( var ( X:Int ) ; split ( Y:Int <=Int Z:Int , split ( X:Int <Int Z:Int , .ProofOperationList , split ( Z:Int <Int X:Int , .ProofOperationList , .ProofOperationList ) ; .ProofOperationList ) ; .ProofOperationList , split ( Y:Int <Int Z:Int , .ProofOperationList , split ( Y:Int <Int X:Int , .ProofOperationList , .ProofOperationList ) ; .ProofOperationList ) ; .ProofOperationList ) ; .ProofOperationList ) => end )
              ...
            </k>
            <commands>
@@ -25,7 +25,7 @@ module MAX-INEQUALITIES
 
     claim  <mandos>
            <k>
-             ( runProof ( proofOperationList ( var ( X:Int ) , proofOperationList ( split ( Y:Int <=Int Z:Int , proofOperationList ( split ( X:Int <Int Z:Int , .List{"proofOperationList"}_BytesStack (  ) , proofOperationList ( split ( Z:Int <Int X:Int , .List{"proofOperationList"}_BytesStack (  ) , .List{"proofOperationList"}_BytesStack (  ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) , .List{"proofOperationList"}_BytesStack (  ) ) , proofOperationList ( split ( Y:Int <Int Z:Int , .List{"proofOperationList"}_BytesStack (  ) , proofOperationList ( split ( Y:Int <Int X:Int , .List{"proofOperationList"}_BytesStack (  ) , .List{"proofOperationList"}_BytesStack (  ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) ) => end )
+             ( runProof ( var ( X:Int ) ; split ( Y:Int <=Int Z:Int , split ( X:Int <Int Z:Int , .ProofOperationList , split ( Z:Int <Int X:Int , .ProofOperationList , .ProofOperationList ) ; .ProofOperationList ) ; .ProofOperationList , split ( Y:Int <Int Z:Int , .ProofOperationList , split ( Y:Int <Int X:Int , .ProofOperationList , .ProofOperationList ) ; .ProofOperationList ) ; .ProofOperationList ) ; .ProofOperationList ) => end )
              ...
            </k>
            <commands>
@@ -44,7 +44,7 @@ module MAX-INEQUALITIES
 
     claim  <mandos>
            <k>
-             ( runProof ( proofOperationList ( var ( X:Int ) , proofOperationList ( split ( Y:Int <=Int Z:Int , proofOperationList ( split ( X:Int <Int Z:Int , .List{"proofOperationList"}_BytesStack (  ) , proofOperationList ( split ( Z:Int <Int X:Int , .List{"proofOperationList"}_BytesStack (  ) , .List{"proofOperationList"}_BytesStack (  ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) , .List{"proofOperationList"}_BytesStack (  ) ) , proofOperationList ( split ( Y:Int <Int Z:Int , .List{"proofOperationList"}_BytesStack (  ) , proofOperationList ( split ( Y:Int <Int X:Int , .List{"proofOperationList"}_BytesStack (  ) , .List{"proofOperationList"}_BytesStack (  ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) ) => end )
+             ( runProof ( var ( X:Int ) ; split ( Y:Int <=Int Z:Int , split ( X:Int <Int Z:Int , .ProofOperationList , split ( Z:Int <Int X:Int , .ProofOperationList , .ProofOperationList ) ; .ProofOperationList ) ; .ProofOperationList , split ( Y:Int <Int Z:Int , .ProofOperationList , split ( Y:Int <Int X:Int , .ProofOperationList , .ProofOperationList ) ; .ProofOperationList ) ; .ProofOperationList ) ; .ProofOperationList ) => end )
              ...
            </k>
            <commands>
@@ -63,7 +63,7 @@ module MAX-INEQUALITIES
 
     claim  <mandos>
            <k>
-             ( runProof ( proofOperationList ( var ( X:Int ) , proofOperationList ( split ( Y:Int <=Int Z:Int , proofOperationList ( split ( X:Int <Int Z:Int , .List{"proofOperationList"}_BytesStack (  ) , proofOperationList ( split ( Z:Int <Int X:Int , .List{"proofOperationList"}_BytesStack (  ) , .List{"proofOperationList"}_BytesStack (  ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) , .List{"proofOperationList"}_BytesStack (  ) ) , proofOperationList ( split ( Y:Int <Int Z:Int , .List{"proofOperationList"}_BytesStack (  ) , proofOperationList ( split ( Y:Int <Int X:Int , .List{"proofOperationList"}_BytesStack (  ) , .List{"proofOperationList"}_BytesStack (  ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) ) => end )
+             ( runProof ( var ( X:Int ) ; split ( Y:Int <=Int Z:Int , split ( X:Int <Int Z:Int , .ProofOperationList , split ( Z:Int <Int X:Int , .ProofOperationList , .ProofOperationList ) ; .ProofOperationList ) ; .ProofOperationList , split ( Y:Int <Int Z:Int , .ProofOperationList , split ( Y:Int <Int X:Int , .ProofOperationList , .ProofOperationList ) ; .ProofOperationList ) ; .ProofOperationList ) ; .ProofOperationList ) => end )
              ...
            </k>
            <commands>
@@ -82,7 +82,7 @@ module MAX-INEQUALITIES
 
     claim  <mandos>
            <k>
-             ( runProof ( proofOperationList ( var ( X:Int ) , proofOperationList ( split ( Y:Int <=Int Z:Int , proofOperationList ( split ( X:Int <Int Z:Int , .List{"proofOperationList"}_BytesStack (  ) , proofOperationList ( split ( Z:Int <Int X:Int , .List{"proofOperationList"}_BytesStack (  ) , .List{"proofOperationList"}_BytesStack (  ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) , .List{"proofOperationList"}_BytesStack (  ) ) , proofOperationList ( split ( Y:Int <Int Z:Int , .List{"proofOperationList"}_BytesStack (  ) , proofOperationList ( split ( Y:Int <Int X:Int , .List{"proofOperationList"}_BytesStack (  ) , .List{"proofOperationList"}_BytesStack (  ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) ) => end )
+             ( runProof ( var ( X:Int ) ; split ( Y:Int <=Int Z:Int , split ( X:Int <Int Z:Int , .ProofOperationList , split ( Z:Int <Int X:Int , .ProofOperationList , .ProofOperationList ) ; .ProofOperationList ) ; .ProofOperationList , split ( Y:Int <Int Z:Int , .ProofOperationList , split ( Y:Int <Int X:Int , .ProofOperationList , .ProofOperationList ) ; .ProofOperationList ) ; .ProofOperationList ) ; .ProofOperationList ) => end )
              ...
            </k>
            <commands>
@@ -101,7 +101,7 @@ module MAX-INEQUALITIES
 
     claim  <mandos>
            <k>
-             ( runProof ( proofOperationList ( var ( X:Int ) , proofOperationList ( split ( Y:Int <=Int Z:Int , proofOperationList ( split ( X:Int <Int Z:Int , .List{"proofOperationList"}_BytesStack (  ) , proofOperationList ( split ( Z:Int <Int X:Int , .List{"proofOperationList"}_BytesStack (  ) , .List{"proofOperationList"}_BytesStack (  ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) , .List{"proofOperationList"}_BytesStack (  ) ) , proofOperationList ( split ( Y:Int <Int Z:Int , .List{"proofOperationList"}_BytesStack (  ) , proofOperationList ( split ( Y:Int <Int X:Int , .List{"proofOperationList"}_BytesStack (  ) , .List{"proofOperationList"}_BytesStack (  ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) ) => end )
+             ( runProof ( var ( X:Int ) ; split ( Y:Int <=Int Z:Int , split ( X:Int <Int Z:Int , .ProofOperationList , split ( Z:Int <Int X:Int , .ProofOperationList , .ProofOperationList ) ; .ProofOperationList ) ; .ProofOperationList , split ( Y:Int <Int Z:Int , .ProofOperationList , split ( Y:Int <Int X:Int , .ProofOperationList , .ProofOperationList ) ; .ProofOperationList ) ; .ProofOperationList ) ; .ProofOperationList ) => end )
              ...
            </k>
            <commands>
@@ -120,7 +120,7 @@ module MAX-INEQUALITIES
 
     claim  <mandos>
            <k>
-             ( runProof ( proofOperationList ( var ( X:Int ) , proofOperationList ( split ( Y:Int <=Int Z:Int , proofOperationList ( split ( X:Int <Int Z:Int , .List{"proofOperationList"}_BytesStack (  ) , proofOperationList ( split ( Z:Int <Int X:Int , .List{"proofOperationList"}_BytesStack (  ) , .List{"proofOperationList"}_BytesStack (  ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) , .List{"proofOperationList"}_BytesStack (  ) ) , proofOperationList ( split ( Y:Int <Int Z:Int , .List{"proofOperationList"}_BytesStack (  ) , proofOperationList ( split ( Y:Int <Int X:Int , .List{"proofOperationList"}_BytesStack (  ) , .List{"proofOperationList"}_BytesStack (  ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) ) => end )
+             ( runProof ( var ( X:Int ) ; split ( Y:Int <=Int Z:Int , split ( X:Int <Int Z:Int , .ProofOperationList , split ( Z:Int <Int X:Int , .ProofOperationList , .ProofOperationList ) ; .ProofOperationList ) ; .ProofOperationList , split ( Y:Int <Int Z:Int , .ProofOperationList , split ( Y:Int <Int X:Int , .ProofOperationList , .ProofOperationList ) ; .ProofOperationList ) ; .ProofOperationList ) ; .ProofOperationList ) => end )
              ...
            </k>
            <commands>
@@ -139,7 +139,7 @@ module MAX-INEQUALITIES
 
     claim  <mandos>
            <k>
-             ( runProof ( proofOperationList ( var ( X:Int ) , proofOperationList ( split ( Y:Int <=Int Z:Int , proofOperationList ( split ( X:Int <Int Z:Int , .List{"proofOperationList"}_BytesStack (  ) , proofOperationList ( split ( Z:Int <Int X:Int , .List{"proofOperationList"}_BytesStack (  ) , .List{"proofOperationList"}_BytesStack (  ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) , .List{"proofOperationList"}_BytesStack (  ) ) , proofOperationList ( split ( Y:Int <Int Z:Int , .List{"proofOperationList"}_BytesStack (  ) , proofOperationList ( split ( Y:Int <Int X:Int , .List{"proofOperationList"}_BytesStack (  ) , .List{"proofOperationList"}_BytesStack (  ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) , .List{"proofOperationList"}_BytesStack (  ) ) ) ) => end )
+             ( runProof ( var ( X:Int ) ; split ( Y:Int <=Int Z:Int , split ( X:Int <Int Z:Int , .ProofOperationList , split ( Z:Int <Int X:Int , .ProofOperationList , .ProofOperationList ) ; .ProofOperationList ) ; .ProofOperationList , split ( Y:Int <Int Z:Int , .ProofOperationList , split ( Y:Int <Int X:Int , .ProofOperationList , .ProofOperationList ) ; .ProofOperationList ) ; .ProofOperationList ) ; .ProofOperationList ) => end )
              ...
            </k>
            <commands>
