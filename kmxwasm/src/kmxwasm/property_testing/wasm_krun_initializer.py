@@ -4,7 +4,7 @@ from pyk.kcfg import KCFG
 from pyk.prelude.collections import list_of, map_empty
 from pyk.prelude.utils import token
 
-from .ast.elrond import (
+from ..ast.elrond import (
     accountCellMap,
     commands_cell_contents,
     get_contract_mod_idx_cell,
@@ -19,13 +19,14 @@ from .ast.elrond import (
     set_call_args_cell_content,
     set_call_stack_cell_content,
     set_commands_cell_contents,
+    set_exit_code_cell_content,
     set_generated_counter_cell_content,
     set_interim_states_cell_content,
     set_k_cell_contents,
     set_logging_cell_content,
 )
-from .ast.wasm import set_instrs_cell_contents
-from .tools import Tools
+from ..ast.wasm import set_instrs_cell_contents
+from ..tools import Tools
 
 
 class WasmKrunInitializer:
@@ -54,6 +55,8 @@ class WasmKrunInitializer:
         krun_cell = set_call_args_cell_content(krun_cell, listBytes([]))
         krun_cell = set_big_int_heap_cell_content(krun_cell, map_empty())
         krun_cell = set_buffer_heap_cell_content(krun_cell, mapIntToBytes({}))
+        krun_cell = set_exit_code_cell_content(krun_cell, token(0))
+
         krun_cell = replace_wasm_cell(krun_cell, self.__first_wasm_cell)
 
         # TODO: Figure out if it's possible to cache the initialization result.

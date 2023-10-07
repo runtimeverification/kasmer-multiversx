@@ -6,11 +6,31 @@ from pyk.kcfg import KCFG
 from pyk.kcfg.exploration import KCFGExploration
 from pyk.kcfg.kcfg import NodeIdLike
 from pyk.kore.rpc import LogEntry
+from pyk.prelude.collections import LIST
 
-from .ast.elrond import command_is_new_wasm_instance
+from ..ast.elrond import (
+    CALL_STACK_PATH,
+    cfg_changes_call_stack,
+    command_is_new_wasm_instance,
+    get_first_instr,
+    get_hostcall_name,
+)
+from ..timing import Timer
+from ..tools import Tools
+from .cell_abstracter import CellAbstracter
+from .implication import quick_implication_check
 from .printers import print_node
-from .tools import Tools
 from .wasm_krun_initializer import WasmKrunInitializer
+
+CUT_POINT_RULES = [
+    # This runs with the LLVM backend
+    'ELROND-CONFIG.newWasmInstance',
+    # These change the call stack
+    'ELROND-NODE.pushCallState',
+    'ELROND-NODE.popCallState',
+    'ELROND-NODE.dropCallState',
+    'FOUNDRY.endFoundryImmediately',
+]
 
 
 @dataclass(frozen=True)
@@ -52,11 +72,9 @@ def run_claim(
         assert len(roots) in [1, 2]
         if len(roots) == 1:
             init_node_id = roots[0].id
-            # TODO: Is this the right way to get the destination node?
-            # Should I take the covered node, or a covered's node destination?
-            covers = kcfg.covered
-            assert len(covers) == 1
-            target_node_id = covers[0].id
+            covers = {cover.target.id for cover in kcfg.covers()}
+            assert len(covers) == 1, covers
+            target_node_id = covers.pop()
         else:
             if roots[0] < roots[1]:
                 init_node_id = roots[0].id
@@ -68,11 +86,19 @@ def run_claim(
         (kcfg, init_node_id, target_node_id) = KCFG.from_claim(tools.printer.definition, claim)
 
     kcfg_exploration = KCFGExploration(kcfg)
+    abstract_call_stack = CellAbstracter(
+        cell_path=CALL_STACK_PATH,
+        variable_root='AbstractCallStack',
+        variable_sort=LIST,
+        destination=target_node_id,
+    )
 
     try:
         processed: set[NodeIdLike] = {target_node_id}
         non_final: set[NodeIdLike] = {target_node_id}
         to_process: list[KCFG.Node] = expandable_leaves(kcfg, target_node_id)
+        for n in to_process:
+            non_final.add(n.id)
         if run_id is not None:
             to_process = [kcfg.node(run_id)]
         final_node = kcfg.node(target_node_id)
@@ -81,11 +107,13 @@ def run_claim(
         while to_process:
             # print([node.id for node in to_process])
             while to_process:
-                node = to_process.pop()
+                node = to_process.pop(0)
                 processed.add(node.id)
-                last_processed_node = node.id
                 current_time = time.time()
-                print('Processing', node.id, 'previous = ', current_time - last_time, 'sec', flush=True)
+                if last_processed_node != -1:
+                    print('Node', last_processed_node, 'took', current_time - last_time, 'sec.')
+                print('Processing', node.id, flush=True)
+                last_processed_node = node.id
                 last_time = current_time
 
                 assert len(list(kcfg.edges(source_id=node.id))) == 0
@@ -97,31 +125,82 @@ def run_claim(
                 try:
                     if command_is_new_wasm_instance(node.cterm.config):
                         print('is new wasm')
+                        t = Timer('  Initialize wasm')
                         wasm_initializer.initialize(kcfg=kcfg, start_node=node)
-                    else:
+                        t.measure()
+                    elif cfg_changes_call_stack(node.cterm.config):
+                        print('changes call stack')
+                        t = Timer('  Run call stack change')
                         tools.explorer.extend(
                             kcfg_exploration=kcfg_exploration,
                             node=node,
                             logs=logs,
-                            execute_depth=depth,
-                            cut_point_rules=['ELROND-CONFIG.newWasmInstance'],
+                            execute_depth=1,
+                            cut_point_rules=CUT_POINT_RULES,
                         )
-                    for node in kcfg.leaves:
-                        if node.id not in non_final:
-                            non_final.add(node.id)
+                        t.measure()
+                    else:
+                        t = Timer('  Abstract')
+                        abstract_call_stack.abstract_node(kcfg, node.id)
+                        t.measure()
+
+                        try:
+                            t = Timer('  Extend')
+                            node = kcfg.node(node.id)
+                            processing: list[str] = []
+                            instr = get_first_instr(node.cterm.config)
+                            if instr is not None:
+                                processing = ['<instrs>', instr.label.name]
+                                call_name = get_hostcall_name(instr)
+                                if call_name is not None:
+                                    processing.append(call_name)
+                            print(f'  First: {processing}', flush=True)
+                            tools.explorer.extend(
+                                kcfg_exploration=kcfg_exploration,
+                                node=node,
+                                logs=logs,
+                                execute_depth=depth,
+                                cut_point_rules=CUT_POINT_RULES,
+                            )
+                            t.measure()
+                        finally:
+                            t = Timer('  Concretize')
+                            leaves = set(new_leaves(kcfg, non_final, final_node.id))
+                            leaves.add(node.id)
+                            t.measure()
+                            abstract_call_stack.concretize_kcfg(kcfg, leaves)
+                            t.measure()
+                    t = Timer('  Check final')
+                    current_leaves = new_leaves(kcfg, non_final, final_node.id)
+                    for node_id in current_leaves:
+                        non_final.add(node_id)
+                        node = kcfg.node(node_id)
+                        if quick_implication_check(node.cterm.config, final_node.cterm.config):
                             csubst = tools.explorer.cterm_implies(node.cterm, final_node.cterm)
                             if csubst:
                                 kcfg.create_cover(node.id, final_node.id, csubst)
+                    t.measure()
                 except ValueError:
                     if not kcfg.stuck:
                         raise
                     for node in kcfg.stuck:
                         return Stuck(kcfg, stuck_node_id=node.id, final_node_id=final_node.id)
-            to_process = expandable_leaves(kcfg, target_node_id)
+            if run_id is not None:
+                to_process += [kcfg.node(node_id) for node_id in current_leaves]
+            else:
+                to_process = expandable_leaves(kcfg, target_node_id)
 
+        if last_processed_node != -1:
+            print('Node', last_processed_node, 'took', current_time - last_time, 'sec.')
         return Success(kcfg)
     except BaseException as e:
+        if last_processed_node != -1:
+            print('Node', last_processed_node, 'took', current_time - last_time, 'sec.')
         return RunException(kcfg, e, last_processed_node)
+
+
+def new_leaves(kcfg: KCFG, existing: set[NodeIdLike], final: NodeIdLike) -> list[NodeIdLike]:
+    return [node.id for node in kcfg.leaves if node.id not in existing and node.id != final]
 
 
 def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int) -> RunClaimResult:

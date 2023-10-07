@@ -1,15 +1,12 @@
 ```k
 require "ceils.k"
 
-module ELROND-LEMMAS
+module ELROND-LEMMAS  [symbolic]
   imports private CEILS
   imports private ELROND
   imports private INT-KORE
   imports private SET
   imports private WASM-TEXT
-
-  rule  ( size ( _L:List ) >=Int 0 => true )
-    [simplification(), smt-lemma()]
 
   rule Bytes2Int(#getBytesRange(_:Bytes, _:Int, N:Int), _:Endianness, _:Signedness) <Int M:Int
         => true
@@ -32,8 +29,11 @@ module ELROND-LEMMAS
       requires 0 <=Int Value
       [simplification]
 
-  rule { b"" #Equals Int2Bytes(Len:Int, _Value:Int, _E:Endianness)}:Bool
+  rule { b"" #Equals Int2Bytes(Len:Int, _Value:Int, _E:Endianness) }:Bool
       => {0 #Equals Len}
+      [simplification]
+  rule { b"" #Equals Int2Bytes(Value:Int, _E:Endianness, _S:Signedness) }:Bool
+      => {0 #Equals Value}
       [simplification]
 
   rule 0 <=Int A +Int B => true
@@ -83,6 +83,54 @@ module ELROND-LEMMAS
       requires true
           andBool definedPadRightBytes(B, PadLen, Val)
           andBool (PadLen <Int Start orBool Start +Int GetLen <Int lengthBytes(B))
+      [simplification]
+
+  rule #setRange(
+          #setRange(M:Bytes, Addr1:Int, Val1:Int, Width1:Int),
+          Addr2:Int, Val2:Int, Width2:Int
+      )
+      => #setRange(
+          #setRange(M:Bytes, Addr2:Int, Val2:Int, Width2:Int),
+          Addr1:Int, Val1:Int, Width1:Int
+      )
+      requires disjontRanges(Addr1, Val1, Addr2, Val2)
+      [simplification, concrete(Addr1,Val1,Width1), symbolic(Val2)]
+      // TODO: Consider adding rules for when Addr1 or Width1 are symbolic
+  rule #getBytesRange(
+          #setRange(M:Bytes, SetAddr:Int, _SetVal:Int, SetWidth:Int),
+          GetAddr:Int, GetWidth:Int
+      )
+      => #getBytesRange(M, GetAddr:Int, GetWidth:Int)
+      requires disjontRanges(SetAddr, SetWidth, GetAddr, GetWidth)
+      [simplification]
+  rule #getBytesRange(
+          #setRange(_M:Bytes, Addr:Int, Val:Int, Width:Int),
+          Addr:Int, Width:Int
+      )
+      => Int2Bytes(Width, Val, LE)
+      requires 0 <Int Width andBool 0 <=Int Val andBool 0 <=Int Addr
+      [simplification]
+
+  rule replaceAtBytesTotal
+      ( #setRange(M:Bytes, Addr1:Int, Val1:Int, Width1:Int)
+      , Addr2
+      , Src:Bytes
+      )
+    => #setRange
+      ( replaceAtBytesTotal(M, Addr2, Src)
+      , Addr1:Int, Val1:Int, Width1:Int
+      )
+      requires disjontRanges(Addr1, Width1, Addr2, lengthBytes(Src))
+    [simplification, concrete(Addr2, Src), symbolic(Val1)]
+
+  rule padRightBytesTotal
+      ( #setRange(M:Bytes, Addr1:Int, Val1:Int, Width1:Int)
+      , Len, 0
+      )
+    => #setRange
+      ( padRightBytesTotal(M:Bytes, Len, 0)
+      , Addr1:Int, Val1:Int, Width1:Int
+      )
       [simplification]
 
   syntax Bool ::= disjontRangesSimple(start1:Int, len1:Int, start2:Int, len2:Int)  [function, total]
@@ -328,62 +376,10 @@ module ELROND-LEMMAS
       requires 0 <Int A
       [simplification]
 
-  rule  0 <=Int #bool ( _B ) => true
-    [simplification(), smt-lemma()]
-
-  rule  #bool ( _B ) <=Int 1 => true
-    [simplification(), smt-lemma()]
-
-  rule  #bool ( B:Bool ) <Int 1 => notBool (B:Bool)
-    [simplification()]
-
-  rule  { 0 #Equals #bool ( B:Bool ) } => { false #Equals B:Bool }
-    [simplification]
-
-  rule  { 1 #Equals #bool ( B:Bool ) } => { true #Equals B:Bool }
-    [simplification()]
-
-  rule  X:Int <Int maxInt ( Y:Int , Z:Int ) => true
-    requires ( X:Int <Int Y:Int
-      orBool ( X:Int <Int Z:Int
-              ))
-    [simplification()]
-
-  rule  X:Int >=Int maxInt ( Y:Int , Z:Int ) => true
-    requires ( X:Int >=Int Y:Int
-      andBool ( X:Int >=Int Z:Int
-              ))
-    [simplification()]
-
-  rule  X:Int >Int maxInt ( Y:Int , Z:Int ) => true
-    requires ( X:Int >Int Y:Int
-      andBool ( X:Int >Int Z:Int
-              ))
-    [simplification()]
-
-  rule  maxInt ( Y:Int , Z:Int ) >=Int X:Int => true
-    requires ( X:Int <=Int Y:Int
-      orBool ( X:Int <=Int Z:Int
-              ))
-    [simplification()]
-
-  rule  maxInt ( Y:Int , Z:Int ) >Int X:Int => true
-    requires ( X:Int <Int Y:Int
-      orBool ( X:Int <Int Z:Int
-              ))
-    [simplification()]
-
-  rule  maxInt ( Y:Int , Z:Int ) <=Int X:Int => true
-    requires ( X:Int >=Int Y:Int
-      andBool ( X:Int >=Int Z:Int
-              ))
-    [simplification()]
-
-  rule  maxInt ( Y:Int , Z:Int ) <Int X:Int => true
-    requires ( X:Int >Int Y:Int
-      andBool ( X:Int >Int Z:Int
-              ))
-    [simplification()]
+  rule 0 |Int I:Int => I
+      [simplification]
+  rule I:Int |Int 0 => I
+      [simplification]
 
 endmodule
 

@@ -5,20 +5,19 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from pyk.kast.inner import KApply
 from pyk.kcfg import KCFG
 from pyk.kcfg.show import KCFGShow
 from pyk.kore.rpc import KoreClientError
+from pyk.prelude.utils import token
 
-from .build import HASKELL, LLVM, kbuild_semantics
+from .build import HASKELL, kbuild_semantics
 from .json import load_json_kcfg, load_json_kclaim, write_kcfg_json
-from .paths import KBUILD_DIR, KBUILD_ML_PATH, ROOT
-from .printers import print_node
-from .running import RunException, Stuck, Success, run_claim, split_edge
-from .wasm_krun_initializer import WasmKrunInitializer
-
-# TODO: Make this work outside of github projects.
-DEBUG_KCFG = ROOT / '.property' / 'kcfg.json'
-
+from .property_testing.paths import KBUILD_DIR, KBUILD_ML_PATH, ROOT
+from .property_testing.printers import print_node
+from .property_testing.running import RunException, Stuck, Success, run_claim, split_edge
+from .property_testing.wasm_krun_initializer import WasmKrunInitializer
+from .timing import Timer
 
 sys.setrecursionlimit(4000)
 
@@ -46,15 +45,17 @@ class RunClaim(Action):
     claim_path: Path
     is_k: bool
     restart: bool
+    booster: bool
     remove: list[int]
     run_node_id: int | None
     depth: int
+    kcfg_path: Path
 
     def run(self) -> None:
-        with (
-            kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL) as tools,
-            kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=LLVM) as llvm_tools,
-        ):
+        with kbuild_semantics(
+            output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL, booster=self.booster
+        ) as tools:
+            t = Timer('Loading the claim')
             if self.is_k:
                 claims = tools.kprove.get_claims(self.claim_path)
                 if len(claims) != 1:
@@ -63,21 +64,27 @@ class RunClaim(Action):
                 claim = claims[0]
             else:
                 claim = load_json_kclaim(self.claim_path)
+                # Fix the claim, it's not clear why these cells are being
+                # removed when generating claims.
+                claim = claim.let(body=KApply('<generatedTop>', [claim.body, KApply('<generatedCounter>', [token(0)])]))
+            t.measure()
 
             kcfg: KCFG | None = None
             if self.restart:
-                kcfg = load_json_kcfg(DEBUG_KCFG)
+                t = Timer('Loading kcfg')
+                kcfg = load_json_kcfg(self.kcfg_path)
                 for node_id in self.remove:
                     kcfg.remove_node(node_id)
+                t.measure()
             result = run_claim(
                 tools,
-                WasmKrunInitializer(llvm_tools),
+                WasmKrunInitializer(tools),
                 claim=claim,
                 restart_kcfg=kcfg,
                 run_id=self.run_node_id,
                 depth=self.depth,
             )
-            write_kcfg_json(result.kcfg, DEBUG_KCFG)
+            write_kcfg_json(result.kcfg, self.kcfg_path)
 
             if isinstance(result, Stuck):
                 stuck_node = result.kcfg.get_node(result.stuck_node_id)
@@ -130,13 +137,19 @@ class RunClaim(Action):
 @dataclass(frozen=True)
 class BisectAfter(Action):
     node_id: int
+    kcfg_path: Path
+    booster: bool
 
     def run(self) -> None:
-        with kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL) as tools:
-            kcfg = load_json_kcfg(DEBUG_KCFG)
+        with kbuild_semantics(
+            output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL, booster=self.booster
+        ) as tools:
+            t = Timer('Loading kcfg')
+            kcfg = load_json_kcfg(self.kcfg_path)
+            t.measure()
 
             result = split_edge(tools, kcfg, start_node_id=self.node_id)
-            write_kcfg_json(result.kcfg, DEBUG_KCFG)
+            write_kcfg_json(result.kcfg, self.kcfg_path)
 
             if isinstance(result, Success):
                 print('Success')
@@ -167,10 +180,16 @@ class BisectAfter(Action):
 @dataclass(frozen=True)
 class ShowNode(Action):
     node_id: int
+    kcfg_path: Path
+    booster: bool
 
     def run(self) -> None:
-        with kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL) as tools:
-            kcfg = load_json_kcfg(DEBUG_KCFG)
+        with kbuild_semantics(
+            output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL, booster=self.booster
+        ) as tools:
+            t = Timer('Loading kcfg')
+            kcfg = load_json_kcfg(self.kcfg_path)
+            t.measure()
             print('Printing: ', self.node_id)
             node = kcfg.get_node(self.node_id)
             if node:
@@ -181,9 +200,16 @@ class ShowNode(Action):
 
 @dataclass(frozen=True)
 class Tree(Action):
+    kcfg_path: Path
+    booster: bool
+
     def run(self) -> None:
-        with kbuild_semantics(output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL) as tools:
-            kcfg = load_json_kcfg(DEBUG_KCFG)
+        with kbuild_semantics(
+            output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL, booster=self.booster
+        ) as tools:
+            t = Timer('Loading kcfg')
+            kcfg = load_json_kcfg(self.kcfg_path)
+            t.measure()
             show = KCFGShow(tools.printer)
             for line in show.pretty(kcfg):
                 print(line)
@@ -255,13 +281,25 @@ def read_flags() -> Action:
         required=False,
         help='File containing the claim to verify.',
     )
+    parser.add_argument(
+        '--kcfg',
+        required=False,
+        default=str(ROOT / '.property' / 'kcfg.json'),
+        help='File in which to save the intermediate computing results.',
+    )
+    parser.add_argument(
+        '--booster',
+        action='store_true',
+        required=False,
+        help='Use the booster backend',
+    )
     args = parser.parse_args()
     if args.show_node is not None:
-        return ShowNode(args.show_node)
+        return ShowNode(args.show_node, Path(args.kcfg), booster=args.booster)
     if args.tree:
-        return Tree()
+        return Tree(Path(args.kcfg), booster=args.booster)
     if args.bisect_after:
-        return BisectAfter(args.bisect_after)
+        return BisectAfter(args.bisect_after, Path(args.kcfg), booster=args.booster)
 
     if args.claimfile is None:
         usage_error()
@@ -279,7 +317,14 @@ def read_flags() -> Action:
     if args.run_node != -1:
         run = args.run_node
     return RunClaim(
-        claim_path=claim_path, is_k=args.is_k, restart=args.restart, remove=to_remove, run_node_id=run, depth=args.step
+        claim_path=claim_path,
+        is_k=args.is_k,
+        restart=args.restart,
+        remove=to_remove,
+        run_node_id=run,
+        depth=args.step,
+        kcfg_path=Path(args.kcfg),
+        booster=args.booster,
     )
 
 
