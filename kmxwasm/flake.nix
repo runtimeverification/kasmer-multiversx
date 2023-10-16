@@ -1,5 +1,5 @@
 {
-  description = "kmxwasm - Symbolic execution for the Elrond blockchain with the Wasm semantics, using pyk.";
+  description = "kmxwasm - Symbolic execution for the MulitversX blockchain with the Wasm semantics, using pyk.";
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-22.05";
     flake-utils.url = "github:numtide/flake-utils";

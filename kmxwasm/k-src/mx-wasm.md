@@ -1,23 +1,23 @@
 ```k
-require "elrond-lemmas.md"
-require "elrond-semantics/foundry.md"
-require "lemmas/proven-elrond-lemmas.md"
+require "mx-lemmas.md"
+require "mx-semantics/foundry.md"
+require "lemmas/proven-mx-lemmas.md"
 require "proof-extensions.md"
 require "specification-lemmas.md"
 require "wasm-semantics/kwasm-lemmas.md"
 
-module ELROND-WASM-SYNTAX
+module MX-WASM-SYNTAX
   imports WASM-TEXT-SYNTAX
   imports FOUNDRY-SYNTAX
 endmodule
 
-module ELROND-WASM
-  imports ELROND-LEMMAS
-  imports ELROND-WASM-NO-LOCAL-LEMMAS
-  imports PROVEN-ELROND-LEMMAS
+module MX-WASM
+  imports MX-LEMMAS
+  imports MX-WASM-NO-LOCAL-LEMMAS
+  imports PROVEN-MX-LEMMAS
 endmodule
 
-module ELROND-WASM-NO-LOCAL-LEMMAS
+module MX-WASM-NO-LOCAL-LEMMAS
   imports CEILS
   imports FOUNDRY
   imports INT-KORE

@@ -1,7 +1,7 @@
 requires "helper-lemmas.md"
 
 module POUND-BOOL
-    imports private ELROND-WASM-LEMMA-PROOFS
+    imports private MX-WASM-LEMMA-PROOFS
     imports private HELPER-LEMMAS
 
     claim  <mandos>
