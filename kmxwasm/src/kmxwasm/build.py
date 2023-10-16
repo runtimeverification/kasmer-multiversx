@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from pyk.kbuild.kbuild import KBuild
-from pyk.kbuild.package import Package
+from pyk.kbuild.project import Project
 
 from .timing import Timer
 from .tools import Tools
@@ -14,7 +14,7 @@ LEMMA_PROOFS = 'lemma-proofs'
 
 def kbuild_semantics(output_dir: Path, config_file: Path, target: str, booster: bool) -> Tools:
     kbuild = KBuild(output_dir)
-    package = Package.create(config_file)
+    package = Project.load(config_file)
 
     t = Timer(f'Kompiling {target}:')
     kbuild.kompile(package, target)
