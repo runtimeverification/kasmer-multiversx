@@ -1,6 +1,6 @@
 ```k
 require "elrond-lemmas.md"
-require "elrond-semantics/foundry.md"
+require "elrond-semantics/kasmer.md"
 require "lemmas/proven-elrond-lemmas.md"
 require "proof-extensions.md"
 require "specification-lemmas.md"
@@ -8,7 +8,7 @@ require "wasm-semantics/kwasm-lemmas.md"
 
 module ELROND-WASM-SYNTAX
   imports WASM-TEXT-SYNTAX
-  imports FOUNDRY-SYNTAX
+  imports KASMER-SYNTAX
 endmodule
 
 module ELROND-WASM
@@ -19,7 +19,7 @@ endmodule
 
 module ELROND-WASM-NO-LOCAL-LEMMAS
   imports CEILS
-  imports FOUNDRY
+  imports KASMER
   imports INT-KORE
   imports KWASM-LEMMAS
   imports MAP-KORE-SYMBOLIC
