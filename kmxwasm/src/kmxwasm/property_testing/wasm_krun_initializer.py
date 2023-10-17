@@ -4,7 +4,7 @@ from pyk.kcfg import KCFG
 from pyk.prelude.collections import list_of, map_empty
 from pyk.prelude.utils import token
 
-from ..ast.elrond import (
+from ..ast.mx import (
     accountCellMap,
     commands_cell_contents,
     get_contract_mod_idx_cell,

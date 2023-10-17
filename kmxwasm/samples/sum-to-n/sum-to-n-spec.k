@@ -1,5 +1,5 @@
 module SUM-TO-N-SPEC
-  imports ELROND-WASM
+  imports MX-WASM
 
   claim
       <k>

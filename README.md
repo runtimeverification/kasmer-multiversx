@@ -1,2 +1,2 @@
-# elrond-wasm
-Wasm semantics for the Elrond/MultiversX blockchain network
+# mx-wasm
+Symbolic execution backend for the MultiversX blockchain network

@@ -1,6 +1,6 @@
 ```k
 module HELPER-LEMMAS
-    imports private ELROND-WASM-LEMMA-PROOFS
+    imports private MX-WASM-LEMMA-PROOFS
 
     claim  <mandos>
            <k>
