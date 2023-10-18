@@ -87,7 +87,7 @@ class LemmaProof:
         proof = proofOperationList(self.proof)
         claims = [l.make_claim(proof) for l in self.lemmas]
         imports = [
-            KImport(name='ELROND-WASM-LEMMA-PROOFS', public=False),
+            KImport(name='MX-WASM-LEMMA-PROOFS', public=False),
             KImport(name=HELPER_MODULE, public=False),
         ]
         return KFlatModule(name=self.name.upper(), sentences=claims, imports=imports)
@@ -112,7 +112,7 @@ def make_proven_lemmas_module(lemma_proofs: list[LemmaProof], kast_defn: KDefini
         KImport(name='INT', public=False),
         KImport(name='LIST', public=False),
     ]
-    return KFlatModule(name='PROVEN-ELROND-LEMMAS', sentences=rules, imports=imports)
+    return KFlatModule(name='PROVEN-MX-LEMMAS', sentences=rules, imports=imports)
 
 
 @dataclass(frozen=True)
@@ -134,6 +134,6 @@ class HelperLemma:
 def make_helper_lemmas_module(lemmas: list[HelperLemma]) -> KFlatModule:
     claims = [l.make_claim() for l in lemmas]
     imports = [
-        KImport(name='ELROND-WASM-LEMMA-PROOFS', public=False),
+        KImport(name='MX-WASM-LEMMA-PROOFS', public=False),
     ]
     return KFlatModule(name=HELPER_MODULE, sentences=claims, imports=imports)

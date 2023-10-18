@@ -28,7 +28,7 @@ class Loop(Decision):
 
 
 @dataclass(frozen=True)
-class UnimplementedElrondFunction(Decision):
+class UnimplementedMxFunction(Decision):
     function_id: int
     function_name: str
 
@@ -135,9 +135,6 @@ class ExecutionManager:
 
     def __function_name(self, id: int) -> str:
         return self.__functions.addr_to_function(str(id)).name()
-
-    def __is_elrond_function(self, id: int) -> bool:
-        return self.__functions.addr_to_function(str(id)).is_builtin()
 
 
 def get_instrs_child(term: KInner) -> KInner:

@@ -1,6 +1,6 @@
 ```k
 module PRIVATE-SPECIFICATION-LEMMAS
-  imports ELROND-WASM-NO-LOCAL-LEMMAS
+  imports MX-WASM-NO-LOCAL-LEMMAS
 
   // Y > 0
   rule X /IntTotal Y => 0

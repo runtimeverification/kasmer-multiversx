@@ -74,7 +74,7 @@ class LazyExplorer:
             krule_to_kore(self.printer().definition, self.printer().kompiled_kore, r)
             for r in self.__rules.summarize_rules()
         ]
-        sentences: list[Sentence] = [Import(module_name='ELROND-WASM', attrs=())]
+        sentences: list[Sentence] = [Import(module_name='MX-WASM', attrs=())]
         return Module(name=GENERATED_MODULE_NAME, sentences=sentences + axioms)
 
     def __write_semantics(self) -> None:
@@ -85,16 +85,16 @@ class LazyExplorer:
         ]
         identifiers_module = KFlatModule('IDENTIFIERS', sentences=identifier_sentences)
 
-        ims = [KImport('ELROND-WASM-CONFIGURATION'), KImport('IDENTIFIERS')]
+        ims = [KImport('MX-WASM-CONFIGURATION'), KImport('IDENTIFIERS')]
 
         reqs = [
             KRequire('backend-fixes.md'),
-            KRequire('elrond-lemmas.md'),
-            KRequire('elrond-wasm-configuration.md'),
+            KRequire('mx-lemmas.md'),
+            KRequire('mx-wasm-configuration.md'),
             KRequire('proof-extensions.md'),
         ]
-        ims.append(KImport('ELROND-LEMMAS'))
-        ims.append(KImport('ELROND-WASM-CONFIGURATION'))
+        ims.append(KImport('MX-LEMMAS'))
+        ims.append(KImport('MX-WASM-CONFIGURATION'))
         ims.append(KImport('PROOF-EXTENSIONS'))
         ims.append(KImport('SUMMARY-MACROS'))
         summaries_module = KFlatModule('SUMMARIES', sentences=self.__rules.summarize_rules(), imports=ims)
@@ -111,16 +111,16 @@ def kompile_semantics(k_dir: Path, definition_dir: Path) -> None:
     print(f'Kompile to {definition_dir}', flush=True)
     _ = subprocess.run(['rm', '-r', definition_dir])
 
-    elrond_dir = k_dir / 'elrond-semantics'
-    wasm_dir = elrond_dir / 'deps' / 'wasm-semantics'
+    mx_dir = k_dir / 'mx-semantics'
+    wasm_dir = mx_dir / 'deps' / 'wasm-semantics'
 
     _ = kompile(
-        k_dir / 'elrond-wasm.md',
+        k_dir / 'mx-wasm.md',
         output_dir=definition_dir,
         backend=KompileBackend.HASKELL,
-        main_module='ELROND-WASM',
-        syntax_module='ELROND-WASM-SYNTAX',
-        include_dirs=[k_dir, elrond_dir, wasm_dir],
+        main_module='MX-WASM',
+        syntax_module='MX-WASM-SYNTAX',
+        include_dirs=[k_dir, mx_dir, wasm_dir],
         md_selector='k',
     )
     print('Kompile done.', flush=True)

@@ -19,19 +19,19 @@ jobs:
       - name: 'Set up Docker'
         uses: ./.github/actions/with-docker
         with:
-          container-name: elrond-wasm-ci-${{ github.sha }}
+          container-name: mx-wasm-ci-${{ github.sha }}
       - name: 'Install dependencies'
-        run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} poetry -C kmxwasm install
+        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} poetry -C kmxwasm install
       - name: 'Check code quality'
-        run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} make -C kmxwasm check
+        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm check
       - name: 'Run unit tests'
-        run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-unit
+        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-unit
       # - name: 'Build LLVM semantics'
-      #   run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} make -C kmxwasm kbuild-llvm
+      #   run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm kbuild-llvm
       - name: 'Build Haskell semantics'
-        run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} make -C kmxwasm kbuild-haskell
+        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm kbuild-haskell
       - name: 'Run integration tests'
-        run: docker exec --user user elrond-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-integration
+        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-integration
       - name: 'Tear down Docker'
         if: always()
-        run: docker stop --time 0 elrond-wasm-ci-${GITHUB_SHA}
+        run: docker stop --time 0 mx-wasm-ci-${GITHUB_SHA}

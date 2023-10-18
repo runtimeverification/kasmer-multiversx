@@ -1,4 +1,4 @@
-# Wasm + Elrond function summarization
+# Wasm + MultiversX function summarization
 
 This project started as an attempt to prove that a simple sum-to-n contract does
 what its name says. It turned out into a summarizer, so we should probably
@@ -74,7 +74,7 @@ and are not exported in the json format).
   * Not implemented:
     * some builtins
     * Parallelism
-    * Real Elrond semantics
+    * Real MultiversX semantics
     * Branch merging
     * Loop invariants + summarization
     * Recursion invariants + summarization

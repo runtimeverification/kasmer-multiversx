@@ -4,21 +4,21 @@ version = "0.1.0"
 source = "."
 
 [dependencies]
-elrond-semantics={ path = "elrond-semantics" }
+elrond-semantics={ path = "mx-semantics" }
 
 [targets.llvm]
-main-file = 'elrond-wasm.md'
+main-file = 'mx-wasm.md'
 backend='llvm'
 
 [targets.haskell]
-main-file = 'elrond-wasm.md'
+main-file = 'mx-wasm.md'
 backend='haskell'
 
 [targets.lemma-proofs]
-main-file = 'lemmas/semantics/elrond-wasm-lemma-proofs.md'
+main-file = 'lemmas/semantics/mx-wasm-lemma-proofs.md'
 backend='haskell'
 
 [targets.llvm-library]
 llvm-kompile-type='c'
-main-file = 'elrond-wasm.md'
+main-file = 'mx-wasm.md'
 backend='llvm'

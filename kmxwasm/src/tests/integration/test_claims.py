@@ -10,7 +10,7 @@ from pyk.prelude.kbool import FALSE, TRUE
 from pyk.prelude.kint import intToken
 from pytest import TempPathFactory
 
-from kmxwasm.ast.elrond import accountCellMap, bytesStack, listBytes, mapIntToBytes
+from kmxwasm.ast.mx import accountCellMap, bytesStack, listBytes, mapIntToBytes
 from kmxwasm.ast.wasm import (
     funcDefCellMap,
     globalInstCellMap,

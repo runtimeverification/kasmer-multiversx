@@ -1,6 +1,6 @@
 from pyk.kast.inner import KApply, KInner, KSequence
 
-from ..ast.elrond import commands_cell_contents, instrs_cell_contents, k_cell_contents
+from ..ast.mx import commands_cell_contents, instrs_cell_contents, k_cell_contents
 
 
 def quick_ksequence_implication_check(antecedent: KSequence, consequent: KSequence) -> bool:

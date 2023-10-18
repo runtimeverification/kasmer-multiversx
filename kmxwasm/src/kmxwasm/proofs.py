@@ -53,7 +53,7 @@ ROOT = Path(subprocess.check_output(['git', 'rev-parse', '--show-toplevel']).dec
 K_DIR = ROOT / 'kmxwasm' / 'k-src'
 BUILD_DIR = ROOT / '.build'
 DEFINITION_PARENT = BUILD_DIR / 'defn/haskell'
-DEFINITION_NAME = 'elrond-wasm-kompiled'
+DEFINITION_NAME = 'mx-wasm-kompiled'
 DATA_DIR = BUILD_DIR / 'data'
 JSON_DIR = DATA_DIR / 'json'
 DEBUG_DIR = BUILD_DIR / 'debug'
@@ -462,7 +462,7 @@ def execute_function(
                 if isinstance(decision, execution.Finish):
                     rhs_ids.append(node_id)
                     print([node_id], 'finished', flush=True)
-                elif isinstance(decision, execution.UnimplementedElrondFunction):
+                elif isinstance(decision, execution.UnimplementedMxFunction):
                     raise ValueError(repr(decision))
                 elif isinstance(decision, execution.UnsummarizedFunction):
                     return decision
