@@ -1,5 +1,5 @@
 ```k
-module PROVEN-ELROND-LEMMAS
+module PROVEN-MX-LEMMAS
     imports private BOOL
     imports private CEILS
     imports private ELROND

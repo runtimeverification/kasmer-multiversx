@@ -82,19 +82,19 @@ black: poetry-install
 check-black: poetry-install
 	$(POETRY_RUN) black --check src
 
-k-src/elrond-semantics/deps/wasm-semantics/blockchain-k-plugin/krypto.md:
-	make -C k-src/elrond-semantics deps/wasm-semantics/blockchain-k-plugin/krypto.md
+k-src/mx-semantics/deps/wasm-semantics/blockchain-k-plugin/krypto.md:
+	make -C k-src/mx-semantics deps/wasm-semantics/blockchain-k-plugin/krypto.md
 
-kbuild-%: k-src/elrond-semantics/deps/wasm-semantics/blockchain-k-plugin/krypto.md
+kbuild-%: k-src/mx-semantics/deps/wasm-semantics/blockchain-k-plugin/krypto.md
 	echo && kompile \
 			--backend $* \
 			--md-selector k \
 			--emit-json \
 			-I k-src \
-			-I k-src/elrond-semantics/deps \
+			-I k-src/mx-semantics/deps \
 			--directory ../.build/defn/haskell \
-			--main-module ELROND-WASM \
-			--syntax-module ELROND-WASM-SYNTAX \
-			k-src/elrond-wasm.md
+			--main-module MX-WASM \
+			--syntax-module MX-WASM-SYNTAX \
+			k-src/mx-wasm.md
 
 .PHONY: kbuild-*

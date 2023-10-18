@@ -46,7 +46,7 @@ LEMMAS_DIR = ROOT / 'kmxwasm' / 'k-src' / 'lemmas'
 PROOFS_DIR = LEMMAS_DIR / 'proofs'
 
 HELPER_LEMMAS_FILE = PROOFS_DIR / 'helper-lemmas.md'
-LEMMAS_FILE = LEMMAS_DIR / 'proven-elrond-lemmas.md'
+LEMMAS_FILE = LEMMAS_DIR / 'proven-mx-lemmas.md'
 
 B = var('B', BOOL)
 L = var('L', LIST)
@@ -252,7 +252,7 @@ def main(args: list[str]) -> None:
     #     tools.printer
     #     return
 
-    LEMMAS_FILE.write_text('```k\nmodule PROVEN-ELROND-LEMMAS\nendmodule\n```\n')
+    LEMMAS_FILE.write_text('```k\nmodule PROVEN-MX-LEMMAS\nendmodule\n```\n')
     HELPER_LEMMAS_FILE.write_text('```k\nmodule HELPER-LEMMAS\nendmodule\n```\n')
 
     with kbuild_semantics(KBUILD_DIR, config_file=KBUILD_ML_PATH, target=LEMMA_PROOFS, booster=False) as tools:

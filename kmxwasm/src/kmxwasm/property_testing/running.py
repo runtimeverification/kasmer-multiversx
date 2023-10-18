@@ -8,7 +8,7 @@ from pyk.kcfg.kcfg import NodeIdLike
 from pyk.kore.rpc import LogEntry
 from pyk.prelude.collections import LIST
 
-from ..ast.elrond import (
+from ..ast.mx import (
     CALL_STACK_PATH,
     cfg_changes_call_stack,
     command_is_new_wasm_instance,

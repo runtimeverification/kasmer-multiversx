@@ -1,18 +1,18 @@
 ```k
 
-requires "../../elrond-wasm.md"
+requires "../../mx-wasm.md"
 requires "destructors.md"
 requires "private-specification-lemmas.md"
 requires "user-operations.md"
 
-module ELROND-WASM-LEMMA-PROOFS-SYNTAX
-  imports ELROND-WASM-SYNTAX
+module MX-WASM-LEMMA-PROOFS-SYNTAX
+  imports MX-WASM-SYNTAX
 endmodule
 
-module ELROND-WASM-LEMMA-PROOFS
+module MX-WASM-LEMMA-PROOFS
   imports BOOL
   imports DESTRUCTORS
-  imports ELROND-WASM-NO-LOCAL-LEMMAS
+  imports MX-WASM-NO-LOCAL-LEMMAS
   imports INT
   imports LIST
   imports PRIVATE-SPECIFICATION-LEMMAS
