@@ -10,7 +10,7 @@ from kmxwasm.property_testing.wasm_krun_initializer import WasmKrunInitializer
 from kmxwasm.testing.fixtures import Tools
 
 TEST_DATA = (Path(__file__).parent / 'data').resolve(strict=True)
-INPUT_FILES = [TEST_DATA / 'test_call_add_less-spec.json']
+INPUT_FILES = [TEST_DATA / 'test_call_add_less-spec.json', TEST_DATA / 'test_fund-spec-1k.json']
 
 
 @pytest.mark.parametrize(
