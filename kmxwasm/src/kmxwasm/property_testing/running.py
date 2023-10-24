@@ -6,18 +6,10 @@ from pyk.kcfg import KCFG
 from pyk.kcfg.exploration import KCFGExploration
 from pyk.kcfg.kcfg import NodeIdLike
 from pyk.kore.rpc import LogEntry
-from pyk.prelude.collections import LIST
 
-from ..ast.mx import (
-    CALL_STACK_PATH,
-    cfg_changes_call_stack,
-    command_is_new_wasm_instance,
-    get_first_instr,
-    get_hostcall_name,
-)
+from ..ast.mx import cfg_changes_call_stack, command_is_new_wasm_instance, get_first_instr, get_hostcall_name
 from ..timing import Timer
 from ..tools import Tools
-from .cell_abstracter import CellAbstracter
 from .implication import quick_implication_check
 from .printers import print_node
 from .wasm_krun_initializer import WasmKrunInitializer

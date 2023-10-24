@@ -3,7 +3,13 @@ from typing import Iterable
 from pyk.kast.inner import KApply, KInner, KSequence, KToken, collect
 
 from .collections import cell_map, full_list, k_map, simple_list
-from .generic import find_with_path, get_with_path, replace_with_path, set_ksequence_cell_contents, set_single_argument_kapply_contents
+from .generic import (
+    find_with_path,
+    get_with_path,
+    replace_with_path,
+    set_ksequence_cell_contents,
+    set_single_argument_kapply_contents,
+)
 
 COMMANDS_CELL_NAME = '<commands>'
 INSTRS_CELL_NAME = '<instrs>'

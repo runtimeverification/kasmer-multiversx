@@ -92,36 +92,6 @@ module MX-LEMMAS  [symbolic]
     requires RangeStart +Int RangeWidth <=Int Index
         orBool Index +Int lengthBytes(Src) <=Int RangeStart
     [simplification]
-  // rule #getRange(
-  //         replaceAtBytesTotal(Dest, Index, Src),
-  //         RangeStart,
-  //         RangeWidth
-  //     ) => #getRange(Dest, RangeStart, Index -Int RangeStart)
-  //       +Bytes #getRange(
-  //           replaceAtBytesTotal(Dest, Index, Src),
-  //           Index,
-  //           RangeWidth -Int (Index -Int RangeStart)
-  //       )
-  //   requires RangeStart <Int Index andBool Index <Int RangeStart +Int RangeWidth
-  //   [simplification]
-  // rule #getRange(
-  //         replaceAtBytesTotal(Dest, Index, Src),
-  //         RangeStart,
-  //         RangeWidth
-  //     ) => #getRange(
-  //           replaceAtBytesTotal(Dest, Index, Src),
-  //           RangeStart,
-  //           Index +Int lengthBytes(Src) -Int RangeStart
-  //       )
-  //       +Int #getRange
-  //         ( Dest
-  //         , Index +Int lengthBytes(Src)
-  //         , RangeStart +Int RangeWidth -Int (Index +Int lengthBytes(Src))
-  //         )
-  //   requires Index <=Int RangeStart
-  //       andBool RangeStart <Int Index +Int lengthBytes(Src)
-  //       andBool Index +Int lengthBytes(Src) <Int RangeStart +Int RangeWidth
-  //   [simplification]
   rule #getRange(
           replaceAtBytesTotal(_Dest, Index, Src),
           RangeStart,
