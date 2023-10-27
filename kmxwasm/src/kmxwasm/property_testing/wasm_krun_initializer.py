@@ -33,7 +33,7 @@ class WasmKrunInitializer:
     def __init__(self, tools: Tools):
         self.__tools = tools
         self.__first_wasm_cell: KInner | None = None
-        self.__cache: dict[str, KInner] = {}
+        self.__cache: dict[str, tuple[KInner, KInner]] = {}  # address -> (<wasm>, <contractModIdx>)
 
     def initialize(self, kcfg: KCFG, start_node: KCFG.Node) -> None:
         start_cell = start_node.cterm.config
@@ -46,18 +46,18 @@ class WasmKrunInitializer:
         acct_address = first.args[0].token
 
         if acct_address in self.__cache:
-            print('*' * 30, 'Reading WASM from cache.')
-            wasm_cell = self.__cache[acct_address]
+            print('*' * 30, 'Reading WASM from cache:', acct_address)
+            wasm_cell, current_module = self.__cache[acct_address]
         else:
             krun_cell = self.__prepare_krun_cell(start_cell, first)
-            print('*' * 30, 'Initializing WASM.')
+            print('*' * 30, 'Initializing WASM:', acct_address)
             krun_result = self.__tools.krun(krun_cell)
 
             wasm_cell = get_wasm_cell(krun_result)
-            self.__cache[acct_address] = wasm_cell
+            current_module = get_contract_mod_idx_cell(krun_result)
+            self.__cache[acct_address] = (wasm_cell, current_module)
 
         final_cell = replace_wasm_cell(start_cell, wasm_cell)
-        current_module = get_contract_mod_idx_cell(krun_result)
         final_cell = replace_contract_mod_idx_cell(final_cell, current_module)
         final_cell = set_commands_cell_contents(final_cell, KSequence(commands_contents.items[1:]))
 
