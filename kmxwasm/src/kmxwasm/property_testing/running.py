@@ -29,7 +29,7 @@ CUT_POINT_RULES = [
     'ELROND-NODE.pushCallState',
     'ELROND-NODE.popCallState',
     'ELROND-NODE.dropCallState',
-    'FOUNDRY.endFoundryImmediately',
+    'KASMER.endFoundryImmediately',
 ]
 
 

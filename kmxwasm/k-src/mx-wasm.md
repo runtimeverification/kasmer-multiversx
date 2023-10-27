@@ -1,6 +1,6 @@
 ```k
 require "mx-lemmas.md"
-require "mx-semantics/foundry.md"
+require "mx-semantics/kasmer.md"
 require "lemmas/proven-mx-lemmas.md"
 require "proof-extensions.md"
 require "specification-lemmas.md"
@@ -8,7 +8,7 @@ require "wasm-semantics/kwasm-lemmas.md"
 
 module MX-WASM-SYNTAX
   imports WASM-TEXT-SYNTAX
-  imports FOUNDRY-SYNTAX
+  imports KASMER-SYNTAX
 endmodule
 
 module MX-WASM
@@ -19,7 +19,7 @@ endmodule
 
 module MX-WASM-NO-LOCAL-LEMMAS
   imports CEILS
-  imports FOUNDRY
+  imports KASMER
   imports INT-KORE
   imports KWASM-LEMMAS
   imports MAP-KORE-SYMBOLIC
