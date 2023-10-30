@@ -5,21 +5,23 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-from pyk.kast.inner import KApply
+from pyk.cterm import CTerm
+from pyk.kast.inner import KApply, KSequence, KVariable
 from pyk.kcfg import KCFG
 from pyk.kcfg.show import KCFGShow
 from pyk.kore.rpc import KoreClientError
 from pyk.prelude.utils import token
 
+from .ast.mx import replace_instrs_cell, set_accounts_cell_content, set_call_stack_cell_content, set_interim_states_cell_content
 from .build import HASKELL, kbuild_semantics
 from .json import load_json_kcfg, load_json_kclaim, write_kcfg_json
 from .property_testing.paths import KBUILD_DIR, KBUILD_ML_PATH, ROOT
 from .property_testing.printers import print_node
-from .property_testing.running import RunException, Stuck, Success, run_claim, split_edge
+from .property_testing.running import RunException, Stuck, Success, profile_step, run_claim, split_edge
 from .property_testing.wasm_krun_initializer import WasmKrunInitializer
 from .timing import Timer
 
-sys.setrecursionlimit(4000)
+sys.setrecursionlimit(8000)
 
 
 def usage_error() -> None:
@@ -30,6 +32,7 @@ def usage_error() -> None:
     print('  python3 -m src.kmxwasm.property --tree')
     print('  python3 -m src.kmxwasm.property --bisect-after <id>')
     print('  python3 -m src.kmxwasm.property --show-node <id>')
+    print('  python3 -m src.kmxwasm.property --profile <node-id> [--remove <node-id-csv>] [--step <number>]')
     sys.exit(-1)
 
 
@@ -178,6 +181,71 @@ class BisectAfter(Action):
 
 
 @dataclass(frozen=True)
+class Profile(Action):
+    node_id: int
+    remove: list[int]
+    depth: int
+    kcfg_path: Path
+    booster: bool
+
+    def run(self) -> None:
+        with kbuild_semantics(
+            output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL, booster=self.booster
+        ) as tools:
+            t = Timer('Loading kcfg')
+            kcfg = load_json_kcfg(self.kcfg_path)
+            t.measure()
+
+            t = Timer('Removing nodes')
+            for node_id in self.remove:
+                kcfg.remove_node(node_id)
+            t.measure()
+
+            t = Timer('Prepare profile node')
+            node = kcfg.get_node(self.node_id)
+            assert node
+            instrs = KSequence([KApply('aNop')] * self.depth)
+            new_config = replace_instrs_cell(node.cterm.config, instrs)
+            new_config = set_call_stack_cell_content(new_config, KVariable('CallStackVar'))
+            new_config = set_interim_states_cell_content(new_config, KVariable('InterimStatesVar'))
+            new_config = set_accounts_cell_content(new_config, KVariable('AccountsVar'))
+            kcfg.replace_node(node.id, cterm=CTerm(new_config, node.cterm.constraints))
+            t.measure()
+
+            result = profile_step(
+                tools,
+                restart_kcfg=kcfg,
+                node_id=self.node_id,
+                depth=self.depth,
+            )
+
+            if isinstance(result, Success):
+                print('Success')
+                return
+            if isinstance(result, RunException):
+                print('Exception')
+                show = KCFGShow(tools.printer)
+                for line in show.pretty(result.kcfg):
+                    print(line)
+                print('Last node:')
+                print('Printing: ', result.last_processed_node)
+                if result.last_processed_node != -1:
+                    node = result.kcfg.get_node(result.last_processed_node)
+                    if node is None:
+                        print(f'Node not found: {result.last_processed_node}')
+                    else:
+                        print_node(tools, node)
+                else:
+                    print('No node to print.')
+                if isinstance(result.exception, KoreClientError):
+                    print('code=', result.exception.code)
+                    print('message=', result.exception.message)
+                    print('data=', result.exception.data)
+                raise result.exception
+            raise NotImplementedError(f'Unknown run_claim result: {type(result)}')
+
+
+@dataclass(frozen=True)
 class ShowNode(Action):
     node_id: int
     kcfg_path: Path
@@ -262,6 +330,13 @@ def read_flags() -> Action:
         help='CSV of node after which the edge should be split.',
     )
     parser.add_argument(
+        '--profile',
+        dest='profile',
+        type=int,
+        required=False,
+        help='Run a single sequence of steps starting at the given node.',
+    )
+    parser.add_argument(
         '--run',
         dest='run_node',
         type=int,
@@ -301,6 +376,13 @@ def read_flags() -> Action:
     if args.bisect_after:
         return BisectAfter(args.bisect_after, Path(args.kcfg), booster=args.booster)
 
+    to_remove = []
+    if args.remove_nodes:
+        to_remove = [int(n_id) for n_id in args.remove_nodes.split(',')]
+
+    if args.profile:
+        return Profile(args.profile, remove=to_remove, depth=args.step, kcfg_path=Path(args.kcfg), booster=args.booster)
+
     if args.claimfile is None:
         usage_error()
         sys.exit(-1)
@@ -308,10 +390,6 @@ def read_flags() -> Action:
     if not claim_path.exists():
         print(f'Input file ({claim_path}) does not exist.')
         sys.exit(-1)
-
-    to_remove = []
-    if args.remove_nodes:
-        to_remove = [int(n_id) for n_id in args.remove_nodes.split(',')]
 
     run: int | None = None
     if args.run_node != -1:

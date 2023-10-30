@@ -4,13 +4,13 @@ from ..ast.mx import commands_cell_contents, instrs_cell_contents, k_cell_conten
 
 
 def quick_ksequence_implication_check(antecedent: KSequence | None, consequent: KSequence | None) -> bool:
-    if antecedent is None or antecedent.arity == 0:
-        if consequent is None or consequent.arity == 0:
+    if not antecedent or antecedent.arity == 0:
+        if not consequent or consequent.arity == 0:
             return True
         if isinstance(consequent.items[0], KApply):
             return False
         return True
-    if consequent is None or consequent.arity == 0:
+    if not consequent or consequent.arity == 0:
         if isinstance(antecedent.items[0], KApply):
             return False
         return True

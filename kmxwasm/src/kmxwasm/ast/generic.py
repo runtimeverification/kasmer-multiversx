@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from pyk.kast.inner import KApply, KInner, KSequence, bottom_up
 
 
@@ -101,7 +103,12 @@ def replace_contents_with_path(root: KInner, path: list[str], replacement: KInne
     return root.let(args=new_args)
 
 
-def get_with_path(root: KInner, path: list[str]) -> KInner:
+@dataclass(frozen=True)
+class ComponentNotFound:
+    element: str
+
+
+def find_with_path_internal(root: KInner, path: list[str]) -> KInner | ComponentNotFound:
     assert path
     for element in path:
         assert isinstance(root, KApply)
@@ -116,29 +123,23 @@ def get_with_path(root: KInner, path: list[str]) -> KInner:
                 raise ValueError(f'Path component found twice: {element!r}')
             found_arg = arg
         if not found_arg:
-            raise ValueError(f'Path component not found: {element!r}')
+            return ComponentNotFound(element)
         root = found_arg
     return root
+
+
+def get_with_path(root: KInner, path: list[str]) -> KInner:
+    result = find_with_path_internal(root, path)
+    if isinstance(result, ComponentNotFound):
+        raise ValueError(f'Path component not found: {result.element!r}')
+    return result
 
 
 def find_with_path(root: KInner, path: list[str]) -> KInner | None:
-    assert path
-    for element in path:
-        assert isinstance(root, KApply)
-        assert root.args
-        found_arg: KInner | None = None
-        for arg in root.args:
-            if not isinstance(arg, KApply):
-                continue
-            if not arg.label.name == element:
-                continue
-            if found_arg:
-                raise ValueError(f'Path component found twice: {element!r}')
-            found_arg = arg
-        if not found_arg:
-            return None
-        root = found_arg
-    return root
+    result = find_with_path_internal(root, path)
+    if isinstance(result, ComponentNotFound):
+        return None
+    return result
 
 
 def get_single_argument_kapply_contents_path(root: KInner, path: list[str]) -> KInner:
