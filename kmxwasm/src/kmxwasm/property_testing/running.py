@@ -1,6 +1,8 @@
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 
+from pyk.kast.inner import KInner
 from pyk.kast.outer import KClaim
 from pyk.kcfg import KCFG
 from pyk.kcfg.exploration import KCFGExploration
@@ -10,16 +12,21 @@ from pyk.prelude.collections import LIST
 
 from ..ast.mx import (
     CALL_STACK_PATH,
+    CODE,
     INTERIM_STATES_PATH,
     cfg_changes_call_stack,
     cfg_changes_interim_states,
+    cfg_touches_code,
     command_is_new_wasm_instance,
+    get_first_command_name,
     get_first_instr,
+    get_first_instr_name,
+    get_first_k_name,
     get_hostcall_name,
 )
 from ..timing import Timer
 from ..tools import Tools
-from .cell_abstracter import CellAbstracter
+from .cell_abstracter import CellAbstracter, multi_cell_abstracter, single_cell_abstracter
 from .implication import quick_implication_check
 from .printers import print_node
 from .wasm_krun_initializer import WasmKrunInitializer
@@ -27,17 +34,76 @@ from .wasm_krun_initializer import WasmKrunInitializer
 CUT_POINT_RULES = [
     # This runs with the LLVM backend
     'ELROND-CONFIG.newWasmInstance',
+]
+
+CALL_STACK_CUT_POINT_RULES = [
     # These change the call stack
     'ELROND-NODE.pushCallState',
     'ELROND-NODE.popCallState',
     'ELROND-NODE.dropCallState',
     'KASMER.endFoundryImmediately',
-    # These change interimStates
+]
+
+INTERIM_STATES_CUT_POINT_RULES = [
+    # These use interimStates
     'ELROND-NODE.pushWorldState',
     'ELROND-NODE.popWorldState',
     'ELROND-NODE.dropWorldState',
     'KASMER.endFoundryImmediately',
 ]
+
+CODE_CUT_POINT_RULES = [
+    # These use the <code> cell
+    'ELROND-CONFIG.setAccountFields',
+    'ELROND-CONFIG.setAccountCode',
+    'ELROND-CONFIG.callContract',
+    'ELROND-CONFIG.callContract-not-contract',
+    'MANDOS.checkAccountCodeAux-no-code',
+    'MANDOS.checkAccountCodeAux-code',
+    'BASEOPS.checkIsSmartContract-code',
+    'BASEOPS.checkIsSmartContract-no-code',
+    # Additional <code> cell use through generic <account> and <accounts> use.
+    'ELROND-CONFIG.createAccount-new',
+    'ELROND-NODE.pushWorldState',
+    'ELROND-NODE.popWorldState',
+]
+
+
+def abstracters(
+    target_node_id: NodeIdLike,
+) -> list[tuple[CellAbstracter, list[str], Callable[[str | None, str | None, str | None], bool]]]:
+    return [
+        (
+            single_cell_abstracter(
+                cell_path=CALL_STACK_PATH,
+                variable_root='AbstractCallStack',
+                variable_sort=LIST,
+                destination=target_node_id,
+            ),
+            CALL_STACK_CUT_POINT_RULES,
+            cfg_changes_call_stack,
+        ),
+        (
+            single_cell_abstracter(
+                cell_path=INTERIM_STATES_PATH,
+                variable_root='AbstractCallStack',
+                variable_sort=LIST,
+                destination=target_node_id,
+            ),
+            INTERIM_STATES_CUT_POINT_RULES,
+            cfg_changes_interim_states,
+        ),
+        (
+            multi_cell_abstracter(
+                cell_name='<code>',
+                variable_root='AbstractCode',
+                variable_sort=CODE,
+                destination=target_node_id,
+            ),
+            CODE_CUT_POINT_RULES,
+            cfg_touches_code,
+        ),
+    ]
 
 
 @dataclass(frozen=True)
@@ -62,6 +128,28 @@ class RunException(RunClaimResult):
     last_processed_node: NodeIdLike
 
 
+def abstract(abstracters: list[CellAbstracter], kcfg: KCFG, node_id: NodeIdLike) -> None:
+    for a in abstracters:
+        a.abstract_node(kcfg, node_id)
+
+
+def concretize(abstracters: list[CellAbstracter], kcfg: KCFG, with_variable: set[NodeIdLike]) -> None:
+    for a in reversed(abstracters):
+        a.concretize_kcfg(kcfg, with_variable)
+
+
+def touches_abstract_content(
+    identifiers: list[Callable[[str | None, str | None, str | None], bool]], root: KInner
+) -> bool:
+    command = get_first_command_name(root)
+    instr = get_first_instr_name(root)
+    k = get_first_k_name(root)
+    for identifier in identifiers:
+        if identifier(k, command, instr):
+            return True
+    return False
+
+
 def run_claim(
     tools: Tools,
     wasm_initializer: WasmKrunInitializer,
@@ -81,18 +169,11 @@ def run_claim(
         final_node = kcfg.node(target_node_id)
 
     kcfg_exploration = KCFGExploration(kcfg)
-    abstract_call_stack = CellAbstracter(
-        cell_path=CALL_STACK_PATH,
-        variable_root='AbstractCallStack',
-        variable_sort=LIST,
-        destination=target_node_id,
-    )
-    abstract_interim_states = CellAbstracter(
-        cell_path=INTERIM_STATES_PATH,
-        variable_root='AbstractCallStack',
-        variable_sort=LIST,
-        destination=target_node_id,
-    )
+
+    a = abstracters(target_node_id)
+    all_abstracters = [abstracter for abstracter, _, _ in a]
+    all_cut_points = [cut_point for _, cps, _ in a for cut_point in cps] + CUT_POINT_RULES
+    all_abstract_identifiers = [identifier for _, _, identifier in a]
 
     try:
         processed: set[NodeIdLike] = {target_node_id}
@@ -129,7 +210,7 @@ def run_claim(
                         t = Timer('  Initialize wasm')
                         wasm_initializer.initialize(kcfg=kcfg, start_node=node)
                         t.measure()
-                    elif cfg_changes_call_stack(node.cterm.config) or cfg_changes_interim_states(node.cterm.config):
+                    elif touches_abstract_content(all_abstract_identifiers, node.cterm.config):
                         print('changes abstracted cell')
                         t = Timer('  Run call stack change')
                         tools.explorer.extend(
@@ -141,8 +222,7 @@ def run_claim(
                         t.measure()
                     else:
                         t = Timer('  Abstract')
-                        abstract_call_stack.abstract_node(kcfg, node.id)
-                        abstract_interim_states.abstract_node(kcfg, node.id)
+                        abstract(all_abstracters, kcfg, node.id)
                         t.measure()
 
                         try:
@@ -161,7 +241,7 @@ def run_claim(
                                 node=node,
                                 logs=logs,
                                 execute_depth=depth,
-                                cut_point_rules=CUT_POINT_RULES,
+                                cut_point_rules=all_cut_points,
                             )
                             t.measure()
                         finally:
@@ -169,8 +249,7 @@ def run_claim(
                             leaves = set(new_leaves(kcfg, non_final, final_node.id))
                             leaves.add(node.id)
                             t.measure()
-                            abstract_call_stack.concretize_kcfg(kcfg, leaves)
-                            abstract_interim_states.concretize_kcfg(kcfg, leaves)
+                            concretize(all_abstracters, kcfg, leaves)
                             t.measure()
                     t = Timer('  Check final')
                     current_leaves = new_leaves(kcfg, non_final, final_node.id)
