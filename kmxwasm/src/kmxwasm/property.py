@@ -12,7 +12,12 @@ from pyk.kcfg.show import KCFGShow
 from pyk.kore.rpc import KoreClientError
 from pyk.prelude.utils import token
 
-from .ast.mx import replace_instrs_cell, set_accounts_cell_content, set_call_stack_cell_content, set_interim_states_cell_content
+from .ast.mx import (
+    replace_instrs_cell,
+    set_accounts_cell_content,
+    set_call_stack_cell_content,
+    set_interim_states_cell_content,
+)
 from .build import HASKELL, kbuild_semantics
 from .json import load_json_kcfg, load_json_kclaim, write_kcfg_json
 from .property_testing.paths import KBUILD_DIR, KBUILD_ML_PATH, ROOT
