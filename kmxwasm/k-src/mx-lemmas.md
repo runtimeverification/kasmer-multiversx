@@ -89,8 +89,7 @@ module MX-LEMMAS  [symbolic]
           RangeStart,
           RangeWidth
       ) => #getRange(Dest, RangeStart, RangeWidth)
-    requires RangeStart +Int RangeWidth <=Int Index
-        orBool Index +Int lengthBytes(Src) <=Int RangeStart
+    requires disjontRanges(RangeStart, RangeWidth, Index, lengthBytes(Src))
     [simplification]
   rule #getRange(
           replaceAtBytesTotal(_Dest, Index, Src),
