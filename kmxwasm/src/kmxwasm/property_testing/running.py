@@ -136,7 +136,6 @@ def run_claim(
                             node=node,
                             logs=logs,
                             execute_depth=1,
-                            cut_point_rules=CUT_POINT_RULES,
                         )
                         t.measure()
                     else:
