@@ -19,7 +19,11 @@ USE_BUG_REPORT = False
 
 class Tools:
     def __init__(
-        self, definition_dir: Path, llvm_definition_dir: Path | None, llvm_library_definition_dir: Path, booster: bool
+        self,
+        definition_dir: Path,
+        llvm_definition_dir: Path | None,
+        llvm_library_definition_dir: Path | None,
+        booster: bool,
     ) -> None:
         self.__definition_dir = definition_dir
         self.__llvm_definition_dir = llvm_definition_dir
@@ -29,6 +33,7 @@ class Tools:
         self.__explorer: Optional[KCFGExplore] = None
         self.__kore_server: Optional[KoreServer] = None
         self.__kore_client: Optional[KoreClient] = None
+        assert self.__llvm_library_definition_dir or not self.__booster
 
     def __enter__(self) -> 'Tools':
         return self
@@ -61,6 +66,7 @@ class Tools:
             if self.__kore_client:
                 raise RuntimeError('Non-null KoreClient with null KoreServer.')
             if self.__booster:
+                assert self.__llvm_library_definition_dir
                 self.__kore_server = BoosterServer(
                     self.__definition_dir,
                     self.__llvm_library_definition_dir,
