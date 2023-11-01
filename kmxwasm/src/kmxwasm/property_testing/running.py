@@ -31,12 +31,12 @@ CUT_POINT_RULES = [
     'ELROND-NODE.pushCallState',
     'ELROND-NODE.popCallState',
     'ELROND-NODE.dropCallState',
-    'FOUNDRY.endFoundryImmediately',
+    'KASMER.endFoundryImmediately',
     # These change interimStates
     'ELROND-NODE.pushWorldState',
     'ELROND-NODE.popWorldState',
     'ELROND-NODE.dropWorldState',
-    'FOUNDRY.endFoundryImmediately',
+    'KASMER.endFoundryImmediately',
 ]
 
 
