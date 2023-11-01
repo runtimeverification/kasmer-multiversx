@@ -23,6 +23,7 @@ MANDOS_CELL_PATH = ['<foundry>', '<mandos>']
 NODE_CELL_PATH = MANDOS_CELL_PATH + ['<elrond>', '<node>']
 CALL_STATE_PATH = NODE_CELL_PATH + ['<callState>']
 CALL_STACK_PATH = NODE_CELL_PATH + ['<callStack>']
+INTERIM_STATES_PATH = NODE_CELL_PATH + ['<interimStates>']
 
 COMMANDS_CELL_PATH = NODE_CELL_PATH + [COMMANDS_CELL_NAME]
 K_CELL_PATH = MANDOS_CELL_PATH + [K_CELL_NAME]
@@ -122,6 +123,10 @@ def instrs_cell_contents(root: KInner) -> KSequence | None:
     return seq
 
 
+def replace_instrs_cell(root: KInner, replacement: KSequence) -> KInner:
+    return replace_with_path(root, INSTRS_CELL_PATH, replacement=KApply('<instrs>', replacement))
+
+
 def get_first_instr(root: KInner) -> KApply | None:
     seq = instrs_cell_contents(root)
     if not seq:
@@ -161,6 +166,16 @@ def command_is_new_wasm_instance(root: KInner) -> bool:
 def cfg_changes_call_stack(root: KInner) -> bool:
     command = get_first_command_name(root)
     if command in ['pushCallState', 'popCallState', 'dropCallState']:
+        return True
+    instr = get_first_instr_name(root)
+    if not instr:
+        return False
+    return instr == 'endFoundryImmediately'
+
+
+def cfg_changes_interim_states(root: KInner) -> bool:
+    command = get_first_command_name(root)
+    if command in ['pushWorldState', 'popWorldState', 'dropWorldState']:
         return True
     instr = get_first_instr_name(root)
     if not instr:

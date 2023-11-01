@@ -8,7 +8,6 @@ from pyk.prelude.bytes import bytesToken
 from pyk.prelude.collections import list_empty, map_empty, map_of, set_empty
 from pyk.prelude.kbool import FALSE, TRUE
 from pyk.prelude.kint import intToken
-from pytest import TempPathFactory
 
 from kmxwasm.ast.mx import accountCellMap, bytesStack, listBytes, mapIntToBytes
 from kmxwasm.ast.wasm import (
@@ -20,11 +19,9 @@ from kmxwasm.ast.wasm import (
     tabInstCellMap,
     valStack,
 )
-from kmxwasm.build import HASKELL, kbuild_semantics
-from kmxwasm.property_testing.paths import KBUILD_ML_PATH
 from kmxwasm.property_testing.running import Success, run_claim
 from kmxwasm.property_testing.wasm_krun_initializer import WasmKrunInitializer
-from kmxwasm.tools import Tools
+from kmxwasm.testing.fixtures import Tools
 
 sys.setrecursionlimit(1500000000)
 
@@ -152,13 +149,6 @@ def full_configuration(
         configCell(k_cell=k_cell, vm_output=vm_output, addresses=addresses, accounts=accounts, logging=logging),
         KVariable('GeneratedCounter'),
     )
-
-
-@pytest.fixture(scope='module')
-def tools(tmp_path_factory: TempPathFactory) -> Tools:
-    build_path = tmp_path_factory.mktemp('kbuild')
-    tools = kbuild_semantics(output_dir=build_path, config_file=KBUILD_ML_PATH, target=HASKELL, booster=True)
-    return tools
 
 
 SIMPLE_PROOFS_DATA: Final = (

@@ -24,13 +24,14 @@ def kbuild_semantics(output_dir: Path, config_file: Path, target: str, booster: 
     kbuild.kompile(package, LLVM)
     t.measure()
 
-    t = Timer(f'Kompiling {LLVM_LIBRARY}:')
-    kbuild.kompile(package, LLVM_LIBRARY)
-    t.measure()
+    if booster:
+        t = Timer(f'Kompiling {LLVM_LIBRARY}:')
+        kbuild.kompile(package, LLVM_LIBRARY)
+        t.measure()
 
     return Tools(
         definition_dir=kbuild.definition_dir(package, target),
         llvm_definition_dir=kbuild.definition_dir(package, LLVM),
-        llvm_library_definition_dir=kbuild.definition_dir(package, LLVM_LIBRARY),
+        llvm_library_definition_dir=kbuild.definition_dir(package, LLVM_LIBRARY) if booster else None,
         booster=booster,
     )
