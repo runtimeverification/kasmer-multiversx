@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from pyk.kast.inner import KApply, KInner, KSequence, bottom_up
@@ -40,6 +41,29 @@ def set_single_argument_kapply_contents(root: KInner, name: str, contents: KInne
 
         if len(node.args) != 1:
             raise ValueError(f'Expected node {name} to heve exactly 1 child, found {len(node.args)}.')
+        return node.let(args=[contents])
+
+    return bottom_up(replace_contents, root)
+
+
+def set_single_argument_multiple_kapply_contents(
+    root: KInner, name: str, contents_generator: Callable[[int], KInner]
+) -> KInner:
+    index = 0
+
+    def replace_contents(node: KInner) -> KInner:
+        if not isinstance(node, KApply):
+            return node
+        if node.label.name != name:
+            return node
+
+        if len(node.args) != 1:
+            raise ValueError(f'Expected node {name} to heve exactly 1 child, found {len(node.args)}.')
+
+        nonlocal index
+        contents = contents_generator(index)
+        index += 1
+
         return node.let(args=[contents])
 
     return bottom_up(replace_contents, root)
