@@ -14,7 +14,7 @@ from pyk.prelude.utils import token
 
 from .ast.mx import (
     replace_instrs_cell,
-    set_accounts_cell_content,
+    set_all_code_cell_content,
     set_call_stack_cell_content,
     set_interim_states_cell_content,
 )
@@ -213,7 +213,8 @@ class Profile(Action):
             new_config = replace_instrs_cell(node.cterm.config, instrs)
             new_config = set_call_stack_cell_content(new_config, KVariable('CallStackVar'))
             new_config = set_interim_states_cell_content(new_config, KVariable('InterimStatesVar'))
-            new_config = set_accounts_cell_content(new_config, KVariable('AccountsVar'))
+            new_config = set_all_code_cell_content(new_config, lambda x: KVariable(f'AccountsVar{x}'))
+            # new_config = set_accounts_cell_content(new_config, KVariable('AccountsVar'))
             kcfg.replace_node(node.id, cterm=CTerm(new_config, node.cterm.constraints))
             t.measure()
 
