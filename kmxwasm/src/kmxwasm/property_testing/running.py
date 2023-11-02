@@ -1,6 +1,8 @@
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 
+from pyk.kast.inner import KInner
 from pyk.kast.outer import KClaim
 from pyk.kcfg import KCFG
 from pyk.kcfg.exploration import KCFGExploration
@@ -10,14 +12,21 @@ from pyk.prelude.collections import LIST
 
 from ..ast.mx import (
     CALL_STACK_PATH,
+    CODE,
+    INTERIM_STATES_PATH,
     cfg_changes_call_stack,
+    cfg_changes_interim_states,
+    cfg_touches_code,
     command_is_new_wasm_instance,
+    get_first_command_name,
     get_first_instr,
+    get_first_instr_name,
+    get_first_k_name,
     get_hostcall_name,
 )
 from ..timing import Timer
 from ..tools import Tools
-from .cell_abstracter import CellAbstracter
+from .cell_abstracter import CellAbstracter, multi_cell_abstracter, single_cell_abstracter
 from .implication import quick_implication_check
 from .printers import print_node
 from .wasm_krun_initializer import WasmKrunInitializer
@@ -25,12 +34,76 @@ from .wasm_krun_initializer import WasmKrunInitializer
 CUT_POINT_RULES = [
     # This runs with the LLVM backend
     'ELROND-CONFIG.newWasmInstance',
+]
+
+CALL_STACK_CUT_POINT_RULES = [
     # These change the call stack
     'ELROND-NODE.pushCallState',
     'ELROND-NODE.popCallState',
     'ELROND-NODE.dropCallState',
     'KASMER.endFoundryImmediately',
 ]
+
+INTERIM_STATES_CUT_POINT_RULES = [
+    # These use interimStates
+    'ELROND-NODE.pushWorldState',
+    'ELROND-NODE.popWorldState',
+    'ELROND-NODE.dropWorldState',
+    'KASMER.endFoundryImmediately',
+]
+
+CODE_CUT_POINT_RULES = [
+    # These use the <code> cell
+    'ELROND-CONFIG.setAccountFields',
+    'ELROND-CONFIG.setAccountCode',
+    'ELROND-CONFIG.callContract',
+    'ELROND-CONFIG.callContract-not-contract',
+    'MANDOS.checkAccountCodeAux-no-code',
+    'MANDOS.checkAccountCodeAux-code',
+    'BASEOPS.checkIsSmartContract-code',
+    'BASEOPS.checkIsSmartContract-no-code',
+    # Additional <code> cell use through generic <account> and <accounts> use.
+    'ELROND-CONFIG.createAccount-new',
+    'ELROND-NODE.pushWorldState',
+    'ELROND-NODE.popWorldState',
+]
+
+
+def abstracters(
+    target_node_id: NodeIdLike,
+) -> list[tuple[CellAbstracter, list[str], Callable[[str | None, str | None, str | None], bool]]]:
+    return [
+        (
+            single_cell_abstracter(
+                cell_path=CALL_STACK_PATH,
+                variable_root='AbstractCallStack',
+                variable_sort=LIST,
+                destination=target_node_id,
+            ),
+            CALL_STACK_CUT_POINT_RULES,
+            cfg_changes_call_stack,
+        ),
+        (
+            single_cell_abstracter(
+                cell_path=INTERIM_STATES_PATH,
+                variable_root='AbstractCallStack',
+                variable_sort=LIST,
+                destination=target_node_id,
+            ),
+            INTERIM_STATES_CUT_POINT_RULES,
+            cfg_changes_interim_states,
+        ),
+        (
+            multi_cell_abstracter(
+                cell_name='<code>',
+                variable_root='AbstractCode',
+                variable_sort=CODE,
+                destination=target_node_id,
+            ),
+            CODE_CUT_POINT_RULES,
+            cfg_touches_code,
+        ),
+    ]
 
 
 @dataclass(frozen=True)
@@ -55,6 +128,28 @@ class RunException(RunClaimResult):
     last_processed_node: NodeIdLike
 
 
+def abstract(abstracters: list[CellAbstracter], kcfg: KCFG, node_id: NodeIdLike) -> None:
+    for a in abstracters:
+        a.abstract_node(kcfg, node_id)
+
+
+def concretize(abstracters: list[CellAbstracter], kcfg: KCFG, with_variable: set[NodeIdLike]) -> None:
+    for a in reversed(abstracters):
+        a.concretize_kcfg(kcfg, with_variable)
+
+
+def touches_abstract_content(
+    identifiers: list[Callable[[str | None, str | None, str | None], bool]], root: KInner
+) -> bool:
+    command = get_first_command_name(root)
+    instr = get_first_instr_name(root)
+    k = get_first_k_name(root)
+    for identifier in identifiers:
+        if identifier(k, command, instr):
+            return True
+    return False
+
+
 def run_claim(
     tools: Tools,
     wasm_initializer: WasmKrunInitializer,
@@ -68,30 +163,17 @@ def run_claim(
     target_node_id: NodeIdLike = -1
     if restart_kcfg:
         kcfg = restart_kcfg
-        roots = kcfg.root
-        assert len(roots) in [1, 2]
-        if len(roots) == 1:
-            init_node_id = roots[0].id
-            covers = {cover.target.id for cover in kcfg.covers()}
-            assert len(covers) == 1, covers
-            target_node_id = covers.pop()
-        else:
-            if roots[0] < roots[1]:
-                init_node_id = roots[0].id
-                target_node_id = roots[1].id
-            else:
-                init_node_id = roots[1].id
-                target_node_id = roots[0].id
+        (final_node, target_node_id) = find_final_node(kcfg)
     else:
         (kcfg, init_node_id, target_node_id) = KCFG.from_claim(tools.printer.definition, claim)
+        final_node = kcfg.node(target_node_id)
 
     kcfg_exploration = KCFGExploration(kcfg)
-    abstract_call_stack = CellAbstracter(
-        cell_path=CALL_STACK_PATH,
-        variable_root='AbstractCallStack',
-        variable_sort=LIST,
-        destination=target_node_id,
-    )
+
+    a = abstracters(target_node_id)
+    all_abstracters = [abstracter for abstracter, _, _ in a]
+    all_cut_points = [cut_point for _, cps, _ in a for cut_point in cps] + CUT_POINT_RULES
+    all_abstract_identifiers = [identifier for _, _, identifier in a]
 
     try:
         processed: set[NodeIdLike] = {target_node_id}
@@ -101,7 +183,7 @@ def run_claim(
             non_final.add(n.id)
         if run_id is not None:
             to_process = [kcfg.node(run_id)]
-        final_node = kcfg.node(target_node_id)
+
         print('Start: ', init_node_id, 'End: ', target_node_id)
         last_time = time.time()
         while to_process:
@@ -128,8 +210,8 @@ def run_claim(
                         t = Timer('  Initialize wasm')
                         wasm_initializer.initialize(kcfg=kcfg, start_node=node)
                         t.measure()
-                    elif cfg_changes_call_stack(node.cterm.config):
-                        print('changes call stack')
+                    elif touches_abstract_content(all_abstract_identifiers, node.cterm.config):
+                        print('changes abstracted cell')
                         t = Timer('  Run call stack change')
                         tools.explorer.extend(
                             kcfg_exploration=kcfg_exploration,
@@ -140,7 +222,7 @@ def run_claim(
                         t.measure()
                     else:
                         t = Timer('  Abstract')
-                        abstract_call_stack.abstract_node(kcfg, node.id)
+                        abstract(all_abstracters, kcfg, node.id)
                         t.measure()
 
                         try:
@@ -159,7 +241,7 @@ def run_claim(
                                 node=node,
                                 logs=logs,
                                 execute_depth=depth,
-                                cut_point_rules=CUT_POINT_RULES,
+                                cut_point_rules=all_cut_points,
                             )
                             t.measure()
                         finally:
@@ -167,7 +249,7 @@ def run_claim(
                             leaves = set(new_leaves(kcfg, non_final, final_node.id))
                             leaves.add(node.id)
                             t.measure()
-                            abstract_call_stack.concretize_kcfg(kcfg, leaves)
+                            concretize(all_abstracters, kcfg, leaves)
                             t.measure()
                     t = Timer('  Check final')
                     current_leaves = new_leaves(kcfg, non_final, final_node.id)
@@ -203,31 +285,8 @@ def new_leaves(kcfg: KCFG, existing: set[NodeIdLike], final: NodeIdLike) -> list
 
 
 def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int) -> RunClaimResult:
-    target_node_id: NodeIdLike = -1
-
     kcfg = restart_kcfg
-    roots = kcfg.root
-    assert len(roots) in [1, 2]
-    if len(roots) == 1:
-        # TODO: Is this the right way to get the destination node?
-        # Should I take the covered node, or a covered's node destination?
-        covers = kcfg.covered
-        covering: NodeIdLike | None = None
-        for covered in covers:
-            for cover in kcfg.covers(source_id=covered.id):
-                if covering is None:
-                    covering = cover.target.id
-                else:
-                    assert covering == cover.target.id
-        assert covering is not None
-        # assert len(covers) == 1, [cover.id for cover in covers]
-        target_node_id = covering
-    else:
-        if roots[0] < roots[1]:
-            target_node_id = roots[1].id
-        else:
-            target_node_id = roots[0].id
-    final_node = kcfg.node(target_node_id)
+    (final_node, _) = find_final_node(kcfg)
 
     kcfg_exploration = KCFGExploration(kcfg)
 
@@ -307,6 +366,56 @@ def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int) -> RunClaim
         return Success(kcfg)
     except BaseException as e:
         return RunException(kcfg, e, start_node_id)
+
+
+def profile_step(tools: Tools, restart_kcfg: KCFG, node_id: int, depth: int) -> RunClaimResult:
+    kcfg = restart_kcfg
+    kcfg_exploration = KCFGExploration(kcfg)
+
+    try:
+        # precompute the explorer to make time measurements more reliable.
+        timer = Timer('Initializing the explorer')
+        assert tools.explorer
+        timer.measure()
+
+        start = kcfg.node(node_id)
+        edges = kcfg.edges(source_id=node_id)
+        assert len(edges) == 0
+        logs: dict[int, tuple[LogEntry, ...]] = {}
+
+        timer = Timer(f'Running {depth} steps.')
+        tools.explorer.extend(kcfg_exploration=kcfg_exploration, node=start, logs=logs, execute_depth=depth)
+        timer.measure()
+
+        return Success(kcfg)
+    except BaseException as e:
+        return RunException(kcfg, e, node_id)
+
+
+def find_final_node(kcfg: KCFG) -> tuple[KCFG.Node, NodeIdLike]:
+    target_node_id: NodeIdLike = -1
+    roots = kcfg.root
+    assert len(roots) in [1, 2]
+    if len(roots) == 1:
+        # TODO: Is this the right way to get the destination node?
+        # Should I take the covered node, or a covered's node destination?
+        covers = kcfg.covered
+        covering: NodeIdLike | None = None
+        for covered in covers:
+            for cover in kcfg.covers(source_id=covered.id):
+                if covering is None:
+                    covering = cover.target.id
+                else:
+                    assert covering == cover.target.id
+        assert covering is not None
+        # assert len(covers) == 1, [cover.id for cover in covers]
+        target_node_id = covering
+    else:
+        if roots[0] < roots[1]:
+            target_node_id = roots[1].id
+        else:
+            target_node_id = roots[0].id
+    return (kcfg.node(target_node_id), target_node_id)
 
 
 def expandable_leaves(kcfg: KCFG, target_node_id: NodeIdLike) -> list[KCFG.Node]:

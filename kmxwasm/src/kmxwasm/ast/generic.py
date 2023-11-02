@@ -1,3 +1,6 @@
+from collections.abc import Callable
+from dataclasses import dataclass
+
 from pyk.kast.inner import KApply, KInner, KSequence, bottom_up
 
 
@@ -38,6 +41,29 @@ def set_single_argument_kapply_contents(root: KInner, name: str, contents: KInne
 
         if len(node.args) != 1:
             raise ValueError(f'Expected node {name} to heve exactly 1 child, found {len(node.args)}.')
+        return node.let(args=[contents])
+
+    return bottom_up(replace_contents, root)
+
+
+def set_single_argument_multiple_kapply_contents(
+    root: KInner, name: str, contents_generator: Callable[[int], KInner]
+) -> KInner:
+    index = 0
+
+    def replace_contents(node: KInner) -> KInner:
+        if not isinstance(node, KApply):
+            return node
+        if node.label.name != name:
+            return node
+
+        if len(node.args) != 1:
+            raise ValueError(f'Expected node {name} to heve exactly 1 child, found {len(node.args)}.')
+
+        nonlocal index
+        contents = contents_generator(index)
+        index += 1
+
         return node.let(args=[contents])
 
     return bottom_up(replace_contents, root)
@@ -101,7 +127,12 @@ def replace_contents_with_path(root: KInner, path: list[str], replacement: KInne
     return root.let(args=new_args)
 
 
-def get_with_path(root: KInner, path: list[str]) -> KInner:
+@dataclass(frozen=True)
+class ComponentNotFound:
+    element: str
+
+
+def find_with_path_internal(root: KInner, path: list[str]) -> KInner | ComponentNotFound:
     assert path
     for element in path:
         assert isinstance(root, KApply)
@@ -116,29 +147,23 @@ def get_with_path(root: KInner, path: list[str]) -> KInner:
                 raise ValueError(f'Path component found twice: {element!r}')
             found_arg = arg
         if not found_arg:
-            raise ValueError(f'Path component not found: {element!r}')
+            return ComponentNotFound(element)
         root = found_arg
     return root
+
+
+def get_with_path(root: KInner, path: list[str]) -> KInner:
+    result = find_with_path_internal(root, path)
+    if isinstance(result, ComponentNotFound):
+        raise ValueError(f'Path component not found: {result.element!r}')
+    return result
 
 
 def find_with_path(root: KInner, path: list[str]) -> KInner | None:
-    assert path
-    for element in path:
-        assert isinstance(root, KApply)
-        assert root.args
-        found_arg: KInner | None = None
-        for arg in root.args:
-            if not isinstance(arg, KApply):
-                continue
-            if not arg.label.name == element:
-                continue
-            if found_arg:
-                raise ValueError(f'Path component found twice: {element!r}')
-            found_arg = arg
-        if not found_arg:
-            return None
-        root = found_arg
-    return root
+    result = find_with_path_internal(root, path)
+    if isinstance(result, ComponentNotFound):
+        return None
+    return result
 
 
 def get_single_argument_kapply_contents_path(root: KInner, path: list[str]) -> KInner:

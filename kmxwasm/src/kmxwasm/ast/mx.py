@@ -1,6 +1,7 @@
+from collections.abc import Callable
 from typing import Iterable
 
-from pyk.kast.inner import KApply, KInner, KSequence, KToken, collect
+from pyk.kast.inner import KApply, KInner, KSequence, KSort, KToken, collect
 
 from .collections import cell_map, full_list, k_map, simple_list
 from .generic import (
@@ -9,6 +10,7 @@ from .generic import (
     replace_with_path,
     set_ksequence_cell_contents,
     set_single_argument_kapply_contents,
+    set_single_argument_multiple_kapply_contents,
 )
 
 COMMANDS_CELL_NAME = '<commands>'
@@ -23,6 +25,7 @@ MANDOS_CELL_PATH = ['<foundry>', '<mandos>']
 NODE_CELL_PATH = MANDOS_CELL_PATH + ['<elrond>', '<node>']
 CALL_STATE_PATH = NODE_CELL_PATH + ['<callState>']
 CALL_STACK_PATH = NODE_CELL_PATH + ['<callStack>']
+INTERIM_STATES_PATH = NODE_CELL_PATH + ['<interimStates>']
 
 COMMANDS_CELL_PATH = NODE_CELL_PATH + [COMMANDS_CELL_NAME]
 K_CELL_PATH = MANDOS_CELL_PATH + [K_CELL_NAME]
@@ -31,6 +34,9 @@ INSTRS_CELL_PATH = WASM_CELL_PATH + [INSTRS_CELL_NAME]
 CONTRACT_MOD_IDX_CELL_PATH = CALL_STATE_PATH + [CONTRACT_MOD_IDX_CELL_NAME]
 
 FUNCS_PATH = WASM_CELL_PATH + [MAIN_STORE_CELL_NAME, FUNCS_CELL_NAME]
+
+
+CODE = KSort('Code')
 
 
 # TODO: Move these to the elrond-semantics repository.
@@ -80,6 +86,16 @@ def k_cell_contents(root: KInner) -> KSequence:
     return seq
 
 
+def get_first_k_name(root: KInner) -> str | None:
+    seq = k_cell_contents(root)
+    if not seq.items:
+        return None
+    first = seq.items[0]
+    if not isinstance(first, KApply):
+        return None
+    return first.label.name
+
+
 def get_commands_cell(root: KInner) -> KApply:
     result = get_with_path(root, COMMANDS_CELL_PATH)
     assert isinstance(result, KApply)
@@ -122,6 +138,10 @@ def instrs_cell_contents(root: KInner) -> KSequence | None:
     return seq
 
 
+def replace_instrs_cell(root: KInner, replacement: KSequence) -> KInner:
+    return replace_with_path(root, INSTRS_CELL_PATH, replacement=KApply('<instrs>', replacement))
+
+
 def get_first_instr(root: KInner) -> KApply | None:
     seq = instrs_cell_contents(root)
     if not seq:
@@ -158,14 +178,37 @@ def command_is_new_wasm_instance(root: KInner) -> bool:
     return command == 'newWasmInstance'
 
 
-def cfg_changes_call_stack(root: KInner) -> bool:
-    command = get_first_command_name(root)
+def cfg_changes_call_stack(_k: str | None, command: str | None, instr: str | None) -> bool:
     if command in ['pushCallState', 'popCallState', 'dropCallState']:
         return True
-    instr = get_first_instr_name(root)
     if not instr:
         return False
     return instr == 'endFoundryImmediately'
+
+
+def cfg_changes_interim_states(_k: str | None, command: str | None, instr: str | None) -> bool:
+    if command in ['pushWorldState', 'popWorldState', 'dropWorldState']:
+        return True
+    if not instr:
+        return False
+    return instr == 'endFoundryImmediately'
+
+
+def cfg_touches_code(k: str | None, command: str | None, instr: str | None) -> bool:
+    if k in ['checkAccountCodeAux']:
+        return True
+    if command in [
+        'setAccountFields',
+        'setAccountCode',
+        'callContractWasmString',
+        'createAccount',
+        'pushWorldState',
+        'popWorldState',
+    ]:
+        return True
+    if not instr:
+        return False
+    return instr == 'checkIsSmartContract'
 
 
 def set_commands_cell_contents(root: KInner, contents: KSequence) -> KInner:
@@ -202,6 +245,10 @@ def set_interim_states_cell_content(root: KInner, replacement: KInner) -> KInner
 
 def set_accounts_cell_content(root: KInner, replacement: KInner) -> KInner:
     return set_single_argument_kapply_contents(root, '<accounts>', replacement)
+
+
+def set_all_code_cell_content(root: KInner, replacements: Callable[[int], KInner]) -> KInner:
+    return set_single_argument_multiple_kapply_contents(root, '<code>', replacements)
 
 
 def set_logging_cell_content(root: KInner, replacement: KInner) -> KInner:
