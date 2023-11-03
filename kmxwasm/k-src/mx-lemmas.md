@@ -100,10 +100,22 @@ module MX-LEMMAS  [symbolic]
         andBool RangeStart +Int RangeWidth <=Int Index +Int lengthBytes(Src)
     [simplification]
 
-  rule #getRange(B:Bytes, Start, Width)
-      => #getRange(substrBytes(B, Start, Start +Int Width), 0, Width)
-    requires 0 <Int Start orBool Width <Int lengthBytes(B)
+  rule #getRange(A +Bytes B, Start, Width)
+      => #getRange(B, Start -Int lengthBytes(A), Width)
+    requires lengthBytes(A) <=Int Start
     [simplification]
+  rule #getRange(A +Bytes _, Start, Width)
+      => #getRange(A, Start, Width)
+    requires Start <Int lengthBytes(A) andBool Start +Int Width <=Int lengthBytes(A)
+    [simplification]
+  rule #getRange(A +Bytes B, Start, Width)
+      => #splitGetRange(A +Bytes B, Start, lengthBytes(A) -Int Start, Start +Int Width -Int lengthBytes(A))
+    requires Start <Int lengthBytes(A) andBool lengthBytes(A) <Int Start +Int Width
+    [simplification]
+  // rule #getRange(B:Bytes, Start, Width)
+  //     => #getRange(substrBytes(B, Start, Start +Int Width), 0, Width)
+  //   requires 0 <Int Start orBool Width <Int lengthBytes(B)
+  //   [simplification]
 
   rule #getBytesRange(replaceAtBytesTotal(Dest:Bytes, Index:Int, Source:Bytes), Start:Int, Len:Int)
       => #getBytesRange(Dest, Start, Len)
