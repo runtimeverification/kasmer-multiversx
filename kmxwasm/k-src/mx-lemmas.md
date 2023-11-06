@@ -112,10 +112,6 @@ module MX-LEMMAS  [symbolic]
       => #splitGetRange(A +Bytes B, Start, lengthBytes(A) -Int Start, Start +Int Width -Int lengthBytes(A))
     requires Start <Int lengthBytes(A) andBool lengthBytes(A) <Int Start +Int Width
     [simplification]
-  // rule #getRange(B:Bytes, Start, Width)
-  //     => #getRange(substrBytes(B, Start, Start +Int Width), 0, Width)
-  //   requires 0 <Int Start orBool Width <Int lengthBytes(B)
-  //   [simplification]
 
   rule #getBytesRange(replaceAtBytesTotal(Dest:Bytes, Index:Int, Source:Bytes), Start:Int, Len:Int)
       => #getBytesRange(Dest, Start, Len)
