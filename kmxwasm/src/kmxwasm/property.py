@@ -13,6 +13,7 @@ from pyk.kore.rpc import KoreClientError
 from pyk.prelude.utils import token
 
 from .ast.mx import (
+    get_first_instr,
     replace_instrs_cell,
     set_all_code_cell_content,
     set_call_stack_cell_content,
@@ -209,7 +210,11 @@ class Profile(Action):
             t = Timer('Prepare profile node')
             node = kcfg.get_node(self.node_id)
             assert node
-            instrs = KSequence([KApply('aNop')] * self.depth)
+            instr = get_first_instr(node.cterm.config)
+            assert instr
+            # instr = KApply('aNop')
+            print(f'Instr: {instr.label.name}')
+            instrs = KSequence([instr] * self.depth)
             new_config = replace_instrs_cell(node.cterm.config, instrs)
             new_config = set_call_stack_cell_content(new_config, KVariable('CallStackVar'))
             new_config = set_interim_states_cell_content(new_config, KVariable('InterimStatesVar'))

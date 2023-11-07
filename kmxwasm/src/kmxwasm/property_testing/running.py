@@ -11,6 +11,7 @@ from pyk.kore.rpc import LogEntry
 from pyk.prelude.collections import LIST
 
 from ..ast.mx import (
+    ACCOUNTS_PATH,
     CALL_STACK_PATH,
     CODE,
     INTERIM_STATES_PATH,
@@ -95,6 +96,7 @@ def abstracters(
         ),
         (
             multi_cell_abstracter(
+                parent_path=ACCOUNTS_PATH,
                 cell_name='<code>',
                 variable_root='AbstractCode',
                 variable_sort=CODE,
@@ -383,6 +385,16 @@ def profile_step(tools: Tools, restart_kcfg: KCFG, node_id: int, depth: int) -> 
         assert len(edges) == 0
         logs: dict[int, tuple[LogEntry, ...]] = {}
 
+        timer = Timer('Warming up the explorer')
+        tools.explorer.extend(kcfg_exploration=kcfg_exploration, node=start, logs=logs, execute_depth=1)
+        edges = kcfg.edges(source_id=node_id)
+        assert len(edges) == 1
+        kcfg.remove_node(edges[0].target.id)
+        edges = kcfg.edges(source_id=node_id)
+        assert len(edges) == 0
+        timer.measure()
+
+        logs = {}
         timer = Timer(f'Running {depth} steps.')
         tools.explorer.extend(kcfg_exploration=kcfg_exploration, node=start, logs=logs, execute_depth=depth)
         timer.measure()

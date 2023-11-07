@@ -68,7 +68,7 @@ class CellAbstracter:
 
 
 def multi_cell_abstracter(
-    cell_name: str, variable_root: str, variable_sort: KSort, destination: NodeIdLike
+    parent_path: list[str], cell_name: str, variable_root: str, variable_sort: KSort, destination: NodeIdLike
 ) -> CellAbstracter:
     def replace_with_variable(
         config: KInner, variable_to_value: dict[KVariable, KInner], new_variable: Callable[[], KVariable]
@@ -86,7 +86,9 @@ def multi_cell_abstracter(
 
             return term.let(args=[variable])
 
-        return bottom_up(replace, config)
+        parent = get_single_argument_kapply_contents_path(config, parent_path)
+        new_parent = bottom_up(replace, parent)
+        return replace_contents_with_path(root=config, path=parent_path, replacement=new_parent)
 
     def replace_with_original(
         config: KInner, variable_to_value: dict[KVariable, KInner], allow_missing_variable: bool
@@ -114,7 +116,9 @@ def multi_cell_abstracter(
 
             return term.let(args=[original])
 
-        return bottom_up(replace, config)
+        parent = get_single_argument_kapply_contents_path(config, parent_path)
+        new_parent = bottom_up(replace, parent)
+        return replace_contents_with_path(root=config, path=parent_path, replacement=new_parent)
 
     return CellAbstracter(
         variable_root=variable_root,
