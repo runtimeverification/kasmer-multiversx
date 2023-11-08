@@ -6,5 +6,7 @@ class Timer:
         self.__message = message
         self.__start = time.time()
 
-    def measure(self) -> None:
-        print(self.__message, time.time() - self.__start, 'sec.', flush=True)
+    def measure(self) -> float:
+        duration = time.time() - self.__start
+        print(self.__message, duration, 'sec.', flush=True)
+        return duration
