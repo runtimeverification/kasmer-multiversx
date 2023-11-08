@@ -370,7 +370,7 @@ def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int) -> RunClaim
         return RunException(kcfg, e, start_node_id)
 
 
-def profile_step(tools: Tools, restart_kcfg: KCFG, node_id: int, depth: int) -> RunClaimResult:
+def profile_step(tools: Tools, restart_kcfg: KCFG, node_id: int, depth: int, groups: int) -> RunClaimResult:
     kcfg = restart_kcfg
     kcfg_exploration = KCFGExploration(kcfg)
 
@@ -397,7 +397,12 @@ def profile_step(tools: Tools, restart_kcfg: KCFG, node_id: int, depth: int) -> 
         logs = {}
         timer = Timer(f'Running {depth} steps.')
         tools.explorer.extend(kcfg_exploration=kcfg_exploration, node=start, logs=logs, execute_depth=depth)
-        timer.measure()
+        time = timer.measure()
+
+        print(f'Average time per group: {time / groups}')
+        print(f'Average time per step: {time / depth}')
+
+        # TODO: Check that the explorer consumed all instructions and finished successfully.
 
         return Success(kcfg)
     except BaseException as e:
