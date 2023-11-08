@@ -6,14 +6,14 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from pyk.cterm import CTerm
-from pyk.kast.inner import KApply, KSequence, KVariable
+from pyk.kast.inner import KApply, KInner, KSequence, KVariable
 from pyk.kcfg import KCFG
 from pyk.kcfg.show import KCFGShow
 from pyk.kore.rpc import KoreClientError
 from pyk.prelude.utils import token
 
 from .ast.mx import (
-    get_first_instr,
+    instrs_cell_contents,
     replace_instrs_cell,
     set_all_code_cell_content,
     set_call_stack_cell_content,
@@ -27,7 +27,7 @@ from .property_testing.running import RunException, Stuck, Success, profile_step
 from .property_testing.wasm_krun_initializer import WasmKrunInitializer
 from .timing import Timer
 
-sys.setrecursionlimit(8000)
+sys.setrecursionlimit(16000)
 
 
 def usage_error() -> None:
@@ -187,14 +187,128 @@ class BisectAfter(Action):
 
 
 @dataclass(frozen=True)
+class InstructionProfile:
+    name: str
+    steps: int
+    to_run: KInner
+    setup_steps: int = 0
+    setup: KInner = KSequence([])
+
+
+PROFILE_INSTRUCTIONS = [
+    InstructionProfile(
+        name='aLocal.tee',
+        steps=1,
+        to_run=KApply('aLocal.tee', token(0)),
+        setup_steps=3,
+        setup=KSequence(
+            [
+                KApply('aIConst', [KApply('i32'), token(1)]),
+                KApply(
+                    'init_local___WASM_Instr_Int_Val',
+                    [token(0), KApply('<_>__WASM-DATA-COMMON_IVal_IValType_Int', [KApply('i32'), token(1)])],
+                ),
+            ]
+        ),
+    ),
+    InstructionProfile(
+        name='aIConst',
+        steps=2,
+        to_run=KApply('aIConst', [KApply('i32'), token(1)]),
+    ),  # ITYPE:IValType . const VAL => #chop (< ITYPE > VAL) => valstack
+    InstructionProfile(
+        name='push.i32',
+        steps=1,
+        to_run=KApply('<_>__WASM-DATA-COMMON_IVal_IValType_Int', [KApply('i32'), token(2)]),
+    ),
+    InstructionProfile(
+        name='store',
+        steps=2 + 2 + 4,  # TODO: Test only the "store" "{" Int Int Number Int "}" form.
+        to_run=KSequence(
+            KApply('aIConst', [KApply('i32'), token(1)]),  # Index for storing
+            KApply('aIConst', [KApply('i32'), token(1)]),  # Value to store
+            KApply('aStore', [KApply('i32'), KApply('storeOpStore8'), token(10)]),  # Offset
+        ),
+    ),  # uses two stack entries
+    InstructionProfile(
+        name='aLocal.get',
+        steps=1,
+        to_run=KApply('aLocal.get', token(0)),
+        setup_steps=3,
+        setup=KSequence(
+            [
+                KApply('aIConst', [KApply('i32'), token(1)]),
+                KApply(
+                    'init_local___WASM_Instr_Int_Val',
+                    [token(0), KApply('<_>__WASM-DATA-COMMON_IVal_IValType_Int', [KApply('i32'), token(1)])],
+                ),
+            ]
+        ),
+    ),
+    InstructionProfile(
+        name='aLocal.set',
+        steps=2 + 1,
+        to_run=KSequence([KApply('aIConst', [KApply('i32'), token(1)]), KApply('aLocal.set', token(0))]),
+        setup_steps=3,
+        setup=KSequence(
+            [
+                KApply('aIConst', [KApply('i32'), token(1)]),
+                KApply(
+                    'init_local___WASM_Instr_Int_Val',
+                    [token(0), KApply('<_>__WASM-DATA-COMMON_IVal_IValType_Int', [KApply('i32'), token(1)])],
+                ),
+            ]
+        ),
+    ),
+    InstructionProfile(
+        name='aLoad',
+        steps=2 + 6,
+        to_run=KSequence(
+            KApply('aIConst', [KApply('i32'), token(1)]),  # Index for storing
+            KApply('aLoad', [KApply('i32'), KApply('loadOpLoad8_u'), token(10)]),  # Offset
+        ),
+    ),  # uses two stack entries
+    InstructionProfile(
+        name='aGlobal.set',
+        steps=2 + 1,
+        to_run=KSequence(
+            KApply('aIConst', [KApply('i32'), token(1)]),  # Index for storing
+            KApply('aGlobal.set', [token(0)]),
+        ),
+    ),  # uses two stack entries
+]
+# TODO: Also profile the instructions below.
+# ~> i32 . add
+# ~> #br ( 1 )
+# ~> label [ .ValTypes ] { .EmptyStmts } .ValStack
+# ~> i32 . xor
+# ~> #call ( 168 )
+# ~> return
+
+
+@dataclass(frozen=True)
 class Profile(Action):
     node_id: int
     remove: list[int]
     depth: int
     kcfg_path: Path
     booster: bool
+    instruction_name: str
 
     def run(self) -> None:
+        steps = 1
+        instruction_kitem: KInner = KApply('aNop')
+        setup: KInner = KSequence([])
+        setup_steps = 0
+        for profile in PROFILE_INSTRUCTIONS:
+            if profile.name == self.instruction_name:
+                (steps, instruction_kitem, setup_steps, setup) = (
+                    profile.steps,
+                    profile.to_run,
+                    profile.setup_steps,
+                    profile.setup,
+                )
+                break
         with kbuild_semantics(
             output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL, booster=self.booster
         ) as tools:
@@ -210,11 +324,7 @@ class Profile(Action):
             t = Timer('Prepare profile node')
             node = kcfg.get_node(self.node_id)
             assert node
-            instr = get_first_instr(node.cterm.config)
-            assert instr
-            # instr = KApply('aNop')
-            print(f'Instr: {instr.label.name}')
-            instrs = KSequence([instr] * self.depth)
+            instrs = KSequence([setup, KSequence([instruction_kitem] * self.depth)])
             new_config = replace_instrs_cell(node.cterm.config, instrs)
             new_config = set_call_stack_cell_content(new_config, KVariable('CallStackVar'))
             new_config = set_interim_states_cell_content(new_config, KVariable('InterimStatesVar'))
@@ -223,12 +333,47 @@ class Profile(Action):
             kcfg.replace_node(node.id, cterm=CTerm(new_config, node.cterm.constraints))
             t.measure()
 
+            existing = {node.id for node in kcfg.nodes}
+
+            steps_needed = self.depth * steps + setup_steps
             result = profile_step(
                 tools,
                 restart_kcfg=kcfg,
                 node_id=self.node_id,
-                depth=self.depth,
+                depth=steps_needed,
+                groups=self.depth,
             )
+
+            if isinstance(result, Success):
+                new = {node.id for node in kcfg.nodes if not node.id in existing}
+                if len(new) != 1:
+                    result = RunException(
+                        kcfg=kcfg,
+                        exception=Exception(f'Invalid number of new nodes: {len(new)}'),
+                        last_processed_node=self.node_id,
+                    )
+                else:
+                    new_id = list(new)[0]
+                    new_node = kcfg.node(new_id)
+                    maybe_instrs = instrs_cell_contents(new_node.cterm.config)
+                    if maybe_instrs is None:
+                        result = RunException(
+                            kcfg=kcfg, exception=Exception('Instrs not found.'), last_processed_node=new_id
+                        )
+                    elif 0 != len(maybe_instrs):
+                        result = RunException(
+                            kcfg=kcfg, exception=Exception('Unprocessed instrs.'), last_processed_node=new_id
+                        )
+                    else:
+                        edge = kcfg.edges(target_id=new_id)[0]
+                        if steps_needed != edge.depth:
+                            result = RunException(
+                                kcfg=kcfg,
+                                exception=Exception(
+                                    f'Did not execute the expected number of steps: {[steps_needed , edge.depth]}.'
+                                ),
+                                last_processed_node=new_id,
+                            )
 
             if isinstance(result, Success):
                 print('Success')
@@ -379,6 +524,13 @@ def read_flags() -> Action:
         required=False,
         help='Use the booster backend',
     )
+    parser.add_argument(
+        '--profile-instruction',
+        dest='profile_instruction',
+        required=False,
+        default='nop',
+        help='Which instruction to profile.',
+    )
     args = parser.parse_args()
     if args.show_node is not None:
         return ShowNode(args.show_node, Path(args.kcfg), booster=args.booster)
@@ -392,7 +544,14 @@ def read_flags() -> Action:
         to_remove = [int(n_id) for n_id in args.remove_nodes.split(',')]
 
     if args.profile:
-        return Profile(args.profile, remove=to_remove, depth=args.step, kcfg_path=Path(args.kcfg), booster=args.booster)
+        return Profile(
+            args.profile,
+            remove=to_remove,
+            depth=args.step,
+            kcfg_path=Path(args.kcfg),
+            booster=args.booster,
+            instruction_name=args.profile_instruction,
+        )
 
     if args.claimfile is None:
         usage_error()
