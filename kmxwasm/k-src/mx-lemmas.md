@@ -908,12 +908,35 @@ module MX-LEMMAS  [symbolic]
           andBool 0 <=Int A
           andBool B <=Int 32
       [simplification, concrete(B)]
+  rule (A <<IntTotal B) modIntTotal M
+        => (A <<IntTotal B) &Int (M -Int 1)
+      requires M ==Int 1 <<Int 64
+          andBool 0 <=Int A
+          andBool B <=Int 64
+      [simplification, concrete(B)]
   rule (A <<IntTotal B) &Int M
         => (A &Int ((1 <<Int (32 -Int B)) -Int 1)) <<IntTotal B
       requires M ==Int (1 <<Int 32) -Int 1
           andBool 0 <=Int A
           andBool B <=Int 32
       [simplification, concrete(B)]
+  rule (A <<IntTotal B) &Int M
+        => (A &Int ((1 <<Int (64 -Int B)) -Int 1)) <<IntTotal B
+      requires M ==Int (1 <<Int 64) -Int 1
+          andBool 0 <=Int A
+          andBool B <=Int 64
+      [simplification, concrete(B)]
+
+  rule (A <<IntTotal B) &Int M => 0
+      requires 0 <Int M
+          andBool M <Int (1 <<Int B)
+          andBool 0 <=Int A
+      [simplification, concrete(B)]
+
+  rule (A &Int B) >>IntTotal C
+      => (A >>IntTotal C) &Int (B >>IntTotal C)
+      requires definedShlInt(A &Int B, C)
+      [simplification, concrete(B, C)]
   rule ((A &Int B) <<IntTotal C) &Int D
       => (A &Int (B &Int (D >>IntTotal C))) <<IntTotal C
       requires 0 <=Int D andBool 0 <=Int A
@@ -931,6 +954,11 @@ module MX-LEMMAS  [symbolic]
 
   rule (A <<IntTotal B) >>IntTotal C => A <<IntTotal (B -Int C)
       requires C <=Int B andBool 0 <=Int C
+          andBool definedShlInt(A, B)
+          andBool definedShrInt(A, C)
+      [simplification]
+  rule (A <<IntTotal B) >>IntTotal C => A >>IntTotal (C -Int B)
+      requires B <=Int C andBool 0 <=Int B
           andBool definedShlInt(A, B)
           andBool definedShrInt(A, C)
       [simplification]
