@@ -27,7 +27,7 @@ from .property_testing.running import RunException, Stuck, Success, profile_step
 from .property_testing.wasm_krun_initializer import WasmKrunInitializer
 from .timing import Timer
 
-sys.setrecursionlimit(8000)
+sys.setrecursionlimit(16000)
 
 
 def usage_error() -> None:
@@ -230,16 +230,58 @@ PROFILE_INSTRUCTIONS = [
             KApply('aStore', [KApply('i32'), KApply('storeOpStore8'), token(10)]),  # Offset
         ),
     ),  # uses two stack entries
+    InstructionProfile(
+        name='aLocal.get',
+        steps=1,
+        to_run=KApply('aLocal.get', token(0)),
+        setup_steps=3,
+        setup=KSequence(
+            [
+                KApply('aIConst', [KApply('i32'), token(1)]),
+                KApply(
+                    'init_local___WASM_Instr_Int_Val',
+                    [token(0), KApply('<_>__WASM-DATA-COMMON_IVal_IValType_Int', [KApply('i32'), token(1)])],
+                ),
+            ]
+        ),
+    ),
+    InstructionProfile(
+        name='aLocal.set',
+        steps=2 + 1,
+        to_run=KSequence([KApply('aIConst', [KApply('i32'), token(1)]), KApply('aLocal.set', token(0))]),
+        setup_steps=3,
+        setup=KSequence(
+            [
+                KApply('aIConst', [KApply('i32'), token(1)]),
+                KApply(
+                    'init_local___WASM_Instr_Int_Val',
+                    [token(0), KApply('<_>__WASM-DATA-COMMON_IVal_IValType_Int', [KApply('i32'), token(1)])],
+                ),
+            ]
+        ),
+    ),
+    InstructionProfile(
+        name='aLoad',
+        steps=2 + 6,
+        to_run=KSequence(
+            KApply('aIConst', [KApply('i32'), token(1)]),  # Index for storing
+            KApply('aLoad', [KApply('i32'), KApply('loadOpLoad8_u'), token(10)]),  # Offset
+        ),
+    ),  # uses two stack entries
+    InstructionProfile(
+        name='aGlobal.set',
+        steps=2 + 1,
+        to_run=KSequence(
+            KApply('aIConst', [KApply('i32'), token(1)]),  # Index for storing
+            KApply('aGlobal.set', [token(0)]),
+        ),
+    ),  # uses two stack entries
 ]
 # TODO: Also profile the instructions below.
-# ~> #local.get ( 1 )
 # ~> i32 . add
-# ~> #load ( i32 , load , 8 )
-# ~> #local.set ( 3 )
 # ~> #br ( 1 )
 # ~> label [ .ValTypes ] { .EmptyStmts } .ValStack
 # ~> i32 . xor
-# ~> #global.set ( 0 )
 # ~> #call ( 168 )
 # ~> return
 
