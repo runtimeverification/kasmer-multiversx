@@ -952,6 +952,12 @@ module MX-LEMMAS  [symbolic]
           andBool definedShrInt(B, C)
       [simplification]
 
+  rule (A <<IntTotal B) <<IntTotal C => A <<IntTotal (B +Int C)
+      requires 0 <=Int B andBool 0 <=Int C
+      [simplification]
+  rule (A >>IntTotal B) >>IntTotal C => A >>IntTotal (B +Int C)
+      requires 0 <=Int B andBool 0 <=Int C
+      [simplification]
   rule (A <<IntTotal B) >>IntTotal C => A <<IntTotal (B -Int C)
       requires C <=Int B andBool 0 <=Int C
           andBool definedShlInt(A, B)
@@ -1052,6 +1058,27 @@ module MX-LEMMAS  [symbolic]
           andBool definedShrInt(A, B)
       [simplification, concrete(B, C)]
 
+  rule (A &Int B) => A
+      requires A <Int B
+          andBool (
+              B ==Int ((1 <<Int 8) -Int 1)
+              orBool B ==Int ((1 <<Int 16) -Int 1)
+              orBool B ==Int ((1 <<Int 32) -Int 1)
+              orBool B ==Int ((1 <<Int 64) -Int 1)
+          )
+      [simplification]
+  rule (A &Int B) => 0
+      requires
+          ( A <Int ((1 <<Int 8) -Int 1)
+            andBool B &Int ((1 <<Int 8) -Int 1) ==Int 0
+          )
+          orBool ( A <Int ((1 <<Int 16) -Int 1)
+            andBool B &Int ((1 <<Int 16) -Int 1) ==Int 0
+          )
+          orBool ( A <Int ((1 <<Int 32) -Int 1)
+            andBool B &Int ((1 <<Int 32) -Int 1) ==Int 0
+          )
+      [simplification]
 
   rule A &Int B => B &Int A
       [simplification, concrete(A), symbolic(B)]
