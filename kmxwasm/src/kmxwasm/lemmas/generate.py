@@ -260,7 +260,7 @@ def main(args: list[str]) -> None:
             definition = lemma.make_definition()
             printed = tools.printer.pretty_print(definition)
             proof_path = PROOFS_DIR / f'{lemma.name.lower()}.k'
-            proof_path.write_text(cleanup(printed))
+            proof_path.write_text(cleanup(printed + '\n'))
 
         lemmas_module = make_proven_lemmas_module(LEMMAS, tools.printer.definition)
         printed_lemmas = tools.printer.pretty_print(lemmas_module)
