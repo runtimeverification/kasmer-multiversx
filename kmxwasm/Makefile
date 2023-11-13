@@ -18,6 +18,8 @@ build:
 poetry-install:
 	$(POETRY) install
 
+lemmas:
+	$(POETRY) run python3 -m kmxwasm.lemmas.generate
 
 # Tests
 
@@ -34,6 +36,8 @@ test-unit: poetry-install
 test-integration: poetry-install
 	$(POETRY_RUN) pytest src/tests/integration --maxfail=1 --verbose --durations=0 --numprocesses=1 --dist=worksteal $(TEST_ARGS)
 
+test-lemmas-not-changed: lemmas
+	git status --porcelain | grep -q .
 
 # Coverage
 
