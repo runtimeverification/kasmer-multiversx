@@ -32,6 +32,8 @@ jobs:
         run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm kbuild-haskell
       - name: 'Run integration tests'
         run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-integration
+      - name: 'Check lemmas are generated'
+        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-lemmas-not-changed
       - name: 'Tear down Docker'
         if: always()
         run: docker stop --time 0 mx-wasm-ci-${GITHUB_SHA}
