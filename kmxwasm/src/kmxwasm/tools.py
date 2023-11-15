@@ -14,7 +14,7 @@ from pyk.ktool.krun import KRunOutput, _krun
 from pyk.prelude.k import GENERATED_TOP_CELL
 from pyk.utils import BugReport
 
-USE_BUG_REPORT = False
+USE_BUG_REPORT = True
 
 
 class Tools:
