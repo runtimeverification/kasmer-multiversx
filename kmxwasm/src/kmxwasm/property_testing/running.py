@@ -87,7 +87,7 @@ def abstracters(
         (
             single_cell_abstracter(
                 cell_path=INTERIM_STATES_PATH,
-                variable_root='AbstractCallStack',
+                variable_root='AbstractInterimStates',
                 variable_sort=LIST,
                 destination=target_node_id,
             ),
