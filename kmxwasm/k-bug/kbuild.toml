@@ -1,0 +1,19 @@
+[project]
+name = "bug-semantics"
+version = "0.1.0"
+source = "."
+
+[dependencies]
+
+[targets.llvm]
+main-file = 'bug.k'
+backend='llvm'
+
+[targets.haskell]
+main-file = 'bug.k'
+backend='haskell'
+
+[targets.llvm-library]
+llvm-kompile-type='c'
+main-file = 'bug.k'
+backend='llvm'

@@ -23,7 +23,7 @@ from .build import HASKELL, kbuild_semantics
 from .json import load_json_kcfg, load_json_kclaim, write_kcfg_json
 from .property_testing.paths import KBUILD_DIR, KBUILD_ML_PATH, ROOT
 from .property_testing.printers import print_node
-from .property_testing.running import RunException, Stuck, Success, profile_step, run_claim, split_edge
+from .property_testing.running import RunException, Stuck, Success, profile_step, simple_run_claim, split_edge
 from .property_testing.wasm_krun_initializer import WasmKrunInitializer
 from .timing import Timer
 
@@ -59,10 +59,11 @@ class RunClaim(Action):
     run_node_id: int | None
     depth: int
     kcfg_path: Path
+    kbuild_config_path: Path
 
     def run(self) -> None:
         with kbuild_semantics(
-            output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL, booster=self.booster
+            output_dir=KBUILD_DIR, config_file=self.kbuild_config_path, target=HASKELL, booster=self.booster
         ) as tools:
             t = Timer('Loading the claim')
             if self.is_k:
@@ -85,7 +86,7 @@ class RunClaim(Action):
                 for node_id in self.remove:
                     kcfg.remove_node(node_id)
                 t.measure()
-            result = run_claim(
+            result = simple_run_claim(
                 tools,
                 WasmKrunInitializer(tools),
                 claim=claim,
@@ -148,10 +149,11 @@ class BisectAfter(Action):
     node_id: int
     kcfg_path: Path
     booster: bool
+    kbuild_config_path: Path
 
     def run(self) -> None:
         with kbuild_semantics(
-            output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL, booster=self.booster
+            output_dir=KBUILD_DIR, config_file=self.kbuild_config_path, target=HASKELL, booster=self.booster
         ) as tools:
             t = Timer('Loading kcfg')
             kcfg = load_json_kcfg(self.kcfg_path)
@@ -294,6 +296,7 @@ class Profile(Action):
     kcfg_path: Path
     booster: bool
     instruction_name: str
+    kbuild_config_path: Path
 
     def run(self) -> None:
         steps = 1
@@ -310,7 +313,7 @@ class Profile(Action):
                 )
                 break
         with kbuild_semantics(
-            output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL, booster=self.booster
+            output_dir=KBUILD_DIR, config_file=self.kbuild_config_path, target=HASKELL, booster=self.booster
         ) as tools:
             t = Timer('Loading kcfg')
             kcfg = load_json_kcfg(self.kcfg_path)
@@ -406,10 +409,11 @@ class ShowNode(Action):
     node_id: int
     kcfg_path: Path
     booster: bool
+    kbuild_config_path: Path
 
     def run(self) -> None:
         with kbuild_semantics(
-            output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL, booster=self.booster
+            output_dir=KBUILD_DIR, config_file=self.kbuild_config_path, target=HASKELL, booster=self.booster
         ) as tools:
             t = Timer('Loading kcfg')
             kcfg = load_json_kcfg(self.kcfg_path)
@@ -426,10 +430,11 @@ class ShowNode(Action):
 class Tree(Action):
     kcfg_path: Path
     booster: bool
+    kbuild_config_path: Path
 
     def run(self) -> None:
         with kbuild_semantics(
-            output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL, booster=self.booster
+            output_dir=KBUILD_DIR, config_file=self.kbuild_config_path, target=HASKELL, booster=self.booster
         ) as tools:
             t = Timer('Loading kcfg')
             kcfg = load_json_kcfg(self.kcfg_path)
@@ -531,13 +536,23 @@ def read_flags() -> Action:
         default='nop',
         help='Which instruction to profile.',
     )
+    parser.add_argument(
+        '--kbuild-path',
+        dest='kbuild_config_path',
+        required=False,
+        default=str(KBUILD_ML_PATH),
+        help='Which toml file to use for building the semantics.',
+    )
     args = parser.parse_args()
+    kbuild_config_path = Path(args.kbuild_config_path)
     if args.show_node is not None:
-        return ShowNode(args.show_node, Path(args.kcfg), booster=args.booster)
+        return ShowNode(args.show_node, Path(args.kcfg), booster=args.booster, kbuild_config_path=kbuild_config_path)
     if args.tree:
-        return Tree(Path(args.kcfg), booster=args.booster)
+        return Tree(Path(args.kcfg), booster=args.booster, kbuild_config_path=kbuild_config_path)
     if args.bisect_after:
-        return BisectAfter(args.bisect_after, Path(args.kcfg), booster=args.booster)
+        return BisectAfter(
+            args.bisect_after, Path(args.kcfg), booster=args.booster, kbuild_config_path=kbuild_config_path
+        )
 
     to_remove = []
     if args.remove_nodes:
@@ -551,6 +566,7 @@ def read_flags() -> Action:
             kcfg_path=Path(args.kcfg),
             booster=args.booster,
             instruction_name=args.profile_instruction,
+            kbuild_config_path=kbuild_config_path,
         )
 
     if args.claimfile is None:
@@ -573,6 +589,7 @@ def read_flags() -> Action:
         depth=args.step,
         kcfg_path=Path(args.kcfg),
         booster=args.booster,
+        kbuild_config_path=kbuild_config_path,
     )
 
 

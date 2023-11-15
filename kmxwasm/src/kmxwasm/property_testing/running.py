@@ -282,6 +282,98 @@ def run_claim(
         return RunException(kcfg, e, last_processed_node)
 
 
+def simple_run_claim(
+    tools: Tools,
+    wasm_initializer: WasmKrunInitializer,
+    claim: KClaim,
+    restart_kcfg: KCFG | None,
+    run_id: int | None,
+    depth: int,
+) -> RunClaimResult:
+    last_processed_node: NodeIdLike = -1
+    init_node_id: NodeIdLike = -1
+    target_node_id: NodeIdLike = -1
+    if restart_kcfg:
+        kcfg = restart_kcfg
+        (final_node, target_node_id) = find_final_node(kcfg)
+    else:
+        (kcfg, init_node_id, target_node_id) = KCFG.from_claim(tools.printer.definition, claim)
+        final_node = kcfg.node(target_node_id)
+
+    kcfg_exploration = KCFGExploration(kcfg)
+
+    try:
+        processed: set[NodeIdLike] = {target_node_id}
+        non_final: set[NodeIdLike] = {target_node_id}
+        to_process: list[KCFG.Node] = expandable_leaves(kcfg, target_node_id)
+        for n in to_process:
+            non_final.add(n.id)
+        if run_id is not None:
+            to_process = [kcfg.node(run_id)]
+
+        print('Start: ', init_node_id, 'End: ', target_node_id)
+        last_time = time.time()
+        while to_process:
+            # print([node.id for node in to_process])
+            while to_process:
+                node = to_process.pop(0)
+                processed.add(node.id)
+                current_time = time.time()
+                if last_processed_node != -1:
+                    print('Node', last_processed_node, 'took', current_time - last_time, 'sec.')
+                print('Processing', node.id, flush=True)
+                last_processed_node = node.id
+                last_time = current_time
+
+                assert len(list(kcfg.edges(source_id=node.id))) == 0
+                assert len(list(kcfg.covers(source_id=node.id))) == 0
+                assert len(list(kcfg.splits(source_id=node.id))) == 0
+                assert len(list(kcfg.successors(node.id))) == 0
+
+                logs: dict[int, tuple[LogEntry, ...]] = {}
+                try:
+                    try:
+                        t = Timer('  Extend')
+                        node = kcfg.node(node.id)
+                        tools.explorer.extend(
+                            kcfg_exploration=kcfg_exploration,
+                            node=node,
+                            logs=logs,
+                            execute_depth=depth,
+                        )
+                        t.measure()
+                    finally:
+                        leaves = set(new_leaves(kcfg, non_final, final_node.id))
+                        leaves.add(node.id)
+
+                    t = Timer('  Check final')
+                    current_leaves = new_leaves(kcfg, non_final, final_node.id)
+                    for node_id in current_leaves:
+                        non_final.add(node_id)
+                        node = kcfg.node(node_id)
+                        csubst = tools.explorer.cterm_implies(node.cterm, final_node.cterm)
+                        if csubst:
+                            kcfg.create_cover(node.id, final_node.id, csubst)
+                    t.measure()
+                except ValueError:
+                    if not kcfg.stuck:
+                        raise
+                    for node in kcfg.stuck:
+                        return Stuck(kcfg, stuck_node_id=node.id, final_node_id=final_node.id)
+            if run_id is not None:
+                to_process += [kcfg.node(node_id) for node_id in current_leaves]
+            else:
+                to_process = expandable_leaves(kcfg, target_node_id)
+
+        if last_processed_node != -1:
+            print('Node', last_processed_node, 'took', current_time - last_time, 'sec.')
+        return Success(kcfg)
+    except BaseException as e:
+        if last_processed_node != -1:
+            print('Node', last_processed_node, 'took', current_time - last_time, 'sec.')
+        return RunException(kcfg, e, last_processed_node)
+
+
 def new_leaves(kcfg: KCFG, existing: set[NodeIdLike], final: NodeIdLike) -> list[NodeIdLike]:
     return [node.id for node in kcfg.leaves if node.id not in existing and node.id != final]
 

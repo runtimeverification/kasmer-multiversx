@@ -71,8 +71,8 @@ class Tools:
                     self.__definition_dir,
                     self.__llvm_library_definition_dir,
                     self.printer.main_module,
-                    command=('kore-rpc-booster'),
-                    # command=('kore-rpc-booster', '-l', 'Rewrite'),
+                    # command=('kore-rpc-booster'),
+                    command=('kore-rpc-booster', '-l', 'Rewrite'),
                     bug_report=bug_report
                     # port=39425,
                 )
