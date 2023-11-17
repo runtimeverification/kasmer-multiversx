@@ -2,7 +2,7 @@ requires "helper-lemmas.md"
 
 module MOD-INT-TOTAL
     imports private MX-WASM-LEMMA-PROOFS
-    imports private HELPER-LEMMAS
+    imports private HELPER-LEMMAS-TRUSTED
 
     claim  <mandos>
            <k>
@@ -134,8 +134,7 @@ module MOD-INT-TOTAL
            </instrs>
            ...
          </mandos>
-       ensures { ((X:Int) +Int (Y:Int)) modIntTotal (M:Int) #Equals ((X:Int) +Int (Z:Int)) modIntTotal (M:Int) }:Bool #Implies { (Y:Int) modIntTotal (M:Int) #Equals (Z:Int) modIntTotal (M:Int) }
-      #And { (Y:Int) modIntTotal (M:Int) #Equals (Z:Int) modIntTotal (M:Int) }:Bool #Implies { ((X:Int) +Int (Y:Int)) modIntTotal (M:Int) #Equals ((X:Int) +Int (Z:Int)) modIntTotal (M:Int) }
+       ensures { { ((X:Int) +Int (Y:Int)) modIntTotal (M:Int) #Equals ((X:Int) +Int (Z:Int)) modIntTotal (M:Int) }:Bool #Equals { (Y:Int) modIntTotal (M:Int) #Equals (Z:Int) modIntTotal (M:Int) }:Bool }
 
 
     claim  <mandos>

@@ -5,12 +5,13 @@ from pyk.kast.manip import count_vars, free_vars
 from pyk.kast.outer import KAtt, KClaim, KDefinition, KFlatModule, KImport, KRequire, KRule
 from pyk.prelude.k import DOTS
 from pyk.prelude.kbool import TRUE
-from pyk.prelude.ml import mlAnd, mlEquals, mlImplies
+from pyk.prelude.ml import mlAnd, mlEquals
 
 from .expression import commands_cell, instrs_cell, is_ml, k_cell, mandos_cell, proofOperationList
 from .proof import proofEnd, runProof, runProofStep
 
 HELPER_MODULE = 'HELPER-LEMMAS'
+HELPER_MODULE_TRUSTED = 'HELPER-LEMMAS-TRUSTED'
 
 
 @dataclass(frozen=True)
@@ -39,7 +40,7 @@ class Lemma:
     def make_claim(self, proof: KInner) -> KClaim:
         assert is_ml(self.lhs) == is_ml(self.rhs)
         if is_ml(self.lhs):
-            ens = mlAnd([mlImplies(self.lhs, self.rhs), mlImplies(self.rhs, self.lhs)])
+            ens = mlEquals(self.lhs, self.rhs)
         else:
             ens = mlEquals(self.lhs, self.rhs)
         rewrite = mandos_cell(
@@ -88,7 +89,7 @@ class LemmaProof:
         claims = [l.make_claim(proof) for l in self.lemmas]
         imports = [
             KImport(name='MX-WASM-LEMMA-PROOFS', public=False),
-            KImport(name=HELPER_MODULE, public=False),
+            KImport(name=HELPER_MODULE_TRUSTED, public=False),
         ]
         return KFlatModule(name=self.name.upper(), sentences=claims, imports=imports)
 
@@ -131,9 +132,19 @@ class HelperLemma:
         return KClaim(body=rewrite, requires=self.requires, ensures=self.ensures)
 
 
-def make_helper_lemmas_module(lemmas: list[HelperLemma]) -> KFlatModule:
+def make_helper_lemmas_module(lemmas: list[HelperLemma], trusted: bool = False) -> KFlatModule:
+    def make_trusted(c: KClaim) -> KClaim:
+        d = dict(c.att.atts)
+        d['trusted'] = ''
+        return c.let_att(c.att.let(atts=d))
+
     claims = [l.make_claim() for l in lemmas]
+    if trusted:
+        claims = [make_trusted(c) for c in claims]
     imports = [
         KImport(name='MX-WASM-LEMMA-PROOFS', public=False),
     ]
-    return KFlatModule(name=HELPER_MODULE, sentences=claims, imports=imports)
+    name = HELPER_MODULE
+    if trusted:
+        name = HELPER_MODULE_TRUSTED
+    return KFlatModule(name=name, sentences=claims, imports=imports)

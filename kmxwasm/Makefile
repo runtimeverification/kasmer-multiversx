@@ -37,7 +37,16 @@ test-integration: poetry-install
 	$(POETRY_RUN) pytest src/tests/integration --maxfail=1 --verbose --durations=0 --numprocesses=1 --dist=worksteal $(TEST_ARGS)
 
 test-lemmas-not-changed: lemmas
-	git status --porcelain | grep -q .
+	git status --porcelain
+	git status --porcelain | grep -v .
+
+# TODO: make separate targets for these so that they can run in parallel.
+test-lemmas: lemmas lemmas-kompiled
+	poetry run python3 -m kmxwasm.lemmas.prove -- k-src/lemmas/proofs/list-size.k $(kbuild -C k-src which lemma-proofs)
+	poetry run python3 -m kmxwasm.lemmas.prove -- k-src/lemmas/proofs/max-inequalities.k $(kbuild -C k-src which lemma-proofs)
+	# poetry run python3 -m kmxwasm.lemmas.prove -- k-src/lemmas/proofs/mod-int-total.k $(kbuild -C k-src which lemma-proofs)
+	poetry run python3 -m kmxwasm.lemmas.prove -- k-src/lemmas/proofs/pound-bool.k $(kbuild -C k-src which lemma-proofs)
+	# poetry run python3 -m kmxwasm.lemmas.prove -- k-src/lemmas/proofs/helper-lemmas.md $(kbuild -C k-src which lemma-proofs)
 
 # Coverage
 
