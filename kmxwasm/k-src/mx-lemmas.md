@@ -70,17 +70,17 @@ module MX-LEMMAS  [symbolic]
       [simplification]
 
   rule #getRange(
-          replaceAtBytesTotal(Dest, Index, Src),
+          replaceAt(Dest, Index, Src),
           RangeStart,
           RangeWidth
       ) => #getRange(Dest, RangeStart, RangeWidth)
     requires disjontRanges(RangeStart, RangeWidth, Index, lengthBytes(Src))
     [simplification]
   rule #getRange(
-          replaceAtBytesTotal(_Dest, Index, Src),
+          replaceAt(_Dest, Index, Src),
           RangeStart,
           RangeWidth
-      ) => #getRange(Src, RangeStart -Int Index, RangeWidth)
+      ) => #getRange(SBChunk(#bytes(Src)), RangeStart -Int Index, RangeWidth)
     requires Index <=Int RangeStart
         andBool RangeStart +Int RangeWidth <=Int Index +Int lengthBytes(Src)
     [simplification]
@@ -540,7 +540,6 @@ module MX-LEMMAS  [symbolic]
       , Addr1, Val1, Width1
       )
       requires disjontRanges(Addr1, Width1, Addr2, lengthBytes(Src))
-        andBool definedReplaceAtBytes(M, Addr2, Src)
     [simplification, concrete(Addr2, Src), symbolic(Val1)]
 
   rule padRightBytesTotal
