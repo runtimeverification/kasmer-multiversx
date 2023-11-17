@@ -55,21 +55,6 @@ module MX-LEMMAS  [symbolic]
   rule { (< _:IValType > _:Int) #Equals undefined } => #Bottom  [simplification]
   rule { (< _:ValType > _:Int) #Equals undefined } => #Bottom  [simplification]
 
-  rule substrBytesTotal(replaceAtBytesTotal(Dest:Bytes, Index:Int, Src:Bytes), Start:Int, End:Int)
-      => substrBytesTotal(Dest, Start, End)
-      requires (End <=Int Index orBool Index +Int lengthBytes(Src) <=Int Start)
-          andBool definedReplaceAtBytes(Dest, Index, Src)
-      [simplification]
-  rule substrBytesTotal(replaceAtBytesTotal(Dest:Bytes, Index:Int, Src:Bytes), Start:Int, End:Int)
-      => substrBytesTotal(Src, Start -Int Index, End -Int Index)
-      requires Index <=Int Start andBool End <=Int Index +Int lengthBytes(Src)
-          andBool definedReplaceAtBytes(Dest, Index, Src)
-      [simplification]
-  rule substrBytesTotal(B:Bytes, 0:Int, Len:Int) => B
-      requires true
-          andBool Len ==Int lengthBytes(B)
-      [simplification]
-
   rule padRightBytesTotal (B:Bytes, Length:Int, Value:Int) => B
       requires Length <=Int lengthBytes(B)
           andBool definedPadRightBytes(B, Length, Value)
@@ -584,6 +569,10 @@ module MX-LEMMAS  [symbolic]
     requires notBool (#setRangeActuallySets(Addr, Val, Width))
       [simplification]
 
+  syntax Bytes ::= splitSubstrBytesTotal(Bytes, start:Int, middle: Int, end:Int)  [function]
+  rule splitSubstrBytesTotal(M:Bytes, Start:Int, Middle:Int, End:Int)
+      => substrBytesTotal(M, Start, Middle) +Bytes substrBytesTotal(M, Middle, End)
+
   rule substrBytesTotal(
       #setRange(M:Bytes, Addr:Int, _Val:Int, Width:Int),
       Start:Int, End:Int)
@@ -592,39 +581,70 @@ module MX-LEMMAS  [symbolic]
         andBool definedSubstrBytes(M, Start, End)
     [simplification]
   rule substrBytesTotal(
-      #setRange(_M:Bytes, Addr:Int, Val:Int, Width:Int),
-      Addr:Int, End:Int)
-    => Int2Bytes(Width, Val, LE)
-    requires End ==Int Addr +Int Width
-        andBool #setRangeActuallySets(Addr, Val, Width)
-    [simplification]
-  rule substrBytesTotal(
-      #setRange(M:Bytes, Addr:Int, Val:Int, Width:Int)
-      , Addr:Int, End:Int
+      #setRange(M:Bytes, Addr:Int, Val:Int, Width:Int) #as SR:Bytes
+      , Start:Int, End:Int
       )
-    => substrBytesTotal(Int2Bytes(Width, Val, LE), 0, End -Int Addr)
-    requires End <Int Addr +Int Width
-        andBool #setRangeActuallySets(Addr, Val, Width)
-        andBool definedSubstrBytes(#setRange(M:Bytes, Addr:Int, Val:Int, Width:Int), Addr, End)
+      => splitSubstrBytesTotal(SR, Start, Addr, End)
+      requires Start <Int Addr andBool Addr <Int End
       [simplification]
   rule substrBytesTotal(
-      #setRange(M:Bytes, Addr:Int, Val:Int, Width:Int)
-      , Addr:Int, End:Int
+      #setRange(M:Bytes, Addr:Int, Val:Int, Width:Int) #as SR:Bytes
+      , Start:Int, End:Int
       )
-    => Int2Bytes(Width, Val, LE) +Bytes substrBytesTotal(M, Addr +Int Width, End)
-    requires Addr +Int Width <Int End
-        andBool #setRangeActuallySets(Addr, Val, Width)
-        andBool definedSubstrBytes(#setRange(M:Bytes, Addr:Int, Val:Int, Width:Int), Addr, End)
+      => splitSubstrBytesTotal(SR, Start, Addr +Int Width, End)
+      requires Start <Int Addr +Int Width andBool Addr +Int Width <Int End
       [simplification]
   rule substrBytesTotal(
       #setRange(M:Bytes, Addr:Int, Val:Int, Width:Int)
       , Start:Int, End:Int
       )
-      => substrBytesTotal(M, Start, Addr)
-        +Bytes substrBytesTotal(#setRange(M, Addr, Val, Width), Addr, End)
-      requires Start <Int Addr andBool Addr <Int End
-          andBool definedSubstrBytes(#setRange(M:Bytes, Addr:Int, Val:Int, Width:Int), Start, End)
+      => substrBytesTotal(Int2Bytes(Width, Val, LE), Start -Int Addr, End -Int (Addr +Int Width))
+      requires Addr <=Int Start andBool Addr +Int Width <=Int End
+        andBool #setRangeActuallySets(Addr, Val, Width)
       [simplification]
+
+  rule substrBytesTotal(
+      replaceAtBytesTotal(M:Bytes, Addr:Int, Src:Bytes),
+      Start:Int, End:Int)
+    => substrBytesTotal(M, Start, End)
+    requires disjontRanges(Addr, lengthBytes(Src), Start, End -Int Start)
+        andBool definedSubstrBytes(M, Start, End)
+    [simplification]
+  rule substrBytesTotal(
+      replaceAtBytesTotal(M:Bytes, Addr:Int, Src:Bytes) #as SR:Bytes
+      , Start:Int, End:Int
+      )
+      => splitSubstrBytesTotal(SR, Start, Addr, End)
+      requires Start <Int Addr andBool Addr <Int End
+      [simplification]
+  rule substrBytesTotal(
+      replaceAtBytesTotal(M:Bytes, Addr:Int, Src:Bytes) #as SR:Bytes
+      , Start:Int, End:Int
+      )
+      => splitSubstrBytesTotal(SR, Start, Addr +Int lengthBytes(Src), End)
+      requires Start <Int Addr +Int lengthBytes(Src)
+        andBool Addr +Int lengthBytes(Src) <Int End
+      [simplification]
+  rule substrBytesTotal(
+      replaceAtBytesTotal(M:Bytes, Addr:Int, Src:Bytes)
+      , Start:Int, End:Int
+      )
+      => substrBytesTotal(Src, Start -Int Addr, End -Int (Addr +Int lengthBytes(Src)))
+      requires Addr <=Int Start andBool Addr +Int lengthBytes(Src) <=Int End
+        andBool #setRangeActuallySets(Addr, Val, lengthBytes(Src))
+      [simplification]
+
+  rule substrBytesTotal(B:Bytes, 0:Int, Len:Int) => B
+      requires true
+          andBool Len ==Int lengthBytes(B)
+      [simplification]
+
+  rule substrBytesTotal(Int2Bytes(Size:Int, Val:Int, LE), Start:Int, End:Int)
+      => substrBytesTotal(Int2Bytes(Size - Start, Val >>Int (8 *Int Start), LE), 0, End -Int Start)
+      requires 0 <Int Start andBool Start <Int Size
+  rule substrBytesTotal(Int2Bytes(Size:Int, Val:Int, LE), 0, End:Int)
+      => substrBytesTotal(Int2Bytes(End, Val &Int ((1 <<Int (8 *Int End)) -Int 1), LE), 0, End)
+      requires 0 <Int End andBool End <Int Size
 
   rule substrBytesTotal(A +Bytes B, Start:Int, End:Int)
       => substrBytesTotal(B, Start -Int lengthBytes(A), End -Int lengthBytes(A))
