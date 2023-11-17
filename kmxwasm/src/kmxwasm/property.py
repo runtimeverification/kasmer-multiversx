@@ -144,6 +144,50 @@ class RunClaim(Action):
 
 
 @dataclass(frozen=True)
+class SimplifyBefore(Action):
+    before_node_id: int | None
+    kcfg_path: Path
+
+    def run(self) -> None:
+        t = Timer('Loading kcfg')
+        kcfg = load_json_kcfg(self.kcfg_path)
+        node_ids = [n.id for n in kcfg.nodes if n.id < self.before_node_id]
+        for node_id in node_ids:
+            if len(list(kcfg.covers(source_id=node_id))) != 0:
+                continue
+            if len(list(kcfg.covers(target_id=node_id))) != 0:
+                continue
+            if len(list(kcfg.splits(source_id=node_id))) != 0:
+                continue
+            if len(list(kcfg.splits(target_id=node_id))) != 0:
+                continue
+            if len(list(kcfg.ndbranches(source_id=node_id))) != 0:
+                continue
+            if len(list(kcfg.ndbranches(target_id=node_id))) != 0:
+                continue
+            outgoing = list(kcfg.edges(source_id=node_id))
+            incoming = list(kcfg.edges(target_id=node_id))
+            if len(incoming) == 0:
+                continue
+            if len(outgoing) == 0:
+                continue
+            assert len(incoming) == 1
+            assert len(outgoing) == 1
+            assert len(list(kcfg.successors(node_id))) == 1
+
+            parent = incoming[0].source
+            child = outgoing[0].target
+            steps = incoming[0].depth + outgoing[0].depth
+
+            kcfg.remove_node(node_id)
+            kcfg.create_edge(source_id=parent.id, target_id=child.id, depth=steps)
+        t.measure()
+        t = Timer('Writing kcfg')
+        write_kcfg_json(kcfg, self.kcfg_path)
+        t.measure()
+
+
+@dataclass(frozen=True)
 class BisectAfter(Action):
     node_id: int
     kcfg_path: Path
@@ -462,6 +506,12 @@ def read_flags() -> Action:
         help='Display a tree of the last saved configuration.',
     )
     parser.add_argument(
+        '--simplify-before',
+        dest='simplify_before',
+        type=int,
+        help='Remove nodes lower than the given one while preserving the run tree structure.',
+    )
+    parser.add_argument(
         '--remove',
         dest='remove_nodes',
         type=str,
@@ -538,6 +588,8 @@ def read_flags() -> Action:
         return Tree(Path(args.kcfg), booster=args.booster)
     if args.bisect_after:
         return BisectAfter(args.bisect_after, Path(args.kcfg), booster=args.booster)
+    if args.simplify_before:
+        return SimplifyBefore(args.simplify_before, Path(args.kcfg))
 
     to_remove = []
     if args.remove_nodes:
