@@ -145,7 +145,7 @@ class RunClaim(Action):
 
 @dataclass(frozen=True)
 class SimplifyBefore(Action):
-    before_node_id: int | None
+    before_node_id: int
     kcfg_path: Path
 
     def run(self) -> None:
