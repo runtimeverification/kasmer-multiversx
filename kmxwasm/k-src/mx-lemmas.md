@@ -581,25 +581,25 @@ module MX-LEMMAS  [symbolic]
         andBool definedSubstrBytes(M, Start, End)
     [simplification]
   rule substrBytesTotal(
-      #setRange(M:Bytes, Addr:Int, Val:Int, Width:Int) #as SR:Bytes
+      #setRange(_M:Bytes, Addr:Int, _Val:Int, _Width:Int) #as SR:Bytes
       , Start:Int, End:Int
       )
       => splitSubstrBytesTotal(SR, Start, Addr, End)
       requires Start <Int Addr andBool Addr <Int End
       [simplification]
   rule substrBytesTotal(
-      #setRange(M:Bytes, Addr:Int, Val:Int, Width:Int) #as SR:Bytes
+      #setRange(_M:Bytes, Addr:Int, _Val:Int, Width:Int) #as SR:Bytes
       , Start:Int, End:Int
       )
       => splitSubstrBytesTotal(SR, Start, Addr +Int Width, End)
       requires Start <Int Addr +Int Width andBool Addr +Int Width <Int End
       [simplification]
   rule substrBytesTotal(
-      #setRange(M:Bytes, Addr:Int, Val:Int, Width:Int)
+      #setRange(_M:Bytes, Addr:Int, Val:Int, Width:Int)
       , Start:Int, End:Int
       )
-      => substrBytesTotal(Int2Bytes(Width, Val, LE), Start -Int Addr, End -Int (Addr +Int Width))
-      requires Addr <=Int Start andBool Addr +Int Width <=Int End
+      => substrBytesTotal(Int2Bytes(Width, Val, LE), Start -Int Addr, End -Int Addr)
+      requires Addr <=Int Start andBool End <=Int Addr +Int Width
         andBool #setRangeActuallySets(Addr, Val, Width)
       [simplification]
 
@@ -611,14 +611,14 @@ module MX-LEMMAS  [symbolic]
         andBool definedSubstrBytes(M, Start, End)
     [simplification]
   rule substrBytesTotal(
-      replaceAtBytesTotal(M:Bytes, Addr:Int, Src:Bytes) #as SR:Bytes
+      replaceAtBytesTotal(_M:Bytes, Addr:Int, _Src:Bytes) #as SR:Bytes
       , Start:Int, End:Int
       )
       => splitSubstrBytesTotal(SR, Start, Addr, End)
       requires Start <Int Addr andBool Addr <Int End
       [simplification]
   rule substrBytesTotal(
-      replaceAtBytesTotal(M:Bytes, Addr:Int, Src:Bytes) #as SR:Bytes
+      replaceAtBytesTotal(_M:Bytes, Addr:Int, Src:Bytes) #as SR:Bytes
       , Start:Int, End:Int
       )
       => splitSubstrBytesTotal(SR, Start, Addr +Int lengthBytes(Src), End)
@@ -630,8 +630,8 @@ module MX-LEMMAS  [symbolic]
       , Start:Int, End:Int
       )
       => substrBytesTotal(Src, Start -Int Addr, End -Int (Addr +Int lengthBytes(Src)))
-      requires Addr <=Int Start andBool Addr +Int lengthBytes(Src) <=Int End
-        andBool #setRangeActuallySets(Addr, Val, lengthBytes(Src))
+      requires Addr <=Int Start andBool End <=Int Addr +Int lengthBytes(Src)
+        andBool definedReplaceAtBytes(M, Addr, Src)
       [simplification]
 
   rule substrBytesTotal(B:Bytes, 0:Int, Len:Int) => B
@@ -640,11 +640,13 @@ module MX-LEMMAS  [symbolic]
       [simplification]
 
   rule substrBytesTotal(Int2Bytes(Size:Int, Val:Int, LE), Start:Int, End:Int)
-      => substrBytesTotal(Int2Bytes(Size - Start, Val >>Int (8 *Int Start), LE), 0, End -Int Start)
+      => substrBytesTotal(Int2Bytes(Size -Int Start, Val >>Int (8 *Int Start), LE), 0, End -Int Start)
       requires 0 <Int Start andBool Start <Int Size
+      [simplification]
   rule substrBytesTotal(Int2Bytes(Size:Int, Val:Int, LE), 0, End:Int)
       => substrBytesTotal(Int2Bytes(End, Val &Int ((1 <<Int (8 *Int End)) -Int 1), LE), 0, End)
       requires 0 <Int End andBool End <Int Size
+      [simplification]
 
   rule substrBytesTotal(A +Bytes B, Start:Int, End:Int)
       => substrBytesTotal(B, Start -Int lengthBytes(A), End -Int lengthBytes(A))
@@ -1079,7 +1081,9 @@ module MX-LEMMAS  [symbolic]
       [simplification, concrete(B, C)]
 
   rule (A &Int B) => A
-      requires A <Int B
+      requires
+          0 <=Int A
+          andBool A <Int B
           andBool (
               B ==Int ((1 <<Int 8) -Int 1)
               orBool B ==Int ((1 <<Int 16) -Int 1)
@@ -1089,14 +1093,17 @@ module MX-LEMMAS  [symbolic]
       [simplification]
   rule (A &Int B) => 0
       requires
-          ( A <Int ((1 <<Int 8) -Int 1)
-            andBool B &Int ((1 <<Int 8) -Int 1) ==Int 0
-          )
-          orBool ( A <Int ((1 <<Int 16) -Int 1)
-            andBool B &Int ((1 <<Int 16) -Int 1) ==Int 0
-          )
-          orBool ( A <Int ((1 <<Int 32) -Int 1)
-            andBool B &Int ((1 <<Int 32) -Int 1) ==Int 0
+          0 <=Int A
+          andBool (
+              ( A <Int ((1 <<Int 8) -Int 1)
+                andBool B &Int ((1 <<Int 8) -Int 1) ==Int 0
+              )
+              orBool ( A <Int ((1 <<Int 16) -Int 1)
+                andBool B &Int ((1 <<Int 16) -Int 1) ==Int 0
+              )
+              orBool ( A <Int ((1 <<Int 32) -Int 1)
+                andBool B &Int ((1 <<Int 32) -Int 1) ==Int 0
+              )
           )
       [simplification]
 
