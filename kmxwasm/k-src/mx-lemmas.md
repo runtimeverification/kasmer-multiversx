@@ -55,21 +55,6 @@ module MX-LEMMAS  [symbolic]
   rule { (< _:IValType > _:Int) #Equals undefined } => #Bottom  [simplification]
   rule { (< _:ValType > _:Int) #Equals undefined } => #Bottom  [simplification]
 
-  rule substrBytesTotal(replaceAtBytesTotal(Dest:Bytes, Index:Int, Src:Bytes), Start:Int, End:Int)
-      => substrBytesTotal(Dest, Start, End)
-      requires (End <=Int Index orBool Index +Int lengthBytes(Src) <=Int Start)
-          andBool definedReplaceAtBytes(Dest, Index, Src)
-      [simplification]
-  rule substrBytesTotal(replaceAtBytesTotal(Dest:Bytes, Index:Int, Src:Bytes), Start:Int, End:Int)
-      => substrBytesTotal(Src, Start -Int Index, End -Int Index)
-      requires Index <=Int Start andBool End <=Int Index +Int lengthBytes(Src)
-          andBool definedReplaceAtBytes(Dest, Index, Src)
-      [simplification]
-  rule substrBytesTotal(B:Bytes, 0:Int, Len:Int) => B
-      requires true
-          andBool Len ==Int lengthBytes(B)
-      [simplification]
-
   rule padRightBytesTotal (B:Bytes, Length:Int, Value:Int) => B
       requires Length <=Int lengthBytes(B)
           andBool definedPadRightBytes(B, Length, Value)
@@ -100,13 +85,37 @@ module MX-LEMMAS  [symbolic]
         andBool RangeStart +Int RangeWidth <=Int Index +Int lengthBytes(Src)
     [simplification]
 
-  rule #getRange(B:Bytes, Start, Width)
-      => #getRange(substrBytes(B, Start, Start +Int Width), 0, Width)
-    requires 0 <=Int Start
-        andBool 0 <=Int Width
-        andBool Start +Int Width <=Int lengthBytes(B)
-        andBool (0 <Int Start orBool Width <Int lengthBytes(B))
-    [simplification(100)]
+  rule #getRange(A +Bytes B, Start, Width)
+      => #getRange(B, Start -Int lengthBytes(A), Width)
+    requires lengthBytes(A) <=Int Start
+    [simplification]
+  rule #getRange(A +Bytes _, Start, Width)
+      => #getRange(A, Start, Width)
+    requires Start <Int lengthBytes(A) andBool Start +Int Width <=Int lengthBytes(A)
+    [simplification]
+  rule #getRange(A +Bytes B, Start, Width)
+      => #splitGetRange(A +Bytes B, Start, lengthBytes(A) -Int Start, Start +Int Width -Int lengthBytes(A))
+    requires Start <Int lengthBytes(A) andBool lengthBytes(A) <Int Start +Int Width
+    [simplification]
+
+  rule #getRange(
+          Int2Bytes(IntWidth:Int, Value:Int, LE),
+          0,
+          RangeWidth:Int
+      )
+    => Value &Int ((1 <<Int (8 *Int RangeWidth)) -Int 1)
+    requires 0 <=Int RangeWidth
+      andBool RangeWidth <=Int IntWidth
+      andBool 0 <=Int Value
+    [simplification]
+
+  // rule #getRange(B:Bytes, Start, Width)
+  //     => #getRange(substrBytes(B, Start, Start +Int Width), 0, Width)
+  //   requires 0 <=Int Start
+  //       andBool 0 <=Int Width
+  //       andBool Start +Int Width <=Int lengthBytes(B)
+  //       andBool (0 <Int Start orBool Width <Int lengthBytes(B))
+  //   [simplification(100)]
 
   rule #getBytesRange(replaceAtBytesTotal(Dest:Bytes, Index:Int, Source:Bytes), Start:Int, Len:Int)
       => #getBytesRange(Dest, Start, Len)
@@ -216,6 +225,248 @@ module MX-LEMMAS  [symbolic]
 
   // ----------------------------------------
 
+  syntax Bytes ::= #splitReplaceAtBytes(Bytes, addr:Int, value:Bytes, width:Int)  [function]
+  rule #splitReplaceAtBytes(M:Bytes, Addr:Int, Value:Bytes, Width:Int)
+      => replaceAtBytesTotal(
+            replaceAtBytesTotal(
+                M, Addr,
+                substrBytes(Value, 0, Width)
+            ),
+            Addr +Int Width,
+            substrBytes(Value, Width, lengthBytes(Value))
+        )
+      requires 0 <Int Width andBool Width <Int lengthBytes(Value)
+
+  rule #setRange(
+          replaceAtBytesTotal(M:Bytes, Addr1:Int, Val1:Bytes),
+          Addr2:Int, Val2:Int, Width2:Int
+      )
+      => replaceAtBytesTotal(
+          #setRange(M, Addr2, Val2, Width2),
+          Addr1, Val1
+      )
+      requires disjontRanges(Addr1, lengthBytes(Val1), Addr2, Width2)
+      [simplification, concrete(Addr2,Val2,Width2), symbolic(Val1)]
+
+  rule #setRange(
+          replaceAtBytesTotal(M:Bytes, Addr1:Int, Val1:Bytes),
+          Addr2:Int, Val2:Int, Width2:Int
+      )
+      => replaceAtBytesTotal(
+          #setRange(M, Addr2, Val2, Width2),
+          Addr1, Val1
+      )
+      requires disjontRanges(Addr1, lengthBytes(Val1), Addr2, Width2)
+        andBool Addr1 <Int Addr2
+      [simplification, symbolic(Val1,Val2)]
+
+  rule #setRange(
+          replaceAtBytesTotal(M:Bytes, Addr1:Int, Val1:Bytes),
+          Addr2:Int, Val2:Int, Width2:Int
+      )
+      => #setRange(M, Addr2, Val2, Width2)
+      requires Addr2 <=Int Addr1
+        andBool Addr1 +Int lengthBytes(Val1) <=Int Addr2 +Int Width2
+        andBool 0 <Int lengthBytes(Val1)
+        andBool #setRangeActuallySets(Addr2, Val2, Width2)
+      [simplification]
+      // TODO: Consider adding rules for when Addr1 or lengthBytes(Val1) are symbolic
+
+  rule #setRange(
+          replaceAtBytesTotal(M:Bytes, Addr1:Int, Val1:Bytes),
+          Addr2:Int, Val2:Int, Width2:Int
+      )
+      => #setRange(
+            #splitReplaceAtBytes(
+                M, Addr1, Val1,
+                Addr2 -Int Addr1
+            ),
+            Addr2, Val2, Width2
+        )
+      requires Addr1 <Int Addr2 andBool Addr2 <Int Addr1 +Int lengthBytes(Val1)
+      [simplification, concrete(Addr2, Addr1, Width2)]
+  rule #setRange(
+          replaceAtBytesTotal(M:Bytes, Addr1:Int, Val1:Bytes),
+          Addr2:Int, Val2:Int, Width2:Int
+      )
+      => #splitSetRange(
+            replaceAtBytesTotal(M, Addr1, Val1),
+            Addr2,
+            Val2,
+            Addr1 -Int Addr2,
+            Width2 -Int (Addr1 -Int Addr2)
+        )
+      requires Addr2 <Int Addr1
+          andBool Addr1 <Int Addr2 +Int Width2
+          andBool Addr2 +Int Width2 <Int Addr1 +Int lengthBytes(Val1)
+      [simplification, concrete(Addr2, Addr1, Width2)]
+
+  rule #setRange(
+          replaceAtBytesTotal(M:Bytes, Addr:Int, Val1:Bytes),
+          Addr:Int, Val2:Int, Width2:Int
+      )
+      => #setRange(
+            #splitReplaceAtBytes(M, Addr, Val1, Width2),
+            Addr, Val2, Width2
+        )
+      requires Width2 <Int lengthBytes(Val1)
+      [simplification, concrete(Width2)]
+
+  // ----------------------------------------
+
+  rule replaceAtBytesTotal(
+          #setRange(M:Bytes, Addr1:Int, Val1:Int, Width1:Int),
+          Addr2:Int, Val2:Bytes
+      )
+      => #setRange(
+          replaceAtBytesTotal(M, Addr2, Val2),
+          Addr1, Val1, Width1
+      )
+      requires disjontRanges(Addr1, Width1, Addr2, lengthBytes(Val2))
+      [simplification, concrete(Addr2,Val2), symbolic(Val1)]
+
+  rule replaceAtBytesTotal(
+          #setRange(M:Bytes, Addr1:Int, Val1:Int, Width1:Int),
+          Addr2:Int, Val2:Bytes
+      )
+      => #setRange(
+          replaceAtBytesTotal(M, Addr2, Val2),
+          Addr1, Val1, Width1
+      )
+      requires disjontRanges(Addr1, Width1, Addr2, lengthBytes(Val2))
+        andBool Addr1 <Int Addr2
+      [simplification, symbolic(Val1,Val2)]
+
+  rule replaceAtBytesTotal(
+          #setRange(M:Bytes, Addr1:Int, _Val1:Int, Width1:Int),
+          Addr2:Int, Val2:Bytes
+      )
+      => replaceAtBytesTotal(M, Addr2, Val2)
+      requires Addr2 <=Int Addr1
+        andBool Addr1 +Int Width1 <=Int Addr2 +Int lengthBytes(Val2)
+        andBool 0 <Int Width1
+        andBool definedReplaceAtBytes(M, Addr2, Val2)
+      [simplification]
+      // TODO: Consider adding rules for when Addr1 or Width1 are symbolic
+
+  rule replaceAtBytesTotal(
+          #setRange(M:Bytes, Addr1:Int, Val1:Int, Width1:Int),
+          Addr2:Int, Val2:Bytes
+      )
+      => replaceAtBytesTotal(
+            #splitSetRange(
+                M, Addr1, Val1,
+                Addr2 -Int Addr1,
+                Width1 -Int (Addr2 -Int Addr1)
+            ),
+            Addr2, Val2
+        )
+      requires Addr1 <Int Addr2 andBool Addr2 <Int Addr1 +Int Width1
+      [simplification, concrete(Addr2, Addr1, Width1)]
+  rule replaceAtBytesTotal(
+          #setRange(M:Bytes, Addr1:Int, Val1:Int, Width1:Int),
+          Addr2:Int, Val2:Bytes
+      )
+      => #splitReplaceAtBytes(
+            #setRange(M, Addr1, Val1, Width1),
+            Addr2,
+            Val2,
+            Addr1 -Int Addr2
+        )
+      requires Addr2 <Int Addr1
+          andBool Addr1 <Int Addr2 +Int lengthBytes(Val2)
+          andBool Addr2 +Int lengthBytes(Val2) <Int Addr1 +Int Width1
+      [simplification, concrete(Addr2, Addr1, Width1)]
+
+  rule replaceAtBytesTotal(
+          #setRange(M:Bytes, Addr:Int, Val1:Int, Width1:Int),
+          Addr:Int, Val2:Bytes
+      )
+      => replaceAtBytesTotal(
+            #splitSetRange(M, Addr, Val1, lengthBytes(Val2), Width1 -Int lengthBytes(Val2)),
+            Addr, Val2
+        )
+      requires lengthBytes(Val2) <Int Width1
+      [simplification, concrete(Width1)]
+
+  // ----------------------------------------
+
+  rule replaceAtBytesTotal(
+          replaceAtBytesTotal(M:Bytes, Addr1:Int, Val1:Bytes),
+          Addr2:Int, Val2:Bytes
+      )
+      => replaceAtBytesTotal(
+          replaceAtBytesTotal(M, Addr2, Val2),
+          Addr1, Val1
+      )
+      requires disjontRanges(Addr1, lengthBytes(Val1), Addr2, lengthBytes(Val2))
+      [simplification, concrete(Addr2,Val2), symbolic(Val1)]
+
+  rule replaceAtBytesTotal(
+          replaceAtBytesTotal(M:Bytes, Addr1:Int, Val1:Bytes),
+          Addr2:Int, Val2:Bytes
+      )
+      => replaceAtBytesTotal(
+          replaceAtBytesTotal(M, Addr2, Val2),
+          Addr1, Val1
+      )
+      requires disjontRanges(Addr1, lengthBytes(Val1), Addr2, lengthBytes(Val2))
+        andBool Addr1 <Int Addr2
+      [simplification, symbolic(Val1,Val2)]
+
+  rule replaceAtBytesTotal(
+          replaceAtBytesTotal(M:Bytes, Addr1:Int, Val1:Bytes),
+          Addr2:Int, Val2:Bytes
+      )
+      => replaceAtBytesTotal(M, Addr2, Val2)
+      requires Addr2 <=Int Addr1
+        andBool Addr1 +Int lengthBytes(Val1) <=Int Addr2 +Int lengthBytes(Val2)
+        andBool 0 <Int lengthBytes(Val1)
+        andBool definedReplaceAtBytes(M, Addr2, Val2)
+      [simplification]
+      // TODO: Consider adding rules for when Addr1 or Width1 are symbolic
+
+  rule replaceAtBytesTotal(
+          replaceAtBytesTotal(M:Bytes, Addr1:Int, Val1:Bytes),
+          Addr2:Int, Val2:Bytes
+      )
+      => replaceAtBytesTotal(
+            #splitReplaceAtBytes(
+                M, Addr1, Val1,
+                Addr2 -Int Addr1
+            ),
+            Addr2, Val2
+        )
+      requires Addr1 <Int Addr2 andBool Addr2 <Int Addr1 +Int lengthBytes(Val1)
+      [simplification, concrete(Addr2, Addr1)]
+  rule replaceAtBytesTotal(
+          replaceAtBytesTotal(M:Bytes, Addr1:Int, Val1:Bytes),
+          Addr2:Int, Val2:Bytes
+      )
+      => #splitReplaceAtBytes(
+            replaceAtBytesTotal(M, Addr1, Val1),
+            Addr2,
+            Val2,
+            Addr1 -Int Addr2
+        )
+      requires Addr2 <Int Addr1
+          andBool Addr1 <Int Addr2 +Int lengthBytes(Val2)
+          andBool Addr2 +Int lengthBytes(Val2) <Int Addr1 +Int lengthBytes(Val1)
+      [simplification, concrete(Addr2, Addr1)]
+
+  rule replaceAtBytesTotal(
+          replaceAtBytesTotal(M:Bytes, Addr:Int, Val1:Bytes),
+          Addr:Int, Val2:Bytes
+      )
+      => replaceAtBytesTotal(
+            #splitReplaceAtBytes(M, Addr, Val1, lengthBytes(Val2)),
+            Addr, Val2
+        )
+      requires lengthBytes(Val2) <Int lengthBytes(Val1)
+      [simplification]
+
+  // ----------------------------------------
+
   syntax Int ::= #splitGetRange(Bytes, addr:Int, width:Int, additionalwidth:Int)  [function]
   rule #splitGetRange(M:Bytes, Addr:Int, Width:Int, AdditionalWidth:Int)
       => #getRange(M, Addr, Width)
@@ -318,6 +569,10 @@ module MX-LEMMAS  [symbolic]
     requires notBool (#setRangeActuallySets(Addr, Val, Width))
       [simplification]
 
+  syntax Bytes ::= splitSubstrBytesTotal(Bytes, start:Int, middle: Int, end:Int)  [function]
+  rule splitSubstrBytesTotal(M:Bytes, Start:Int, Middle:Int, End:Int)
+      => substrBytesTotal(M, Start, Middle) +Bytes substrBytesTotal(M, Middle, End)
+
   rule substrBytesTotal(
       #setRange(M:Bytes, Addr:Int, _Val:Int, Width:Int),
       Start:Int, End:Int)
@@ -326,38 +581,71 @@ module MX-LEMMAS  [symbolic]
         andBool definedSubstrBytes(M, Start, End)
     [simplification]
   rule substrBytesTotal(
-      #setRange(_M:Bytes, Addr:Int, Val:Int, Width:Int),
-      Addr:Int, End:Int)
-    => Int2Bytes(Width, Val, LE)
-    requires End ==Int Addr +Int Width
-        andBool #setRangeActuallySets(Addr, Val, Width)
-    [simplification]
-  rule substrBytesTotal(
-      #setRange(M:Bytes, Addr:Int, Val:Int, Width:Int)
-      , Addr:Int, End:Int
-      )
-    => substrBytesTotal(Int2Bytes(Width, Val, LE), 0, End -Int Addr)
-    requires End <Int Addr +Int Width
-        andBool #setRangeActuallySets(Addr, Val, Width)
-        andBool definedSubstrBytes(#setRange(M:Bytes, Addr:Int, Val:Int, Width:Int), Addr, End)
-      [simplification]
-  rule substrBytesTotal(
-      #setRange(M:Bytes, Addr:Int, Val:Int, Width:Int)
-      , Addr:Int, End:Int
-      )
-    => Int2Bytes(Width, Val, LE) +Bytes substrBytesTotal(M, Addr +Int Width, End)
-    requires Addr +Int Width <Int End
-        andBool #setRangeActuallySets(Addr, Val, Width)
-        andBool definedSubstrBytes(#setRange(M:Bytes, Addr:Int, Val:Int, Width:Int), Addr, End)
-      [simplification]
-  rule substrBytesTotal(
-      #setRange(M:Bytes, Addr:Int, Val:Int, Width:Int)
+      #setRange(_M:Bytes, Addr:Int, _Val:Int, _Width:Int) #as SR:Bytes
       , Start:Int, End:Int
       )
-      => substrBytesTotal(M, Start, Addr)
-        +Bytes substrBytesTotal(#setRange(M, Addr, Val, Width), Addr, End)
+      => splitSubstrBytesTotal(SR, Start, Addr, End)
       requires Start <Int Addr andBool Addr <Int End
-          andBool definedSubstrBytes(#setRange(M:Bytes, Addr:Int, Val:Int, Width:Int), Start, End)
+      [simplification]
+  rule substrBytesTotal(
+      #setRange(_M:Bytes, Addr:Int, _Val:Int, Width:Int) #as SR:Bytes
+      , Start:Int, End:Int
+      )
+      => splitSubstrBytesTotal(SR, Start, Addr +Int Width, End)
+      requires Start <Int Addr +Int Width andBool Addr +Int Width <Int End
+      [simplification]
+  rule substrBytesTotal(
+      #setRange(_M:Bytes, Addr:Int, Val:Int, Width:Int)
+      , Start:Int, End:Int
+      )
+      => substrBytesTotal(Int2Bytes(Width, Val, LE), Start -Int Addr, End -Int Addr)
+      requires Addr <=Int Start andBool End <=Int Addr +Int Width
+        andBool #setRangeActuallySets(Addr, Val, Width)
+      [simplification]
+
+  rule substrBytesTotal(
+      replaceAtBytesTotal(M:Bytes, Addr:Int, Src:Bytes),
+      Start:Int, End:Int)
+    => substrBytesTotal(M, Start, End)
+    requires disjontRanges(Addr, lengthBytes(Src), Start, End -Int Start)
+        andBool definedSubstrBytes(M, Start, End)
+    [simplification]
+  rule substrBytesTotal(
+      replaceAtBytesTotal(_M:Bytes, Addr:Int, _Src:Bytes) #as SR:Bytes
+      , Start:Int, End:Int
+      )
+      => splitSubstrBytesTotal(SR, Start, Addr, End)
+      requires Start <Int Addr andBool Addr <Int End
+      [simplification]
+  rule substrBytesTotal(
+      replaceAtBytesTotal(_M:Bytes, Addr:Int, Src:Bytes) #as SR:Bytes
+      , Start:Int, End:Int
+      )
+      => splitSubstrBytesTotal(SR, Start, Addr +Int lengthBytes(Src), End)
+      requires Start <Int Addr +Int lengthBytes(Src)
+        andBool Addr +Int lengthBytes(Src) <Int End
+      [simplification]
+  rule substrBytesTotal(
+      replaceAtBytesTotal(M:Bytes, Addr:Int, Src:Bytes)
+      , Start:Int, End:Int
+      )
+      => substrBytesTotal(Src, Start -Int Addr, End -Int (Addr +Int lengthBytes(Src)))
+      requires Addr <=Int Start andBool End <=Int Addr +Int lengthBytes(Src)
+        andBool definedReplaceAtBytes(M, Addr, Src)
+      [simplification]
+
+  rule substrBytesTotal(B:Bytes, 0:Int, Len:Int) => B
+      requires true
+          andBool Len ==Int lengthBytes(B)
+      [simplification]
+
+  rule substrBytesTotal(Int2Bytes(Size:Int, Val:Int, LE), Start:Int, End:Int)
+      => substrBytesTotal(Int2Bytes(Size -Int Start, Val >>Int (8 *Int Start), LE), 0, End -Int Start)
+      requires 0 <Int Start andBool Start <Int Size
+      [simplification]
+  rule substrBytesTotal(Int2Bytes(Size:Int, Val:Int, LE), 0, End:Int)
+      => substrBytesTotal(Int2Bytes(End, Val &Int ((1 <<Int (8 *Int End)) -Int 1), LE), 0, End)
+      requires 0 <Int End andBool End <Int Size
       [simplification]
 
   rule substrBytesTotal(A +Bytes B, Start:Int, End:Int)
@@ -642,12 +930,35 @@ module MX-LEMMAS  [symbolic]
           andBool 0 <=Int A
           andBool B <=Int 32
       [simplification, concrete(B)]
+  rule (A <<IntTotal B) modIntTotal M
+        => (A <<IntTotal B) &Int (M -Int 1)
+      requires M ==Int 1 <<Int 64
+          andBool 0 <=Int A
+          andBool B <=Int 64
+      [simplification, concrete(B)]
   rule (A <<IntTotal B) &Int M
         => (A &Int ((1 <<Int (32 -Int B)) -Int 1)) <<IntTotal B
       requires M ==Int (1 <<Int 32) -Int 1
           andBool 0 <=Int A
           andBool B <=Int 32
       [simplification, concrete(B)]
+  rule (A <<IntTotal B) &Int M
+        => (A &Int ((1 <<Int (64 -Int B)) -Int 1)) <<IntTotal B
+      requires M ==Int (1 <<Int 64) -Int 1
+          andBool 0 <=Int A
+          andBool B <=Int 64
+      [simplification, concrete(B)]
+
+  rule (A <<IntTotal B) &Int M => 0
+      requires 0 <Int M
+          andBool M <Int (1 <<Int B)
+          andBool 0 <=Int A
+      [simplification, concrete(B)]
+
+  rule (A &Int B) >>IntTotal C
+      => (A >>IntTotal C) &Int (B >>IntTotal C)
+      requires definedShlInt(A &Int B, C)
+      [simplification, concrete(B, C)]
   rule ((A &Int B) <<IntTotal C) &Int D
       => (A &Int (B &Int (D >>IntTotal C))) <<IntTotal C
       requires 0 <=Int D andBool 0 <=Int A
@@ -663,8 +974,19 @@ module MX-LEMMAS  [symbolic]
           andBool definedShrInt(B, C)
       [simplification]
 
+  rule (A <<IntTotal B) <<IntTotal C => A <<IntTotal (B +Int C)
+      requires 0 <=Int B andBool 0 <=Int C
+      [simplification]
+  rule (A >>IntTotal B) >>IntTotal C => A >>IntTotal (B +Int C)
+      requires 0 <=Int B andBool 0 <=Int C
+      [simplification]
   rule (A <<IntTotal B) >>IntTotal C => A <<IntTotal (B -Int C)
       requires C <=Int B andBool 0 <=Int C
+          andBool definedShlInt(A, B)
+          andBool definedShrInt(A, C)
+      [simplification]
+  rule (A <<IntTotal B) >>IntTotal C => A >>IntTotal (C -Int B)
+      requires B <=Int C andBool 0 <=Int B
           andBool definedShlInt(A, B)
           andBool definedShrInt(A, C)
       [simplification]
@@ -672,6 +994,11 @@ module MX-LEMMAS  [symbolic]
   rule (A |Int B) modIntTotal M => (A |Int B) &Int (M -Int 1)
       requires 0 <=Int A andBool 0 <=Int B
         andBool M ==Int 1 <<Int 32
+      [simplification]
+
+  rule (A |Int B) modIntTotal M => (A |Int B) &Int (M -Int 1)
+      requires 0 <=Int A andBool 0 <=Int B
+        andBool M ==Int 1 <<Int 64
       [simplification]
 
   rule (A |Int B) &Int C => (A &Int C) |Int (B &Int C)
@@ -753,6 +1080,32 @@ module MX-LEMMAS  [symbolic]
           andBool definedShrInt(A, B)
       [simplification, concrete(B, C)]
 
+  rule (A &Int B) => A
+      requires
+          0 <=Int A
+          andBool A <Int B
+          andBool (
+              B ==Int ((1 <<Int 8) -Int 1)
+              orBool B ==Int ((1 <<Int 16) -Int 1)
+              orBool B ==Int ((1 <<Int 32) -Int 1)
+              orBool B ==Int ((1 <<Int 64) -Int 1)
+          )
+      [simplification]
+  rule (A &Int B) => 0
+      requires
+          0 <=Int A
+          andBool (
+              ( A <Int ((1 <<Int 8) -Int 1)
+                andBool B &Int ((1 <<Int 8) -Int 1) ==Int 0
+              )
+              orBool ( A <Int ((1 <<Int 16) -Int 1)
+                andBool B &Int ((1 <<Int 16) -Int 1) ==Int 0
+              )
+              orBool ( A <Int ((1 <<Int 32) -Int 1)
+                andBool B &Int ((1 <<Int 32) -Int 1) ==Int 0
+              )
+          )
+      [simplification]
 
   rule A &Int B => B &Int A
       [simplification, concrete(A), symbolic(B)]
