@@ -18,6 +18,10 @@ backend='haskell'
 main-file = 'lemmas/semantics/mx-wasm-lemma-proofs.md'
 backend='haskell'
 
+[targets.lemma-tests]
+main-file = 'lemmas/semantics/mx-wasm-lemma-tests.md'
+backend='haskell'
+
 [targets.llvm-library]
 llvm-kompile-type='c'
 main-file = 'mx-wasm.md'

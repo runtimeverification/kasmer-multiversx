@@ -41,7 +41,10 @@ test-lemmas-not-changed: lemmas
 
 # TODO: make separate targets for these so that they can run in parallel.
 test-proofs: lemmas
-	$(POETRY_RUN) pytest src/tests/proofs --maxfail=1 --verbose --durations=0 --numprocesses=4 --dist=worksteal $(TEST_ARGS)
+	$(POETRY_RUN) pytest src/tests/proofs/ --maxfail=1 --verbose --durations=0 --numprocesses=4 --dist=worksteal $(TEST_ARGS)
+
+test-lemmas-unit: lemmas
+	$(POETRY_RUN) pytest src/tests/lemma_unittests --maxfail=1 --verbose --durations=0 --numprocesses=4 --dist=worksteal $(TEST_ARGS)
 
 # Coverage
 
