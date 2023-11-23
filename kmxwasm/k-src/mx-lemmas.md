@@ -85,17 +85,31 @@ module MX-LEMMAS  [symbolic]
         andBool RangeStart +Int RangeWidth <=Int Index +Int lengthBytes(Src)
     [simplification]
 
-  rule #getRange((SBChunk(_) #as A:SparseBytes) B:SparseBytes, Start, Width)
-      => #getRange(B, Start -Int size(A), Width)
-    requires size(A) <=Int Start
+  rule #getRange(SBChunk(A:SBItem) B:SparseBytes, Start, Width)
+      => #getRange(B, Start -Int size(SBChunk(A)), Width)
+    requires size(SBChunk(A)) <=Int Start
     [simplification]
-  rule #getRange((SBChunk(_) #as A:SparseBytes)_B:SparseBytes, Start, Width)
-      => #getRange(A, Start, Width)
-    requires Start <Int size(A) andBool Start +Int Width <=Int size(A)
+  rule #getRange(SBChunk(A:SBItem) _B:SparseBytes, Start, Width)
+      => #getRange(SBChunk(A), Start, Width)
+    requires Start <Int size(SBChunk(A)) andBool Start +Int Width <=Int size(SBChunk(A))
     [simplification]
-  rule #getRange((SBChunk(_) #as A:SparseBytes) B:SparseBytes, Start, Width)
-      => #splitGetRange(A B, Start, size(A) -Int Start, Start +Int Width -Int size(A))
-    requires Start <Int size(A) andBool size(A) <Int Start +Int Width
+  rule #getRange(SBChunk(A:SBItem) B:SparseBytes, Start, Width)
+      => #splitGetRange(SBChunk(A) B, Start, size(SBChunk(A)) -Int Start, Start +Int Width -Int size(SBChunk(A)))
+    requires Start <Int size(SBChunk(A)) andBool size(SBChunk(A)) <Int Start +Int Width
+    [simplification]
+
+  // For some random reason, this does not work with the Haskell backend.
+  // My guess is that the
+  // function(constructor(constructor(function(var, var))), var, var)
+  // pattern is not handled by the backend.
+  //
+  // rule #getRange(SBChunk(#bytes(A +Bytes B)), Start:Int, Width:Int)
+  //     => #getRange(SBChunk(#bytes(A)) SBChunk(#bytes(B)), Start, Width)
+  //   [simplification]
+  rule #getRange(SBChunk(#bytes(A:Bytes)), Start:Int, Width:Int)
+      => Bytes2Int(substrBytes(A:Bytes, Start, Start +Int Width), LE, Unsigned)
+      requires 0 <=Int Start andBool 0 <=Int Width
+          andBool Start +Int Width <=Int lengthBytes(A)
     [simplification]
 
   rule #getRange(
@@ -116,11 +130,11 @@ module MX-LEMMAS  [symbolic]
         andBool 0 <=Int Index
       [simplification]
   rule #getRange(
-          replaceAt(_Dest:SparseBytes, Index:Int, _Source:Bytes) #as SB:SparseBytes,
+          replaceAt(Dest:SparseBytes, Index:Int, Source:Bytes),
           Start:Int, Len:Int
       )
       => #splitGetRange(
-            SB,
+            replaceAt(Dest, Index, Source),
             Start,
             Index -Int Start,
             Start +Int Len -Int Index
@@ -130,11 +144,11 @@ module MX-LEMMAS  [symbolic]
         andBool 0 <=Int Index
       [simplification]
   rule #getRange(
-          replaceAt(_Dest:SparseBytes, Index:Int, Source:Bytes) #as SB:SparseBytes,
+          replaceAt(Dest:SparseBytes, Index:Int, Source:Bytes),
           Start:Int, Len:Int
       )
       => #splitGetRange(
-            SB,
+            replaceAt(Dest, Index, Source),
             Start,
             Index +Int lengthBytes (Source) -Int Start,
             Start +Int Len -Int (Index +Int lengthBytes (Source))
@@ -632,9 +646,9 @@ module MX-LEMMAS  [symbolic]
       // Implied: 0 <=Int Start
     [simplification]
   rule substrSparseBytes(
-      #setRange(M:SparseBytes, Addr:Int, _Val:Int, Width:Int) #as SR:SparseBytes,
+      #setRange(M:SparseBytes, Addr:Int, Val:Int, Width:Int),
       Start:Int, End:Int)
-    => splitSubstrSparseBytes(SR, Start, size(M), End)
+    => splitSubstrSparseBytes(#setRange(M, Addr, Val, Width), Start, size(M), End)
     requires disjontRanges(Addr, Width, Start, End -Int Start)
       andBool size(M) <Int Addr
       andBool size(M) <Int End
@@ -643,17 +657,17 @@ module MX-LEMMAS  [symbolic]
       // Implied: andBool Start <=Int End
     [simplification]
   rule substrSparseBytes(
-      #setRange(_M:SparseBytes, Addr:Int, _Val:Int, _Width:Int) #as SR:SparseBytes
+      #setRange(M:SparseBytes, Addr:Int, Val:Int, Width:Int)
       , Start:Int, End:Int
       )
-      => splitSubstrSparseBytes(SR, Start, Addr, End)
+      => splitSubstrSparseBytes(#setRange(M, Addr, Val, Width), Start, Addr, End)
       requires Start <Int Addr andBool Addr <Int End
       [simplification]
   rule substrSparseBytes(
-      #setRange(_M:SparseBytes, Addr:Int, _Val:Int, Width:Int) #as SR:SparseBytes
+      #setRange(M:SparseBytes, Addr:Int, Val:Int, Width:Int)
       , Start:Int, End:Int
       )
-      => splitSubstrSparseBytes(SR, Start, Addr +Int Width, End)
+      => splitSubstrSparseBytes(#setRange(M, Addr, Val, Width), Start, Addr +Int Width, End)
       requires Start <Int Addr +Int Width andBool Addr +Int Width <Int End
       [simplification]
   rule substrSparseBytes(
@@ -691,9 +705,9 @@ module MX-LEMMAS  [symbolic]
       // Implied: 0 <=Int Start
     [simplification]
   rule substrSparseBytes(
-      replaceAt(M:SparseBytes, Addr:Int, Src:Bytes) #as SR:SparseBytes,
+      replaceAt(M:SparseBytes, Addr:Int, Src:Bytes),
       Start:Int, End:Int)
-    => splitSubstrSparseBytes(SR, Start, size(M), End)
+    => splitSubstrSparseBytes(replaceAt(M, Addr, Src), Start, size(M), End)
     requires disjontRanges(Addr, lengthBytes(Src), Start, End -Int Start)
       andBool size(M) <Int Addr
       andBool size(M) <Int End
@@ -702,18 +716,18 @@ module MX-LEMMAS  [symbolic]
       // Implied: Start <=Int End
     [simplification]
   rule substrSparseBytes(
-      replaceAt(_M:SparseBytes, Addr:Int, _Src:Bytes) #as SR:SparseBytes
+      replaceAt(M:SparseBytes, Addr:Int, Src:Bytes)
       , Start:Int, End:Int
       )
-      => splitSubstrSparseBytes(SR, Start, Addr, End)
+      => splitSubstrSparseBytes(replaceAt(M, Addr, Src), Start, Addr, End)
       requires Start <Int Addr andBool Addr <Int End
         andBool 0 <=Int Start
       [simplification]
   rule substrSparseBytes(
-      replaceAt(_M:SparseBytes, Addr:Int, Src:Bytes) #as SR:SparseBytes
+      replaceAt(M:SparseBytes, Addr:Int, Src:Bytes)
       , Start:Int, End:Int
       )
-      => splitSubstrSparseBytes(SR, Start, Addr +Int lengthBytes(Src), End)
+      => splitSubstrSparseBytes(replaceAt(M, Addr, Src), Start, Addr +Int lengthBytes(Src), End)
       requires Start <Int Addr +Int lengthBytes(Src)
         andBool Addr +Int lengthBytes(Src) <Int End
         andBool 0 <=Int Addr
@@ -757,6 +771,18 @@ module MX-LEMMAS  [symbolic]
           andBool size(A) <Int End
       [simplification]
 
+  rule substrBytesTotal(A:Bytes +Bytes B:Bytes, Start:Int, End:Int)
+      => substrBytesTotal(A, Start, End)
+      requires End <=Int lengthBytes(A)
+      [simplification]
+  rule substrBytesTotal(A:Bytes +Bytes B:Bytes, Start:Int, End:Int)
+      => substrBytesTotal(B, Start, End)
+      requires lengthBytes(A) <=Int Start
+      [simplification]
+  rule substrBytesTotal(A:Bytes +Bytes B:Bytes, Start:Int, End:Int)
+      => substrBytesTotal(A, Start, lengthBytes(A)) +Bytes substrBytesTotal(B, 0, End)
+      requires Start <Int lengthBytes(A) andBool lengthBytes(A) <Int End
+      [simplification]
   rule substrBytesTotal(B:Bytes, 0:Int, Len:Int) => B
       requires true
         andBool Len ==Int lengthBytes(B)
