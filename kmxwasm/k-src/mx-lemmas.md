@@ -85,15 +85,15 @@ module MX-LEMMAS  [symbolic]
         andBool RangeStart +Int RangeWidth <=Int Index +Int lengthBytes(Src)
     [simplification]
 
-  rule #getRange(A:SparseBytes B:SparseBytes, Start, Width)
+  rule #getRange((SBChunk(_) #as A:SparseBytes) B:SparseBytes, Start, Width)
       => #getRange(B, Start -Int size(A), Width)
     requires size(A) <=Int Start
     [simplification]
-  rule #getRange(A:SparseBytes_B:SparseBytes, Start, Width)
+  rule #getRange((SBChunk(_) #as A:SparseBytes)_B:SparseBytes, Start, Width)
       => #getRange(A, Start, Width)
     requires Start <Int size(A) andBool Start +Int Width <=Int size(A)
     [simplification]
-  rule #getRange(A:SparseBytes B:SparseBytes, Start, Width)
+  rule #getRange((SBChunk(_) #as A:SparseBytes) B:SparseBytes, Start, Width)
       => #splitGetRange(A B, Start, size(A) -Int Start, Start +Int Width -Int size(A))
     requires Start <Int size(A) andBool size(A) <Int Start +Int Width
     [simplification]
@@ -755,6 +755,11 @@ module MX-LEMMAS  [symbolic]
         substrSparseBytes(B, 0, End -Int size(A))
       requires Start <Int size(A)
           andBool size(A) <Int End
+      [simplification]
+
+  rule substrBytesTotal(B:Bytes, 0:Int, Len:Int) => B
+      requires true
+        andBool Len ==Int lengthBytes(B)
       [simplification]
 
   syntax Bool ::= #setRangeActuallySets(addr:Int, val:Int, width:Int)  [function, total]
