@@ -37,8 +37,7 @@ test-integration: poetry-install
 	$(POETRY_RUN) pytest src/tests/integration --maxfail=1 --verbose --durations=0 --numprocesses=1 --dist=worksteal $(TEST_ARGS)
 
 test-lemmas-not-changed: lemmas
-	git status --porcelain
-	git status --porcelain | grep -v .
+	! git status --porcelain | grep -v .
 
 # TODO: make separate targets for these so that they can run in parallel.
 test-lemmas: lemmas lemmas-kompiled
