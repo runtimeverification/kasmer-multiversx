@@ -13,6 +13,11 @@ tmp
 kore-*.tar.gz
 bug-report.tar
 
+.bash_logout
+.bashrc
+.profile
+.local/
+
 # User-specific files
 *.rsuser
 *.suo
