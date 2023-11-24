@@ -771,7 +771,7 @@ module MX-LEMMAS  [symbolic]
           andBool size(A) <Int End
       [simplification]
 
-  rule substrBytesTotal(A:Bytes +Bytes B:Bytes, Start:Int, End:Int)
+  rule substrBytesTotal(A:Bytes +Bytes _B:Bytes, Start:Int, End:Int)
       => substrBytesTotal(A, Start, End)
       requires End <=Int lengthBytes(A)
       [simplification]
