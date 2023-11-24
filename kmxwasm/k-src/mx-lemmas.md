@@ -736,7 +736,7 @@ module MX-LEMMAS  [symbolic]
       replaceAt(_M:SparseBytes, Addr:Int, Src:Bytes)
       , Start:Int, End:Int
       )
-      => SBChunk(#bytes(substrBytes(Src, Start -Int Addr, End -Int (Addr +Int lengthBytes(Src)))))
+      => SBChunk(#bytes(substrBytes(Src, Start -Int Addr, End -Int Addr)))
       requires Addr <=Int Start andBool End <=Int Addr +Int lengthBytes(Src)
         andBool 0 <=Int Addr
         andBool Start <=Int End
@@ -776,11 +776,11 @@ module MX-LEMMAS  [symbolic]
       requires End <=Int lengthBytes(A)
       [simplification]
   rule substrBytesTotal(A:Bytes +Bytes B:Bytes, Start:Int, End:Int)
-      => substrBytesTotal(B, Start, End)
+      => substrBytesTotal(B, Start -Int lengthBytes(A), End -Int lengthBytes(A))
       requires lengthBytes(A) <=Int Start
       [simplification]
   rule substrBytesTotal(A:Bytes +Bytes B:Bytes, Start:Int, End:Int)
-      => substrBytesTotal(A, Start, lengthBytes(A)) +Bytes substrBytesTotal(B, 0, End)
+      => substrBytesTotal(A, Start, lengthBytes(A)) +Bytes substrBytesTotal(B, 0, End -Int lengthBytes(A))
       requires Start <Int lengthBytes(A) andBool lengthBytes(A) <Int End
       [simplification]
   rule substrBytesTotal(B:Bytes, 0:Int, Len:Int) => B
