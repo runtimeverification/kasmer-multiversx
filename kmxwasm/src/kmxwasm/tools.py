@@ -14,7 +14,7 @@ from pyk.ktool.krun import KRunOutput, _krun
 from pyk.prelude.k import GENERATED_TOP_CELL
 from pyk.utils import BugReport
 
-USE_BUG_REPORT = False
+# USE_BUG_REPORT = False
 
 
 class Tools:
@@ -23,11 +23,13 @@ class Tools:
         definition_dir: Path,
         llvm_definition_dir: Path | None,
         llvm_library_definition_dir: Path | None,
+        bug_report: BugReport | None,
         booster: bool,
     ) -> None:
         self.__definition_dir = definition_dir
         self.__llvm_definition_dir = llvm_definition_dir
         self.__llvm_library_definition_dir = llvm_library_definition_dir
+        self.__bug_report = bug_report
         self.__booster = booster
         self.__kprove: Optional[KProve] = None
         self.__explorer: Optional[KCFGExplore] = None
@@ -59,9 +61,6 @@ class Tools:
 
     @property
     def explorer(self) -> KCFGExplore:
-        bug_report = None
-        if USE_BUG_REPORT:
-            bug_report = BugReport(Path('bug-report'))
         if not self.__kore_server:
             if self.__kore_client:
                 raise RuntimeError('Non-null KoreClient with null KoreServer.')
@@ -73,17 +72,18 @@ class Tools:
                     self.printer.main_module,
                     command=('kore-rpc-booster'),
                     # command=('kore-rpc-booster', '-l', 'Rewrite'),
-                    bug_report=bug_report
+                    bug_report=self.__bug_report
                     # port=39425,
                 )
             else:
                 self.__kore_server = KoreServer(
                     self.__definition_dir,
                     self.printer.main_module,
+                    bug_report=self.__bug_report
                     # port=39425,
                 )
         if not self.__kore_client:
-            self.__kore_client = KoreClient('localhost', self.__kore_server.port, bug_report=bug_report)
+            self.__kore_client = KoreClient('localhost', self.__kore_server.port, bug_report=self.__bug_report)
 
         if not self.__explorer:
             self.__explorer = KCFGExplore(self.printer, self.__kore_client)

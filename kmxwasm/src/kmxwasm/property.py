@@ -5,12 +5,14 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+import pyk.cli.args
 from pyk.cterm import CTerm
 from pyk.kast.inner import KApply, KInner, KSequence, KVariable
 from pyk.kcfg import KCFG
 from pyk.kcfg.show import KCFGShow
 from pyk.kore.rpc import KoreClientError
 from pyk.prelude.utils import token
+from pyk.utils import BugReport
 
 from .ast.mx import (
     instrs_cell_contents,
@@ -59,10 +61,15 @@ class RunClaim(Action):
     run_node_id: int | None
     depth: int
     kcfg_path: Path
+    bug_report: BugReport | None
 
     def run(self) -> None:
         with kbuild_semantics(
-            output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL, booster=self.booster
+            output_dir=KBUILD_DIR,
+            config_file=KBUILD_ML_PATH,
+            target=HASKELL,
+            booster=self.booster,
+            bug_report=self.bug_report,
         ) as tools:
             t = Timer('Loading the claim')
             if self.is_k:
@@ -192,10 +199,15 @@ class BisectAfter(Action):
     node_id: int
     kcfg_path: Path
     booster: bool
+    bug_report: BugReport | None
 
     def run(self) -> None:
         with kbuild_semantics(
-            output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL, booster=self.booster
+            output_dir=KBUILD_DIR,
+            config_file=KBUILD_ML_PATH,
+            target=HASKELL,
+            booster=self.booster,
+            bug_report=self.bug_report,
         ) as tools:
             t = Timer('Loading kcfg')
             kcfg = load_json_kcfg(self.kcfg_path)
@@ -337,6 +349,7 @@ class Profile(Action):
     depth: int
     kcfg_path: Path
     booster: bool
+    bug_report: BugReport | None
     instruction_name: str
 
     def run(self) -> None:
@@ -354,7 +367,11 @@ class Profile(Action):
                 )
                 break
         with kbuild_semantics(
-            output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL, booster=self.booster
+            output_dir=KBUILD_DIR,
+            config_file=KBUILD_ML_PATH,
+            target=HASKELL,
+            booster=self.booster,
+            bug_report=self.bug_report,
         ) as tools:
             t = Timer('Loading kcfg')
             kcfg = load_json_kcfg(self.kcfg_path)
@@ -453,7 +470,7 @@ class ShowNode(Action):
 
     def run(self) -> None:
         with kbuild_semantics(
-            output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL, booster=self.booster
+            output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL, booster=self.booster, bug_report=None
         ) as tools:
             t = Timer('Loading kcfg')
             kcfg = load_json_kcfg(self.kcfg_path)
@@ -473,7 +490,7 @@ class Tree(Action):
 
     def run(self) -> None:
         with kbuild_semantics(
-            output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL, booster=self.booster
+            output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL, booster=self.booster, bug_report=None
         ) as tools:
             t = Timer('Loading kcfg')
             kcfg = load_json_kcfg(self.kcfg_path)
@@ -581,13 +598,18 @@ def read_flags() -> Action:
         default='nop',
         help='Which instruction to profile.',
     )
+    parser.add_argument(
+        '--bug-report',
+        type=pyk.cli.args.bug_report_arg,
+        help='Generate bug report with given name',
+    )
     args = parser.parse_args()
     if args.show_node is not None:
         return ShowNode(args.show_node, Path(args.kcfg), booster=args.booster)
     if args.tree:
         return Tree(Path(args.kcfg), booster=args.booster)
     if args.bisect_after:
-        return BisectAfter(args.bisect_after, Path(args.kcfg), booster=args.booster)
+        return BisectAfter(args.bisect_after, Path(args.kcfg), booster=args.booster, bug_report=args.bug_report)
     if args.simplify_before:
         return SimplifyBefore(args.simplify_before, Path(args.kcfg))
 
@@ -602,6 +624,7 @@ def read_flags() -> Action:
             depth=args.step,
             kcfg_path=Path(args.kcfg),
             booster=args.booster,
+            bug_report=args.bug_report,
             instruction_name=args.profile_instruction,
         )
 
@@ -625,6 +648,7 @@ def read_flags() -> Action:
         depth=args.step,
         kcfg_path=Path(args.kcfg),
         booster=args.booster,
+        bug_report=args.bug_report,
     )
 
 
