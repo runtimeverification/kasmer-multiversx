@@ -30,11 +30,11 @@ jobs:
       #   run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm kbuild-llvm
       - name: 'Build Haskell semantics'
         run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm kbuild-haskell
-      - name: 'Check lemmas are generated'
+      - name: 'Check lemmas are up to date'
         run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-lemmas-not-changed
       - name: 'Run integration tests'
         run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-integration
-      - name: 'Check lemmas'
+      - name: 'Prove lemmas'
         run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-lemmas
       - name: 'Tear down Docker'
         if: always()
