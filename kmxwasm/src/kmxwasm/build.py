@@ -2,6 +2,7 @@ from pathlib import Path
 
 from pyk.kbuild.kbuild import KBuild
 from pyk.kbuild.project import Project
+from pyk.utils import BugReport
 
 from .timing import Timer
 from .tools import Tools
@@ -12,7 +13,9 @@ LLVM_LIBRARY = 'llvm-library'
 LEMMA_PROOFS = 'lemma-proofs'
 
 
-def kbuild_semantics(output_dir: Path, config_file: Path, target: str, booster: bool) -> Tools:
+def kbuild_semantics(
+    output_dir: Path, config_file: Path, target: str, booster: bool, bug_report: BugReport | None
+) -> Tools:
     kbuild = KBuild(output_dir)
     package = Project.load(config_file)
 
@@ -34,4 +37,5 @@ def kbuild_semantics(output_dir: Path, config_file: Path, target: str, booster: 
         llvm_definition_dir=kbuild.definition_dir(package, LLVM),
         llvm_library_definition_dir=kbuild.definition_dir(package, LLVM_LIBRARY) if booster else None,
         booster=booster,
+        bug_report=bug_report,
     )
