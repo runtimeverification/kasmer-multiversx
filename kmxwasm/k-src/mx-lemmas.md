@@ -771,6 +771,14 @@ module MX-LEMMAS  [symbolic]
           andBool size(A) <Int End
       [simplification]
 
+  rule substrBytesTotal(Int2Bytes(Size:Int, Value:Int, LE), Start:Int, End:Int)
+      => Int2Bytes(
+          End -Int Start,
+          (Value >>Int (8 *Int Start)),
+          LE
+      )
+      requires 0 <=Int Start andBool Start <=Int End andBool End <=Int Size
+      [simplification]
   rule substrBytesTotal(A:Bytes +Bytes _B:Bytes, Start:Int, End:Int)
       => substrBytesTotal(A, Start, End)
       requires End <=Int lengthBytes(A)
@@ -933,6 +941,9 @@ module MX-LEMMAS  [symbolic]
 
 
   rule lengthBytes(Int2Bytes(Len:Int, _:Int, _:Endianness)) => Len  [simplification]
+  rule lengthBytes(substrBytesTotal(B:Bytes, Start:Int, End:Int)) => End -Int Start
+      requires definedSubstrBytes(B, Start, End)
+      [simplification]
   rule lengthBytes(padRightBytesTotal(B:Bytes, Length:Int, Value:Int))
       => maxInt(lengthBytes(B:Bytes), Length:Int)
       requires definedPadRightBytes(B, Length, Value)
