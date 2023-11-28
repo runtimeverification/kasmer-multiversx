@@ -96,6 +96,14 @@ def tModuloBetween0AndM(number: KInner, m: KInner) -> KApply:  # noqa: N802
     return KApply('tModuloBetween0AndM', number, m)
 
 
+def numberIsNumberMulDiv(number: KInner, m: KInner) -> KApply:  # noqa: N802
+    return KApply('numberIsNumberMulDiv', number, m)
+
+
+def modAddMultiple(number: KInner, multiplier: KInner, m: KInner) -> KApply:  # noqa: N802
+    return KApply('modAddMultiple', number, multiplier, m)
+
+
 def numberAsDivModulo(number: KInner, m: KInner) -> KApply:  # noqa: N802
     return KApply('numberAsDivModulo', number, m)
 

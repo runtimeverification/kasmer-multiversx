@@ -2,7 +2,7 @@ requires "helper-lemmas.md"
 
 module POUND-BOOL
     imports private MX-WASM-LEMMA-PROOFS
-    imports private HELPER-LEMMAS
+    imports private HELPER-LEMMAS-TRUSTED
 
     claim  <mandos>
            <k>
@@ -65,8 +65,7 @@ module POUND-BOOL
            </instrs>
            ...
          </mandos>
-       ensures { 0 #Equals #bool ( B:Bool ) }:Bool #Implies { false #Equals B:Bool }
-      #And { false #Equals B:Bool }:Bool #Implies { 0 #Equals #bool ( B:Bool ) }
+       ensures { { 0 #Equals #bool ( B:Bool ) }:Bool #Equals { false #Equals B:Bool }:Bool }
 
 
     claim  <mandos>
@@ -82,8 +81,7 @@ module POUND-BOOL
            </instrs>
            ...
          </mandos>
-       ensures { 1 #Equals #bool ( B:Bool ) }:Bool #Implies { true #Equals B:Bool }
-      #And { true #Equals B:Bool }:Bool #Implies { 1 #Equals #bool ( B:Bool ) }
+       ensures { { 1 #Equals #bool ( B:Bool ) }:Bool #Equals { true #Equals B:Bool }:Bool }
 
 
 endmodule
