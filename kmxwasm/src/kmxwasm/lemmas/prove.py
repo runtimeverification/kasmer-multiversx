@@ -30,7 +30,12 @@ def main(args: list[str]) -> None:
         bad_usage()
     target = args[1]
     with kbuild_semantics(
-        output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=target, llvm=False, booster=False
+        output_dir=KBUILD_DIR,
+        config_file=KBUILD_ML_PATH,
+        target=target,
+        llvm=False,
+        booster=False,
+        bug_report=None,
     ) as tools:
         if args[0] == 'kompile':
             return

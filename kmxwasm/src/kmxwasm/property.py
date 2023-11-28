@@ -473,7 +473,12 @@ class ShowNode(Action):
 
     def run(self) -> None:
         with kbuild_semantics(
-            output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL, llvm=True, booster=self.booster, bug_report=None
+            output_dir=KBUILD_DIR,
+            config_file=KBUILD_ML_PATH,
+            target=HASKELL,
+            llvm=True,
+            booster=self.booster,
+            bug_report=None,
         ) as tools:
             t = Timer('Loading kcfg')
             kcfg = load_json_kcfg(self.kcfg_path)
@@ -493,7 +498,12 @@ class Tree(Action):
 
     def run(self) -> None:
         with kbuild_semantics(
-            output_dir=KBUILD_DIR, config_file=KBUILD_ML_PATH, target=HASKELL, llvm=True, booster=self.booster, bug_report=None
+            output_dir=KBUILD_DIR,
+            config_file=KBUILD_ML_PATH,
+            target=HASKELL,
+            llvm=True,
+            booster=self.booster,
+            bug_report=None,
         ) as tools:
             t = Timer('Loading kcfg')
             kcfg = load_json_kcfg(self.kcfg_path)
