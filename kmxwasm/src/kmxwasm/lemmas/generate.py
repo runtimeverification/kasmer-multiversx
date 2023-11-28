@@ -14,6 +14,7 @@ from .expression import (
     divIntTotal,
     geInt,
     maxInt,
+    modAddMultiple,
     modInt,
     modIntTotal,
     moduloBetween0AndM,
@@ -22,6 +23,7 @@ from .expression import (
     numberAsDivModuloHelper,
     numberAsTDivModulo,
     numberAsTDivModuloHelper,
+    numberIsNumberMulDiv,
     poundBool,
     sizeList,
     subInt,
@@ -120,6 +122,16 @@ HELPER_LEMMAS = [
         proof=numberAsDivModulo(X, M),
         requires=ltInt(M, v(0)),
         ensures=eqInt(X, addInt(mulInt(divIntTotal(X, M), M), modIntTotal(X, M))),
+    ),
+    HelperLemma(
+        proof=numberIsNumberMulDiv(X, M),
+        requires=andBool([notBool(eqInt(v(0), M))]),
+        ensures=eqInt(X, divIntTotal(mulInt(X, M), M)),
+    ),
+    HelperLemma(
+        proof=modAddMultiple(X, Y, M),
+        requires=andBool([notBool(eqInt(v(0), M))]),
+        ensures=eqInt(modIntTotal(X, M), modIntTotal(addInt(mulInt(Y, M), X), M)),
     ),
     HelperLemma(
         proof=numberAsDivModuloHelper(X, M, Y, Z),
@@ -256,7 +268,7 @@ def main(args: list[str]) -> None:
     HELPER_LEMMAS_FILE.write_text('```k\nmodule HELPER-LEMMAS\nendmodule\n```\n')
 
     with kbuild_semantics(
-        KBUILD_DIR, config_file=KBUILD_ML_PATH, target=LEMMA_PROOFS, booster=False, bug_report=None
+        KBUILD_DIR, config_file=KBUILD_ML_PATH, target=LEMMA_PROOFS, llvm=False, booster=False, bug_report=None
     ) as tools:
         for lemma in LEMMAS:
             definition = lemma.make_definition()
@@ -270,10 +282,12 @@ def main(args: list[str]) -> None:
 
         helper_module = make_helper_lemmas_module(HELPER_LEMMAS)
         printed_helper = tools.printer.pretty_print(helper_module)
-        HELPER_LEMMAS_FILE.write_text('```k\n' + cleanup(printed_helper) + '\n```\n')
+        helper_module_trusted = make_helper_lemmas_module(HELPER_LEMMAS, trusted=True)
+        printed_helper_trusted = tools.printer.pretty_print(helper_module_trusted)
+        HELPER_LEMMAS_FILE.write_text(f'```k\n{cleanup(printed_helper)}\n\n{cleanup(printed_helper_trusted)}\n```\n')
 
     with kbuild_semantics(
-        KBUILD_DIR, config_file=KBUILD_ML_PATH, target=LEMMA_PROOFS, booster=False, bug_report=None
+        KBUILD_DIR, config_file=KBUILD_ML_PATH, target=LEMMA_PROOFS, llvm=False, booster=False, bug_report=None
     ) as tools:
         tools.printer
 

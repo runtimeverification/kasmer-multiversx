@@ -1,4 +1,4 @@
-.PHONY: clean build poetry-install
+.PHONY: clean build poetry-install, lemmas-kompiled
 
 POETRY     := poetry
 POETRY_RUN := $(POETRY) run
@@ -21,6 +21,9 @@ poetry-install:
 lemmas:
 	$(POETRY) run python3 -m kmxwasm.lemmas.generate
 
+lemmas-kompiled:
+		poetry run python3 -m kmxwasm.lemmas.prove -- kompile lemma-proofs
+
 # Tests
 
 TEST_ARGS :=
@@ -37,7 +40,15 @@ test-integration: poetry-install
 	$(POETRY_RUN) pytest src/tests/integration --maxfail=1 --verbose --durations=0 --numprocesses=1 --dist=worksteal $(TEST_ARGS)
 
 test-lemmas-not-changed: lemmas
-	git status --porcelain | grep -q .
+	! git status --porcelain | grep -v .
+
+# TODO: make separate targets for these so that they can run in parallel.
+test-lemmas: lemmas lemmas-kompiled
+	poetry run python3 -m kmxwasm.lemmas.prove -- k-src/lemmas/proofs/list-size.k lemma-proofs
+	poetry run python3 -m kmxwasm.lemmas.prove -- k-src/lemmas/proofs/max-inequalities.k lemma-proofs
+	poetry run python3 -m kmxwasm.lemmas.prove -- k-src/lemmas/proofs/pound-bool.k lemma-proofs
+	# poetry run python3 -m kmxwasm.lemmas.prove -- k-src/lemmas/proofs/mod-int-total.k lemma-proofs
+	# poetry run python3 -m kmxwasm.lemmas.prove -- k-src/lemmas/proofs/helper-lemmas.md lemma-proofs
 
 # Coverage
 

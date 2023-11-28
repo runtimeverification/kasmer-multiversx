@@ -31,7 +31,7 @@ module CEILS-SYNTAX
     syntax Bytes ::= padRightBytesTotal(Bytes, length: Int, value: Int)
         [function, total, klabel(padRightBytesTotal), symbol, no-evaluators]
     syntax Int ::= Int "modIntTotal" Int
-        [function, total, klabel(modIntTotal), symbol, no-evaluators, smt-hook(mod)]
+        [function, total, klabel(modIntTotal), symbol, no-evaluators, smtlib(modIntTotal)]
     syntax Int ::= Int "divIntTotal" Int
         [function, total, klabel(divIntTotal), symbol, no-evaluators, smt-hook(div)]
     syntax Int ::= Int "<<IntTotal" Int

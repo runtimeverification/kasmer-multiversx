@@ -2,7 +2,7 @@ requires "helper-lemmas.md"
 
 module LIST-SIZE
     imports private MX-WASM-LEMMA-PROOFS
-    imports private HELPER-LEMMAS
+    imports private HELPER-LEMMAS-TRUSTED
 
     claim  <mandos>
            <k>
