@@ -39,10 +39,7 @@ class Lemma:
 
     def make_claim(self, proof: KInner) -> KClaim:
         assert is_ml(self.lhs) == is_ml(self.rhs)
-        if is_ml(self.lhs):
-            ens = mlEquals(self.lhs, self.rhs)
-        else:
-            ens = mlEquals(self.lhs, self.rhs)
+        ens = mlEquals(self.lhs, self.rhs)
         rewrite = mandos_cell(
             k_cell(KSequence(KRewrite(runProof(proof), proofEnd), DOTS)),
             commands_cell(KSequence()),
