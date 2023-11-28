@@ -385,6 +385,11 @@ class Profile(Action):
                 kcfg.remove_node(node_id)
             t.measure()
 
+            t = Timer('Removing edges')
+            for edge in list(kcfg.edges(source_id=self.node_id)):
+                kcfg.remove_edge(source_id=edge.source.id, target_id=edge.target.id)
+            t.measure()
+
             t = Timer('Prepare profile node')
             node = kcfg.get_node(self.node_id)
             assert node
