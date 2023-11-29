@@ -110,18 +110,18 @@ class RunClaim(Action):
                     print(f'Stuck node not found: {result.stuck_node_id}')
                 else:
                     print('Stuck node:')
-                    print_node(tools, stuck_node)
+                    print_node(tools.printer, stuck_node)
                 if target_node is None:
                     print(f'Target node not found: {result.final_node_id}')
                 else:
                     print('Target node:')
-                    print_node(tools, target_node)
+                    print_node(tools.printer, target_node)
                 if stuck_node is not None and target_node is not None:
                     (success, reason) = tools.explorer.implication_failure_reason(stuck_node.cterm, target_node.cterm)
                     assert not success
                     print(reason)
                 print('Failed')
-                show = KCFGShow(tools.printer)
+                show = KCFGShow(tools.printer, tools.node_printer)
                 for line in show.pretty(result.kcfg):
                     print(line)
                 sys.exit(-1)
@@ -130,7 +130,7 @@ class RunClaim(Action):
                 return
             if isinstance(result, RunException):
                 print('Exception')
-                show = KCFGShow(tools.printer)
+                show = KCFGShow(tools.printer, tools.node_printer)
                 for line in show.pretty(result.kcfg):
                     print(line)
                 print('Last node:')
@@ -140,7 +140,7 @@ class RunClaim(Action):
                     if node is None:
                         print(f'Node not found: {result.last_processed_node}')
                     else:
-                        print_node(tools, node)
+                        print_node(tools.printer, node)
                 else:
                     print('No node to print.')
                 if isinstance(result.exception, KoreClientError):
@@ -223,7 +223,7 @@ class BisectAfter(Action):
                 return
             if isinstance(result, RunException):
                 print('Exception')
-                show = KCFGShow(tools.printer)
+                show = KCFGShow(tools.printer, tools.node_printer)
                 for line in show.pretty(result.kcfg):
                     print(line)
                 print('Last node:')
@@ -233,7 +233,7 @@ class BisectAfter(Action):
                     if node is None:
                         print(f'Node not found: {result.last_processed_node}')
                     else:
-                        print_node(tools, node)
+                        print_node(tools.printer, node)
                 else:
                     print('No node to print.')
                 if isinstance(result.exception, KoreClientError):
@@ -444,7 +444,7 @@ class Profile(Action):
                 return
             if isinstance(result, RunException):
                 print('Exception')
-                show = KCFGShow(tools.printer)
+                show = KCFGShow(tools.printer, tools.node_printer)
                 for line in show.pretty(result.kcfg):
                     print(line)
                 print('Last node:')
@@ -454,7 +454,7 @@ class Profile(Action):
                     if node is None:
                         print(f'Node not found: {result.last_processed_node}')
                     else:
-                        print_node(tools, node)
+                        print_node(tools.printer, node)
                 else:
                     print('No node to print.')
                 if isinstance(result.exception, KoreClientError):
@@ -486,7 +486,7 @@ class ShowNode(Action):
             print('Printing: ', self.node_id)
             node = kcfg.get_node(self.node_id)
             if node:
-                print_node(tools, node)
+                print_node(tools.printer, node)
             else:
                 print('No node to print.')
 
@@ -508,7 +508,7 @@ class Tree(Action):
             t = Timer('Loading kcfg')
             kcfg = load_json_kcfg(self.kcfg_path)
             t.measure()
-            show = KCFGShow(tools.printer)
+            show = KCFGShow(tools.printer, tools.node_printer)
             for line in show.pretty(kcfg):
                 print(line)
 

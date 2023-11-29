@@ -14,6 +14,8 @@ from pyk.ktool.krun import KRunOutput, _krun
 from pyk.prelude.k import GENERATED_TOP_CELL
 from pyk.utils import BugReport
 
+from .nodeprinter import KasmerNodePrinter
+
 # USE_BUG_REPORT = False
 
 
@@ -58,6 +60,10 @@ class Tools:
     @property
     def printer(self) -> KPrint:
         return self.kprove
+
+    @property
+    def node_printer(self) -> KasmerNodePrinter:
+        return KasmerNodePrinter(self.printer)
 
     @property
     def explorer(self) -> KCFGExplore:

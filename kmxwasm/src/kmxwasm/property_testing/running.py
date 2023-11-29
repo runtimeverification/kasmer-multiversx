@@ -347,9 +347,9 @@ def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int) -> RunClaim
         csubst = tools.explorer.cterm_implies(result_node.cterm, destination.cterm)
         if not csubst:
             print('*' * 30, 'Antecedent', '*' * 30)
-            print_node(tools, result_node)
+            print_node(tools.printer, result_node)
             print('*' * 30, 'Consequent', '*' * 30)
-            print_node(tools, destination)
+            print_node(tools.printer, destination)
             (success, reason) = tools.explorer.implication_failure_reason(
                 antecedent=result_node.cterm, consequent=destination.cterm
             )
