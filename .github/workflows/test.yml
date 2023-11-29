@@ -7,9 +7,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-pr:
-    name: 'Build and Test kmxwasm'
+  python-code-quality-checks:
+    name: 'Code Quality Checks'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Check out code'
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.JENKINS_GITHUB_PAT }}
+          submodules: recursive
+      - name: 'Install Poetry'
+        uses: Gr1N/setup-poetry@v8
+      - name: 'Build and run code quality checks'
+        run: make -C kmxwasm check
+  unit-tests:
+    name: 'Kmxwasm unittests'
     runs-on: [self-hosted, linux, normal]
+    needs: [python-code-quality-checks]
     steps:
       - name: 'Check out code'
         uses: actions/checkout@v3
@@ -22,18 +36,52 @@ jobs:
           container-name: mx-wasm-ci-${{ github.sha }}
       - name: 'Install dependencies'
         run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} poetry -C kmxwasm install
-      - name: 'Check code quality'
-        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm check
       - name: 'Run unit tests'
         run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-unit
-      # - name: 'Build LLVM semantics'
-      #   run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm kbuild-llvm
+      - name: 'Tear down Docker'
+        if: always()
+        run: docker stop --time 0 mx-wasm-ci-${GITHUB_SHA}
+  integration-tests:
+    name: 'Kmxwasm integration tests'
+    runs-on: [self-hosted, linux, normal]
+    needs: [python-code-quality-checks,unit-tests]
+    steps:
+      - name: 'Check out code'
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.JENKINS_GITHUB_PAT }}
+          submodules: recursive
+      - name: 'Set up Docker'
+        uses: ./.github/actions/with-docker
+        with:
+          container-name: mx-wasm-ci-${{ github.sha }}
+      - name: 'Install dependencies'
+        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} poetry -C kmxwasm install
       - name: 'Build Haskell semantics'
         run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm kbuild-haskell
-      - name: 'Check lemmas are up to date'
-        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-lemmas-not-changed
       - name: 'Run integration tests'
         run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-integration
+      - name: 'Tear down Docker'
+        if: always()
+        run: docker stop --time 0 mx-wasm-ci-${GITHUB_SHA}
+  lemma-tests:
+    name: 'Build and Test kmxwasm'
+    runs-on: [self-hosted, linux, normal]
+    needs: [python-code-quality-checks,unit-tests]
+    steps:
+      - name: 'Check out code'
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.JENKINS_GITHUB_PAT }}
+          submodules: recursive
+      - name: 'Set up Docker'
+        uses: ./.github/actions/with-docker
+        with:
+          container-name: mx-wasm-ci-${{ github.sha }}
+      - name: 'Install dependencies'
+        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} poetry -C kmxwasm install
+      - name: 'Check lemmas are up to date'
+        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-lemmas-not-changed
       - name: 'Prove lemmas'
         run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-lemmas
       - name: 'Tear down Docker'
