@@ -1,4 +1,4 @@
-requires "helper-lemmas.md"
+requires "helper-lemmas.k"
 
 module LIST-SIZE
     imports private MX-WASM-LEMMA-PROOFS

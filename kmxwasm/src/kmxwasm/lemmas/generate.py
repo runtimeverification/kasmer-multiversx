@@ -47,7 +47,7 @@ from .proof import basicListInduction, proofSplit, proofVar
 LEMMAS_DIR = ROOT / 'kmxwasm' / 'k-src' / 'lemmas'
 PROOFS_DIR = LEMMAS_DIR / 'proofs'
 
-HELPER_LEMMAS_FILE = PROOFS_DIR / 'helper-lemmas.md'
+HELPER_LEMMAS_FILE = PROOFS_DIR / 'helper-lemmas.k'
 LEMMAS_FILE = LEMMAS_DIR / 'proven-mx-lemmas.md'
 
 B = var('B', BOOL)
@@ -265,7 +265,7 @@ def main(args: list[str]) -> None:
     #     return
 
     LEMMAS_FILE.write_text('```k\nmodule PROVEN-MX-LEMMAS\nendmodule\n```\n')
-    HELPER_LEMMAS_FILE.write_text('```k\nmodule HELPER-LEMMAS\nendmodule\n```\n')
+    HELPER_LEMMAS_FILE.write_text('module HELPER-LEMMAS\nendmodule\n')
 
     with kbuild_semantics(
         KBUILD_DIR, config_file=KBUILD_ML_PATH, target=LEMMA_PROOFS, llvm=False, booster=False, bug_report=None
@@ -284,7 +284,7 @@ def main(args: list[str]) -> None:
         printed_helper = tools.printer.pretty_print(helper_module)
         helper_module_trusted = make_helper_lemmas_module(HELPER_LEMMAS, trusted=True)
         printed_helper_trusted = tools.printer.pretty_print(helper_module_trusted)
-        HELPER_LEMMAS_FILE.write_text(f'```k\n{cleanup(printed_helper)}\n\n{cleanup(printed_helper_trusted)}\n```\n')
+        HELPER_LEMMAS_FILE.write_text(f'{cleanup(printed_helper)}\n\n{cleanup(printed_helper_trusted)}\n')
 
     with kbuild_semantics(
         KBUILD_DIR, config_file=KBUILD_ML_PATH, target=LEMMA_PROOFS, llvm=False, booster=False, bug_report=None

@@ -1,4 +1,3 @@
-```k
 module HELPER-LEMMAS
     imports private MX-WASM-LEMMA-PROOFS
 
@@ -532,4 +531,3 @@ module HELPER-LEMMAS-TRUSTED
       [trusted()]
 
 endmodule
-```

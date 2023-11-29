@@ -1,4 +1,4 @@
-requires "helper-lemmas.md"
+requires "helper-lemmas.k"
 
 module MAX-INEQUALITIES
     imports private MX-WASM-LEMMA-PROOFS

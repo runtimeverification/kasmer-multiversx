@@ -83,7 +83,7 @@ jobs:
       - name: 'Check lemmas are up to date'
         run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-lemmas-not-changed
       - name: 'Prove lemmas'
-        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-lemmas
+        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-proofs
       - name: 'Tear down Docker'
         if: always()
         run: docker stop --time 0 mx-wasm-ci-${GITHUB_SHA}
