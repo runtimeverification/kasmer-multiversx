@@ -1,4 +1,4 @@
-requires "helper-lemmas.md"
+requires "helper-lemmas.k"
 
 module POUND-BOOL
     imports private MX-WASM-LEMMA-PROOFS
