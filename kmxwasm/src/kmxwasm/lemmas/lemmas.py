@@ -94,7 +94,7 @@ class LemmaProof:
         return KDefinition(
             main_module_name=self.name.upper(),
             all_modules=[self.make_claim_module()],
-            requires=[KRequire('helper-lemmas.md')],
+            requires=[KRequire('helper-lemmas.k')],
         )
 
     def make_rules(self, kast_defn: KDefinition) -> list[KRule]:
