@@ -13,6 +13,7 @@ endmodule
 
 module MX-WASM
   imports MX-LEMMAS
+  imports MX-LEMMAS-BASIC
   imports MX-WASM-NO-LOCAL-LEMMAS
   imports PROVEN-MX-LEMMAS
 endmodule
