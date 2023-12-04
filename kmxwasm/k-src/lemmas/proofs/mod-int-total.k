@@ -1,4 +1,4 @@
-requires "helper-lemmas.md"
+requires "helper-lemmas.k"
 
 module MOD-INT-TOTAL
     imports private MX-WASM-LEMMA-PROOFS

@@ -7,6 +7,7 @@ from .collections import cell_map, full_list, k_map, simple_list
 from .generic import (
     find_with_path,
     get_with_path,
+    replace_contents_with_path,
     replace_with_path,
     set_ksequence_cell_contents,
     set_single_argument_kapply_contents,
@@ -22,16 +23,21 @@ MAIN_STORE_CELL_NAME = '<mainStore>'
 FUNCS_CELL_NAME = '<funcs>'
 
 MANDOS_CELL_PATH = ['<foundry>', '<mandos>']
-NODE_CELL_PATH = MANDOS_CELL_PATH + ['<elrond>', '<node>']
+ELROND_CELL_PATH = MANDOS_CELL_PATH + ['<elrond>']
+LOGGING_CELL_PATH = ELROND_CELL_PATH + ['<logging>']
+NODE_CELL_PATH = ELROND_CELL_PATH + ['<node>']
+
 CALL_STATE_PATH = NODE_CELL_PATH + ['<callState>']
 CALL_STACK_PATH = NODE_CELL_PATH + ['<callStack>']
 INTERIM_STATES_PATH = NODE_CELL_PATH + ['<interimStates>']
 ACCOUNTS_PATH = NODE_CELL_PATH + ['<accounts>']
+VM_OUTPUT_PATH = NODE_CELL_PATH + ['<vmOutput>']
 
 COMMANDS_CELL_PATH = NODE_CELL_PATH + [COMMANDS_CELL_NAME]
 K_CELL_PATH = MANDOS_CELL_PATH + [K_CELL_NAME]
 WASM_CELL_PATH = CALL_STATE_PATH + [WASM_CELL_NAME]
 INSTRS_CELL_PATH = WASM_CELL_PATH + [INSTRS_CELL_NAME]
+
 CONTRACT_MOD_IDX_CELL_PATH = CALL_STATE_PATH + [CONTRACT_MOD_IDX_CELL_NAME]
 
 FUNCS_PATH = WASM_CELL_PATH + [MAIN_STORE_CELL_NAME, FUNCS_CELL_NAME]
@@ -87,11 +93,17 @@ def k_cell_contents(root: KInner) -> KSequence:
     return seq
 
 
-def get_first_k_name(root: KInner) -> str | None:
+def get_first_k_item(root: KInner) -> KInner | None:
     seq = k_cell_contents(root)
     if not seq.items:
         return None
-    first = seq.items[0]
+    return seq.items[0]
+
+
+def get_first_k_name(root: KInner) -> str | None:
+    first = get_first_k_item(root)
+    if first is None:
+        return None
     if not isinstance(first, KApply):
         return None
     return first.label.name
@@ -111,14 +123,20 @@ def commands_cell_contents(root: KInner) -> KSequence:
     return seq
 
 
-def get_first_command_name(root: KInner) -> str | None:
+def get_first_command(root: KInner) -> KInner | None:
     seq = commands_cell_contents(root)
     if not seq.items:
         return None
-    first = seq.items[0]
-    if not isinstance(first, KApply):
+    return seq.items[0]
+
+
+def get_first_command_name(root: KInner) -> str | None:
+    command = get_first_command(root)
+    if command is None:
         return None
-    return first.label.name
+    if not isinstance(command, KApply):
+        return None
+    return command.label.name
 
 
 def get_instrs_cell(root: KInner) -> KApply | None:
@@ -252,8 +270,20 @@ def set_all_code_cell_content(root: KInner, replacements: Callable[[int], KInner
     return set_single_argument_multiple_kapply_contents(root, '<code>', replacements)
 
 
+def get_logging_cell(root: KInner) -> KApply:
+    result = get_with_path(root, LOGGING_CELL_PATH)
+    assert isinstance(result, KApply)
+    return result
+
+
+def get_logging_cell_content(root: KInner) -> KInner:
+    cell = get_logging_cell(root)
+    assert cell.arity == 1
+    return cell.args[0]
+
+
 def set_logging_cell_content(root: KInner, replacement: KInner) -> KInner:
-    return set_single_argument_kapply_contents(root, '<logging>', replacement)
+    return replace_contents_with_path(root, LOGGING_CELL_PATH, replacement)
 
 
 def set_generated_counter_cell_content(root: KInner, replacement: KInner) -> KInner:
@@ -274,3 +304,15 @@ def set_buffer_heap_cell_content(root: KInner, replacement: KInner) -> KInner:
 
 def set_exit_code_cell_content(root: KInner, replacement: KInner) -> KInner:
     return set_single_argument_kapply_contents(root, '<exit-code>', replacement)
+
+
+def get_vm_output_cell(root: KInner) -> KApply:
+    result = get_with_path(root, VM_OUTPUT_PATH)
+    assert isinstance(result, KApply)
+    return result
+
+
+def get_vm_output_cell_content(root: KInner) -> KInner:
+    cell = get_vm_output_cell(root)
+    assert cell.arity == 1
+    return cell.args[0]
