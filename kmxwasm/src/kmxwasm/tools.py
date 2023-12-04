@@ -76,8 +76,9 @@ class Tools:
                     self.__definition_dir,
                     self.__llvm_library_definition_dir,
                     self.printer.main_module,
-                    command=('kore-rpc-booster'),
-                    # command=('kore-rpc-booster', '-l', 'Rewrite'),
+                    # TODO: Remove --no-smt whenever possible.
+                    command=('kore-rpc-booster', '--no-smt'),
+                    # command=('kore-rpc-booster', '--no-smt', '-l', 'Rewrite'),
                     bug_report=self.__bug_report
                     # port=39425,
                 )
