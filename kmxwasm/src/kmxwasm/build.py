@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from pyk.kbuild.kbuild import KBuild
@@ -18,6 +19,15 @@ def kbuild_semantics(
 ) -> Tools:
     kbuild = KBuild(output_dir)
     package = Project.load(config_file)
+
+    # TODO: This is wrong. This is changing a global setting in order to
+    # fix a local issue. kbuild.kompile should allow users to set k_opts
+    new_k_opts = '-Xmx8192m'
+    existing_k_opts = os.environ.get('K_OPTS')
+    if not existing_k_opts:
+        os.environ['K_OPTS'] = '-Xmx8192m'
+    elif new_k_opts not in existing_k_opts:
+        os.environ['K_OPTS'] = f'{existing_k_opts} -Xmx8192m'
 
     t = Timer(f'Kompiling {target}:')
     kbuild.kompile(package, target)
