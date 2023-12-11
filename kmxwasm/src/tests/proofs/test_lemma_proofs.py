@@ -6,6 +6,9 @@ from pyk.prelude.ml import mlOr
 
 from kmxwasm.testing.fixtures import Tools
 
+from pyk.cterm import CTerm
+from pyk.prelude.ml import mlOr
+
 
 def is_known_broken(path: Path) -> bool:
     return path.name in ['mod-int-total.k', 'helper-lemmas.k']

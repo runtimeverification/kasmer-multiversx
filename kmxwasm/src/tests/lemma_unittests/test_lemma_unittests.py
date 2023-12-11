@@ -4,6 +4,9 @@ import pytest
 from pyk.cterm import CTerm
 from pyk.prelude.ml import mlOr
 
+from pyk.cterm import CTerm
+from pyk.prelude.ml import mlOr
+
 from kmxwasm.testing.fixtures import Tools
 
 K_SRC_DIR = Path(__file__).parent.parent.parent.parent / 'k-src'
