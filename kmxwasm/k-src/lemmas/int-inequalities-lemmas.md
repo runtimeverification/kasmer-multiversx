@@ -262,6 +262,29 @@ module INT-INEQUALITIES-LEMMAS
 
   rule 0 <=Int log2IntTotal(_:Int) => true
       [simplification, smt-lemma]
+  // log2IntTotal(A) <Int B
+  // iff log2IntTotal(A) <=Int B -Int 1
+  // iff A <Int 2^(B -Int 1 +Int 1)
+  // iff A <Int 2^B
+  rule log2IntTotal(A) <Int B => A <Int 2 ^Int B
+      requires 0 <Int A andBool 0 <=Int B
+      [simplification, concrete(B)]
+  // log2IntTotal(A) <=Int B
+  // iff A <Int 2^(B +Int 1)
+  rule log2IntTotal(A) <=Int B => A <Int 2 ^Int (B +Int 1)
+      requires 0 <Int A andBool 0 <=Int B
+      [simplification, concrete(B)]
+  // b <= log2Int(a)
+  // iff 2^b <= a
+  rule B <=Int log2IntTotal(A) => 2 ^Int B <=Int A
+      requires 0 <Int A andBool 0 <=Int B
+      [simplification, concrete(B)]
+  // b < log2Int(a)
+  // iff b + 1 <= log2Int(a)
+  // iff 2^(b + 1) <= a
+  rule B <Int log2IntTotal(A) => 2 ^Int (B +Int 1) <=Int A
+      requires 0 <Int A andBool 0 <=Int B
+      [simplification, concrete(B)]
 
 endmodule
 ```
