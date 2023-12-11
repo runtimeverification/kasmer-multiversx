@@ -8,7 +8,7 @@ module SIZE
                 SBChunk ( #empty ( 808 ) )
                 SBChunk ( #bytes ( b"\x04\x00\x00\x00" +Bytes Int2Bytes ( 1 , _ARG_0:Int , LE ) ) )
             )
-        ) => doneSimplification(5)
+        ) => doneSimplification(813)
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
@@ -19,7 +19,7 @@ module SIZE
             size (
                 SBChunk ( #bytes ( b"\x04\x00\x00\x00" +Bytes Int2Bytes ( 1 , _ARG_0:Int , LE ) ) )
             )
-        ) => doneSimplification(813)
+        ) => doneSimplification(5)
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
