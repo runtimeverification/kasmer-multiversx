@@ -1,11 +1,10 @@
 from pathlib import Path
 
 import pytest
-
-from kmxwasm.testing.fixtures import Tools
-
 from pyk.cterm import CTerm
 from pyk.prelude.ml import mlOr
+
+from kmxwasm.testing.fixtures import Tools
 
 
 def is_known_broken(path: Path) -> bool:

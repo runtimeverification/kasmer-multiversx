@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import pytest
-
 from pyk.cterm import CTerm
 from pyk.prelude.ml import mlOr
 
