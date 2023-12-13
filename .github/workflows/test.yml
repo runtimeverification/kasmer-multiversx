@@ -65,7 +65,7 @@ jobs:
         if: always()
         run: docker stop --time 0 mx-wasm-ci-${GITHUB_SHA}
   lemma-tests:
-    name: 'Build and Test kmxwasm'
+    name: 'Build and Test lemmas'
     runs-on: [self-hosted, linux, normal]
     needs: [python-code-quality-checks,unit-tests]
     steps:
@@ -82,6 +82,8 @@ jobs:
         run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} poetry -C kmxwasm install
       - name: 'Check lemmas are up to date'
         run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-lemmas-not-changed
+      - name: 'Test lemmas'
+        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-lemmas-unit
       - name: 'Prove lemmas'
         run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-proofs
       - name: 'Tear down Docker'

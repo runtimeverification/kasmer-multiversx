@@ -12,6 +12,7 @@ HASKELL = 'haskell'
 LLVM = 'llvm'
 LLVM_LIBRARY = 'llvm-library'
 LEMMA_PROOFS = 'lemma-proofs'
+LEMMA_TESTS = 'lemma-tests'
 
 
 def kbuild_semantics(
