@@ -105,16 +105,14 @@ module INT-BIT-NORMALIZATION-LEMMAS  [symbolic]
         => (A &Int (M <<Int B)) >>IntTotal B
       requires 0 <=Int B
       [simplification, concrete(M, B)]
-  rule (_A &Int M) >>IntTotal B => 0
-      requires 0 <=Int M
-          andBool 0 <=Int B
-          andBool M <Int (1 <<Int B)
-      [simplification]
 
   rule (A <<IntTotal 0) => A
       [simplification]
   rule (A >>IntTotal 0) => A
       [simplification]
+  rule (A >>IntTotal B) => 0
+      requires 0 <=Int A andBool 0 <Int B andBool A <=Int fullMask(B)
+      [simplification, concrete(B)]
   rule (A >>IntTotal B) >>IntTotal C => A >>IntTotal (B +Int C)
       [simplification, concrete(B, C)]
   rule (A <<IntTotal B) <<IntTotal C => A <<IntTotal (B +Int C)
