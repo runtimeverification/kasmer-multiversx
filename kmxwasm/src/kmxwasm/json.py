@@ -31,7 +31,10 @@ def load_json_kcfg(input_file: Path) -> KCFG:
 
 def load_json_kclaim(input_file: Path) -> KClaim:
     value = load_json_dict(input_file)
-    return kast_term(value, KClaim)
+    result = KClaim.from_dict(kast_term(value))
+    if not isinstance(result, KClaim):
+        raise ValueError(f'Input ({input_file}) is not a claim.')
+    return result
 
 
 def write_json(term_dict: dict[str, Any], output_file: Path) -> None:

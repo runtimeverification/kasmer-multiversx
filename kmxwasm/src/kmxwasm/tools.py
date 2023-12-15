@@ -113,7 +113,7 @@ class Tools:
                 parser='cat',
             )
             value = json.loads(result.stdout)
-            return kast_term(value, KInner)  # type: ignore # https://github.com/python/mypy/issues/4717
+            return KInner.from_dict(kast_term(value))
 
 
 def my_patch_symbol_table(symbol_table: SymbolTable) -> None:
