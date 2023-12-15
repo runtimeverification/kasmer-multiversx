@@ -11,4 +11,19 @@ module LENGTH-BYTES
       <instrs> .K </instrs>
       requires 7 <Int lengthBytes(B)
 
+    claim
+      <k>
+        runSimplification(
+            lengthBytes(
+                replaceAtBytesTotal
+                  ( ... dest: b"\x00\x00\x00\x00\x00\x00\x00\x00"
+                  , index: 0
+                  , src: Int2Bytes ( 4, _:Int, LE )
+                  )
+            )
+        ) => doneSimplification(8)
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+
 endmodule
