@@ -1,9 +1,12 @@
 ```k
 require "ceils.k"
+require "lemmas/int-normalization-lemmas.md"
+require "lemmas/int-inequalities-lemmas.md"
 
 module MX-LEMMAS-BASIC
   imports BOOL
   imports INT
+  imports INT-NORMALIZATION-LEMMAS-BASIC
 
   syntax Bool ::= #setRangeActuallySets(addr:Int, val:Int, width:Int)  [function, total]
   rule #setRangeActuallySets(Addr:Int, Val:Int, Width:Int)
@@ -26,7 +29,9 @@ endmodule
 module MX-LEMMAS  [symbolic]
   imports private CEILS
   imports private ELROND
+  imports private INT-INEQUALITIES-LEMMAS
   imports private INT-KORE
+  imports private INT-NORMALIZATION-LEMMAS
   imports public MX-LEMMAS-BASIC
   imports private SET
   imports private WASM-TEXT
@@ -68,9 +73,6 @@ module MX-LEMMAS  [symbolic]
       [simplification(100)]
   // rule { b"" #Equals B:Bytes } => {0 #Equals lengthBytes(B)}
 
-  rule 0 <=Int A +Int B => true
-      requires 0 <=Int A andBool 0 <=Int B
-      [simplification]
   rule {false #Equals B:Bool} => #Not ({true #Equals B:Bool})
       [simplification]
 
@@ -819,6 +821,13 @@ module MX-LEMMAS  [symbolic]
         andBool Len ==Int lengthBytes(B)
       [simplification]
 
+  rule replaceAtBytesTotal(Dest:Bytes, Start:Int, Src:Bytes)
+      => substrBytes(Dest, 0, Start)
+        +Bytes Src
+        +Bytes substrBytes(Dest, Start +Int lengthBytes(Src), lengthBytes(Dest))
+      requires 0 <=Int Start andBool Start +Int lengthBytes(Src) <=Int lengthBytes(Dest)
+      [simplification]
+
   rule disjontRanges
         ( (A1:Int modIntTotal M1:Int) +Int B1:Int, Len1:Int
         , (A2:Int modIntTotal M2:Int) +Int B2:Int, Len2:Int
@@ -958,6 +967,10 @@ module MX-LEMMAS  [symbolic]
       [simplification]
   rule 0 <=Int lengthBytes(_:Bytes) => true
       [simplification]
+  rule lengthBytes(replaceAtBytesTotal(Dest:Bytes, Index:Int, Src:Bytes))
+      => lengthBytes(Dest)
+      requires 0 <=Int Index andBool Index +Int lengthBytes(Src) <=Int lengthBytes(Dest)
+      [simplification]
 
   rule size(replaceAt(Dest:SparseBytes, Index:Int, Src:Bytes))
       => maxInt(size(Dest), Index +Int lengthBytes(Src))
@@ -970,35 +983,6 @@ module MX-LEMMAS  [symbolic]
   rule size(A:SparseBytes B:SparseBytes) => size(A) +Int size(B)
       [simplification]
   rule 0 <=Int size(_:SparseBytes) => true
-      [simplification]
-
-  rule X -Int X => 0  [simplification]
-  rule X:KItem in (A:Set -Set B:Set) => (X in A) andBool notBool (X in B)  [simplification]
-
-  rule (((X modIntTotal Y) +Int Z) +Int T) modIntTotal Y => (X +Int Z +Int T) modIntTotal Y
-      [simplification]
-  rule (((X modIntTotal Y) +Int Z) -Int T) modIntTotal Y => (X +Int Z -Int T) modIntTotal Y
-      [simplification]
-  rule ((X modIntTotal Y) +Int Z) modIntTotal Y => (X +Int Z) modIntTotal Y
-      [simplification]
-  rule (X +Int (Z modIntTotal Y)) modIntTotal Y => (X +Int Z) modIntTotal Y
-      [simplification]
-  rule (_X modIntTotal Y) <Int Y => true
-      requires Y >Int 0
-      [simplification, smt-lemma]
-  rule 0 <=Int (_X modIntTotal Y) => true
-      requires Y >Int 0
-      [simplification, smt-lemma]
-  rule (X +Int Y) modIntTotal Z => (X +Int (Y modInt Z)) modIntTotal Z
-      requires Z =/=Int 0 andBool Y >=Int Z
-      [simplification, concrete(Y, Z)]
-  rule {((X +Int Y) modIntTotal M) #Equals ((X +Int Z) modIntTotal M)}
-      => {(Y modIntTotal M) #Equals (Z modIntTotal M)}
-      [simplification]
-  rule X modIntTotal Y => X requires 0 <=Int X andBool X <Int Y
-
-  rule {(A modIntTotal C) #Equals (B modIntTotal C)} => #Top
-      requires A ==Int B
       [simplification]
 
   rule 0 <=Int #signedTotal(T:IValType, N:Int) => 0 <=Int N andBool N <Int #pow1(T)
@@ -1025,241 +1009,8 @@ module MX-LEMMAS  [symbolic]
       requires M >Int 1
       [simplification]
 
-  rule A &Int 255 => A requires 0 <=Int A andBool A <=Int 255
-      [simplification]
-
-  rule A +Int B <Int C => A <Int C -Int B
-      [simplification, concrete(B, C)]
-
-  rule 0 <=Int log2IntTotal(_:Int) => true
-      [simplification, smt-lemma]
-
-  rule {0 #Equals A ^IntTotal _B} => #Bottom
-      requires A =/=Int 0
-      [simplification(40)]
-  rule {A ^IntTotal _B #Equals 0} => #Bottom
-      requires A =/=Int 0
-      [simplification(40)]
-  rule {0 #Equals A ^IntTotal B} => {0 #Equals A}
-      requires B =/=Int 0
-      [simplification(50)]
-
-  // log2IntTotal(X) is the index of the highest bit. This means that
-  // X < 2^(log2IntTotal(X) + 1) since the highest bit of the right term
-  // has a higher index.
-  // We need
-  // 2^(log2IntTotal(X) + 1) <= 2 ^IntTotal (((log2IntTotal(X) +Int 8) divIntTotal 8) *Int 8)
-  // which is equivalent to
-  // log2IntTotal(X) + 1 <= ((log2IntTotal(X) +Int 8) divIntTotal 8) *Int 8.
-  // Let us denote log2IntTotal(X) by Y >= 0
-  // Y + 1 <= (Y divIntTotal 8 + 1) *Int 8.
-  // Y + 1 <= (Y divIntTotal 8) *Int 8 + 8.
-  // Y <= (Y divIntTotal 8) *Int 8 + 7.
-  // Let A be Y divIntTotal 8
-  // Let B be Y modIntTotal 8.
-  // A * 8 + B <= A * 8 + 7, which is obviously true.
-  rule A:Int <Int 2 ^IntTotal ((( log2IntTotal(A) +Int 8) divIntTotal 8) *Int 8)
-      => true
-      requires 0 <Int A
-      [simplification]
-
-  rule 0 |Int I:Int => I
-      [simplification]
-  rule I:Int |Int 0 => I
-      [simplification]
-
   rule (A +String B) +String C => A +String (B +String C)
       [simplification, concrete(B,C)]
-
-  rule (A <<IntTotal B) modIntTotal M
-        => (A <<IntTotal B) &Int (M -Int 1)
-      requires M ==Int 1 <<Int 32
-          andBool 0 <=Int A
-          andBool B <=Int 32
-      [simplification, concrete(B)]
-  rule (A <<IntTotal B) modIntTotal M
-        => (A <<IntTotal B) &Int (M -Int 1)
-      requires M ==Int 1 <<Int 64
-          andBool 0 <=Int A
-          andBool B <=Int 64
-      [simplification, concrete(B)]
-  rule (A <<IntTotal B) &Int M
-        => (A &Int ((1 <<Int (32 -Int B)) -Int 1)) <<IntTotal B
-      requires M ==Int (1 <<Int 32) -Int 1
-          andBool 0 <=Int A
-          andBool B <=Int 32
-      [simplification, concrete(B)]
-  rule (A <<IntTotal B) &Int M
-        => (A &Int ((1 <<Int (64 -Int B)) -Int 1)) <<IntTotal B
-      requires M ==Int (1 <<Int 64) -Int 1
-          andBool 0 <=Int A
-          andBool B <=Int 64
-      [simplification, concrete(B)]
-
-  rule (A <<IntTotal B) &Int M => 0
-      requires 0 <Int M
-          andBool M <Int (1 <<Int B)
-          andBool 0 <=Int A
-      [simplification, concrete(B)]
-
-  rule (A &Int B) >>IntTotal C
-      => (A >>IntTotal C) &Int (B >>IntTotal C)
-      requires definedShlInt(A &Int B, C)
-      [simplification, concrete(B, C)]
-  rule ((A &Int B) <<IntTotal C) &Int D
-      => (A &Int (B &Int (D >>IntTotal C))) <<IntTotal C
-      requires 0 <=Int D andBool 0 <=Int A
-      [simplification, concrete(B, C, D)]
-
-  rule (A |Int B) <Int M => true
-      requires A <Int 2 ^Int log2Int(M) andBool B <Int 2 ^Int log2Int(M)
-      [simplification, concrete(M)]
-
-  rule (A |Int B) >>Int C => (A >>Int C) |Int (B >>Int C)
-      requires definedShlInt(A |Int B, C)
-          andBool definedShlInt(A, C)
-          andBool definedShrInt(B, C)
-      [simplification]
-
-  rule (A <<IntTotal B) <<IntTotal C => A <<IntTotal (B +Int C)
-      requires 0 <=Int B andBool 0 <=Int C
-      [simplification]
-  rule (A >>IntTotal B) >>IntTotal C => A >>IntTotal (B +Int C)
-      requires 0 <=Int B andBool 0 <=Int C
-      [simplification]
-  rule (A <<IntTotal B) >>IntTotal C => A <<IntTotal (B -Int C)
-      requires C <=Int B andBool 0 <=Int C
-          andBool definedShlInt(A, B)
-          andBool definedShrInt(A, C)
-      [simplification]
-  rule (A <<IntTotal B) >>IntTotal C => A >>IntTotal (C -Int B)
-      requires B <=Int C andBool 0 <=Int B
-          andBool definedShlInt(A, B)
-          andBool definedShrInt(A, C)
-      [simplification]
-
-  rule (A |Int B) modIntTotal M => (A |Int B) &Int (M -Int 1)
-      requires 0 <=Int A andBool 0 <=Int B
-        andBool M ==Int 1 <<Int 32
-      [simplification]
-
-  rule (A |Int B) modIntTotal M => (A |Int B) &Int (M -Int 1)
-      requires 0 <=Int A andBool 0 <=Int B
-        andBool M ==Int 1 <<Int 64
-      [simplification]
-
-  rule (A |Int B) &Int C => (A &Int C) |Int (B &Int C)
-      [simplification]
-
-  rule (A <<IntTotal 0) => A
-      requires definedShlInt(A, 0)
-      [simplification]
-
-  rule (A >>IntTotal 0) => A
-      requires definedShrInt(A, 0)
-      [simplification]
-
-  rule A |Int B => B |Int A
-      [simplification, concrete(A), symbolic(B)]
-  rule A |Int 0 => A
-      [simplification]
-  rule (A |Int B) |Int C => A |Int (B |Int C)
-      [simplification, concrete(B, C), symbolic(A)]
-
-  rule 0 <=Int A |Int B => 0 <=Int A andBool 0 <=Int B
-      [simplification]
-  rule 0 <=Int A &Int B => 0 <=Int A orBool 0 <=Int B
-      [simplification]
-  rule 0 <=Int A <<IntTotal B => 0 <=Int A
-      requires definedShlInt(A, B)
-      [simplification]
-  rule 0 <=Int A >>IntTotal B => 0 <=Int A
-      requires definedShrInt(A, B)
-      [simplification]
-
-  rule A |Int B <=Int C => A <=Int C andBool B <=Int C
-      requires
-          ( ( (  C +Int 1 ==Int (1 <<Int 8)
-          orBool C +Int 1 ==Int (1 <<Int 16) )
-          orBool C +Int 1 ==Int (1 <<Int 24) )
-          orBool C +Int 1 ==Int (1 <<Int 32)
-          )
-      [simplification, concrete(C)]
-  rule A &Int B <=Int C => true
-      requires
-          0 <=Int A
-          andBool 0 <=Int B
-          andBool (A <=Int C orBool B <=Int C)
-      [simplification]
-  rule A <<IntTotal B <=Int C => A <=Int (C >>Int B)
-      requires 0 <=Int A
-          andBool 0 <=Int C
-          andBool definedShlInt(A, B)
-      [simplification, concrete(B, C)]
-  rule A >>IntTotal B <=Int C => A <=Int ((C +Int 1) <<Int B) -Int 1
-      requires 0 <=Int A
-          andBool 0 <=Int C
-          andBool definedShrInt(A, B)
-      [simplification, concrete(B, C)]
-
-  rule A |Int B <Int C => A <Int C andBool B <Int C
-      requires
-          ( ( (  C ==Int (1 <<Int 8)
-          orBool C ==Int (1 <<Int 16) )
-          orBool C ==Int (1 <<Int 24) )
-          orBool C ==Int (1 <<Int 32)
-          )
-      [simplification, concrete(C)]
-  rule A &Int B <Int C => true
-      requires
-          0 <=Int A
-          andBool 0 <=Int B
-          andBool (A <Int C orBool B <Int C)
-      [simplification]
-  rule A <<IntTotal B <Int C => A <=Int ((C -Int 1) >>Int B) +Int 1
-      requires 0 <=Int A
-          andBool 0 <=Int C
-          andBool definedShlInt(A, B)
-      [simplification, concrete(B, C)]
-  rule A >>IntTotal B <Int C => A <Int (C <<Int B)
-      requires 0 <=Int A
-          andBool 0 <=Int C
-          andBool definedShrInt(A, B)
-      [simplification, concrete(B, C)]
-
-  rule (A &Int B) => A
-      requires
-          0 <=Int A
-          andBool A <Int B
-          andBool (
-              B ==Int ((1 <<Int 8) -Int 1)
-              orBool B ==Int ((1 <<Int 16) -Int 1)
-              orBool B ==Int ((1 <<Int 32) -Int 1)
-              orBool B ==Int ((1 <<Int 64) -Int 1)
-          )
-      [simplification]
-  rule (A &Int B) => 0
-      requires
-          0 <=Int A
-          andBool (
-              ( A <Int ((1 <<Int 8) -Int 1)
-                andBool B &Int ((1 <<Int 8) -Int 1) ==Int 0
-              )
-              orBool ( A <Int ((1 <<Int 16) -Int 1)
-                andBool B &Int ((1 <<Int 16) -Int 1) ==Int 0
-              )
-              orBool ( A <Int ((1 <<Int 32) -Int 1)
-                andBool B &Int ((1 <<Int 32) -Int 1) ==Int 0
-              )
-          )
-      [simplification]
-
-  rule A &Int B => B &Int A
-      [simplification, concrete(A), symbolic(B)]
-  rule _A &Int 0 => 0
-      [simplification]
-  rule (A &Int B) &Int C => A &Int (B &Int C)
-      [simplification, concrete(B, C), symbolic(A)]
 
   rule b"" +Bytes B => B
   rule B +Bytes b"" => B

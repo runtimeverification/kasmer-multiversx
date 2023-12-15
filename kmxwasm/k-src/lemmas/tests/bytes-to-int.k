@@ -26,4 +26,35 @@ module BYTES-TO-INT
       <commands> .K </commands>
       <instrs> .K </instrs>
 
+    claim
+      <k>
+        runSimplification(
+            Bytes2Int 
+              ( substrBytesTotal
+                ( replaceAtBytesTotal
+                  ( ... dest: b"\x00\x00\x00\x00\x00\x00\x00\x00"
+                  , index: 0
+                  , src: Int2Bytes
+                    ( 4
+                    , ( (((ARG_0:Int) &Int (255)) <<IntTotal (24))
+                      |Int (((ARG_0:Int) &Int (65280)) <<IntTotal (8))
+                      )
+                      |Int
+                      ( (((ARG_0:Int) >>IntTotal (8)) &Int (65280))
+                      |Int ((ARG_0:Int) >>IntTotal (24))
+                      )
+                    , LE
+                    )
+                  )
+                , 0
+                , 1
+                )
+              , LE
+              , Unsigned
+              )
+        ) => doneSimplification( (ARG_0 >>IntTotal 24) &Int 255 )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+      requires 0 <=Int ARG_0
 endmodule
