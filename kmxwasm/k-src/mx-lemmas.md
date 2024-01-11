@@ -1019,6 +1019,9 @@ module MX-LEMMAS  [symbolic]
       [simplification, concrete(B, C), symbolic(A)]
   rule A +Bytes (B +Bytes C) => (A +Bytes B) +Bytes C
       [simplification, concrete(A, B), symbolic(C)]
+
+  rule notBool notBool B => B
+      [simplification]
 endmodule
 
 ```

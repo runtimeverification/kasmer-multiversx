@@ -246,10 +246,26 @@ module INT-INEQUALITIES-LEMMAS
   rule A <=Int C divIntTotal B => A *Int B <=Int C 
       requires 0 <Int B andBool 0 <=Int C
       [simplification, concrete(A, B)]
+  // a < trunc(c/b)
+  // iff a + 1 <= trunc(c/b)
+  // iff a + 1 <= trunc(c/b) + frac(c/b)
+  // iff a + 1 <= c/b
+  // iff (a + 1) * b <= c
+  rule A <Int C divIntTotal B => (A +Int 1) *Int B <=Int C 
+      requires 0 <Int B andBool 0 <=Int C
+      [simplification, concrete(A, B)]
   // a < b * c
   // iff a / c < b
   // iff trunc(a/c) < b
   rule A divIntTotal C <Int B => A <Int B *Int C
+      requires 0 <Int C andBool 0 <=Int A
+      [simplification, concrete(B, C)]
+  // trunc(a/c) <= b
+  // iff trunc(a/c) < b + 1
+  // iff trunc(a/c) + frac(a/c) < b + 1
+  // iff a / c < b + 1
+  // iff a < (b + 1) * c
+  rule A divIntTotal C <=Int B => A <Int (B +Int 1) *Int C
       requires 0 <Int C andBool 0 <=Int A
       [simplification, concrete(B, C)]
 
