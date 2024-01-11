@@ -14,7 +14,11 @@ from ..ast.mx import (
     ACCOUNTS_PATH,
     CALL_STACK_PATH,
     CODE,
+    # FUNCS,
+    # FUNCS_CELL_PATH,
     INTERIM_STATES_PATH,
+    # MEMS,
+    # MEMS_CELL_PATH,
     cfg_changes_call_stack,
     cfg_changes_interim_states,
     cfg_touches_code,
@@ -63,6 +67,7 @@ CODE_CUT_POINT_RULES = [
     'MANDOS.checkAccountCodeAux-code',
     'BASEOPS.checkIsSmartContract-code',
     'BASEOPS.checkIsSmartContract-no-code',
+    'ESDT.determineIsSCCallAfter-call',
     # Additional <code> cell use through generic <account> and <accounts> use.
     'ELROND-CONFIG.createAccount-new',
     'ELROND-NODE.pushWorldState',
@@ -105,6 +110,27 @@ def abstracters(
             CODE_CUT_POINT_RULES,
             cfg_touches_code,
         ),
+        # The entries below are for debugging purposes only.
+        # (
+        #     single_cell_abstracter(
+        #         cell_path=FUNCS_CELL_PATH,
+        #         variable_root='AbstractFuncs',
+        #         variable_sort=FUNCS,
+        #         destination=target_node_id,
+        #     ),
+        #     INTERIM_STATES_CUT_POINT_RULES,
+        #     cfg_changes_interim_states,
+        # ),
+        # (
+        #     single_cell_abstracter(
+        #         cell_path=MEMS_CELL_PATH,
+        #         variable_root='AbstractMems',
+        #         variable_sort=MEMS,
+        #         destination=target_node_id,
+        #     ),
+        #     INTERIM_STATES_CUT_POINT_RULES,
+        #     cfg_changes_interim_states,
+        # ),
     ]
 
 

@@ -40,10 +40,14 @@ INSTRS_CELL_PATH = WASM_CELL_PATH + [INSTRS_CELL_NAME]
 
 CONTRACT_MOD_IDX_CELL_PATH = CALL_STATE_PATH + [CONTRACT_MOD_IDX_CELL_NAME]
 
-FUNCS_PATH = WASM_CELL_PATH + [MAIN_STORE_CELL_NAME, FUNCS_CELL_NAME]
+MAIN_STORE_CELL_PATH = WASM_CELL_PATH + [MAIN_STORE_CELL_NAME]
+FUNCS_CELL_PATH = MAIN_STORE_CELL_PATH + [FUNCS_CELL_NAME]
+MEMS_CELL_PATH = MAIN_STORE_CELL_PATH + ['<mems>']
 
 
 CODE = KSort('Code')
+FUNCS = KSort('FuncDefCellMap')
+MEMS = KSort('MemInstCellMap')
 
 
 # TODO: Move these to the elrond-semantics repository.
@@ -221,6 +225,7 @@ def cfg_touches_code(k: str | None, command: str | None, instr: str | None) -> b
         'setAccountCode',
         'callContractWasmString',
         'createAccount',
+        'determineIsSCCallAfter',
         'pushWorldState',
         'popWorldState',
     ]:

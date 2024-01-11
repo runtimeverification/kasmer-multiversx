@@ -77,8 +77,14 @@ class Tools:
                     self.printer.main_module,
                     llvm_definition_dir=self.__llvm_library_definition_dir,
                     # TODO: Remove --no-smt whenever possible.
-                    command=('kore-rpc-booster', '--no-smt'),
-                    # command=('kore-rpc-booster', '--no-smt', '-l', 'Rewrite'),
+                    command=(
+                        'kore-rpc-booster', '--no-smt',
+                        # '-l', 'Rewrite',
+                        # '-l', 'SimplifySuccess',
+                        # '-l', 'Simplify',
+                        # '-l', 'SimplifyKore',
+                        # '--no-post-exec-simplify',
+                    ),
                     bug_report=self.__bug_report,
                     # port=39425,
                 )
