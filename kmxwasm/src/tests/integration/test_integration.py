@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 import pytest
@@ -8,6 +9,9 @@ from kmxwasm.json import load_json_kclaim
 from kmxwasm.property_testing.running import Success, run_claim
 from kmxwasm.property_testing.wasm_krun_initializer import WasmKrunInitializer
 from kmxwasm.testing.fixtures import Tools
+
+sys.setrecursionlimit(1500000000)
+
 
 TEST_DATA = (Path(__file__).parent / 'data').resolve(strict=True)
 INPUT_FILES = [TEST_DATA / 'test_call_add_less-spec.json', TEST_DATA / 'test_fund-spec-1k.json']
