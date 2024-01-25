@@ -7,7 +7,7 @@ from pyk.kast.inner import KInner
 from pyk.kast.kast import kast_term
 from pyk.kast.pretty import SymbolTable
 from pyk.kcfg.explore import KCFGExplore
-from pyk.kore.rpc import BoosterServer, KoreClient, KoreServer
+from pyk.kore.rpc import KoreClient, KoreServer, kore_server
 from pyk.ktool.kprint import KPrint
 from pyk.ktool.kprove import KProve
 from pyk.ktool.krun import KRunOutput, _krun
@@ -72,10 +72,10 @@ class Tools:
                 raise RuntimeError('Non-null KoreClient with null KoreServer.')
             if self.__booster:
                 assert self.__llvm_library_definition_dir
-                self.__kore_server = BoosterServer(
+                self.__kore_server = kore_server(
                     self.__definition_dir,
-                    self.__llvm_library_definition_dir,
                     self.printer.main_module,
+                    llvm_definition_dir=self.__llvm_library_definition_dir,
                     # TODO: Remove --no-smt whenever possible.
                     command=('kore-rpc-booster', '--no-smt'),
                     # command=('kore-rpc-booster', '--no-smt', '-l', 'Rewrite'),
@@ -83,7 +83,7 @@ class Tools:
                     # port=39425,
                 )
             else:
-                self.__kore_server = KoreServer(
+                self.__kore_server = kore_server(
                     self.__definition_dir,
                     self.printer.main_module,
                     bug_report=self.__bug_report

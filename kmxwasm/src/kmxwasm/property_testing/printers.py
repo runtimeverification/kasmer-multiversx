@@ -26,7 +26,7 @@ def print_node(printer: KPrint, node: KCFG.Node) -> None:
             try:
                 pretty = printer.pretty_print(ml_pred_to_bool(c))
                 print('requires:', pretty)
-            except BaseException:
+            except BaseException:  # noqa: B036
                 print('ml_pred_to_bool failed')
     print(flush=True)
 
