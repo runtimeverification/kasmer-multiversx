@@ -79,14 +79,14 @@ class Tools:
                     # TODO: Remove --no-smt whenever possible.
                     command=('kore-rpc-booster', '--no-smt'),
                     # command=('kore-rpc-booster', '--no-smt', '-l', 'Rewrite'),
-                    bug_report=self.__bug_report
+                    bug_report=self.__bug_report,
                     # port=39425,
                 )
             else:
                 self.__kore_server = kore_server(
                     self.__definition_dir,
                     self.printer.main_module,
-                    bug_report=self.__bug_report
+                    bug_report=self.__bug_report,
                     # port=39425,
                 )
         if not self.__kore_client:
