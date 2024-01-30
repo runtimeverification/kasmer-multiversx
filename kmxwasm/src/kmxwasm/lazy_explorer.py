@@ -5,7 +5,7 @@ from typing import Any, Optional
 from pyk.kast.outer import KAtt, KDefinition, KFlatModule, KImport, KProduction, KRequire, KTerminal
 from pyk.kcfg import KCFGExplore
 from pyk.konvert import krule_to_kore
-from pyk.kore.rpc import KoreClient, KoreServer
+from pyk.kore.rpc import KoreClient, KoreServer, kore_server
 from pyk.kore.syntax import Import, Module, Sentence
 from pyk.ktool.kompile import KompileBackend, kompile
 from pyk.ktool.kprint import KPrint
@@ -135,8 +135,8 @@ def make_explorer(kprove: KProve, is_debug: bool, module: Module) -> tuple[KCFGE
         port = 39425
     else:
         port = None
-    kore_server = KoreServer(kprove.definition_dir, kprove.main_module, port=port)
-    kore_client = KoreClient('localhost', kore_server.port)
+    server = kore_server(kprove.definition_dir, kprove.main_module, port=port)
+    kore_client = KoreClient('localhost', server.port)
     explorer = KCFGExplore(kprove, kore_client)
     kore_client.add_module(module)
-    return (explorer, kore_server, kore_client)
+    return (explorer, server, kore_client)
