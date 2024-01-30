@@ -738,9 +738,7 @@ def main(args: List[str]) -> None:
             sample_path, sample_name, blacklist.get(sample_name, set()), loop_whitelist.get(sample_name, set())
         )
     except KoreClientError as e:
-        print('args=', e.args)
-        print('code=', e.code)
-        print('data=', e.data)
+        print(e)
         raise
     # run_for_input(samples / 'multisig-full.wat', 'multisig-full', {'78'})
     # run_for_input(samples / 'sum-to-n.wat', 'sum-to-n', set())

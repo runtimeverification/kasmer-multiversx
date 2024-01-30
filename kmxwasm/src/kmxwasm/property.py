@@ -144,9 +144,7 @@ class RunClaim(Action):
                 else:
                     print('No node to print.')
                 if isinstance(result.exception, KoreClientError):
-                    print('code=', result.exception.code)
-                    print('message=', result.exception.message)
-                    print('data=', result.exception.data)
+                    print(result.exception)
                 raise result.exception
             raise NotImplementedError(f'Unknown run_claim result: {type(result)}')
 
@@ -237,9 +235,7 @@ class BisectAfter(Action):
                 else:
                     print('No node to print.')
                 if isinstance(result.exception, KoreClientError):
-                    print('code=', result.exception.code)
-                    print('message=', result.exception.message)
-                    print('data=', result.exception.data)
+                    print(result.exception)
                 raise result.exception
             raise NotImplementedError(f'Unknown run_claim result: {type(result)}')
 
@@ -463,9 +459,7 @@ class Profile(Action):
                 else:
                     print('No node to print.')
                 if isinstance(result.exception, KoreClientError):
-                    print('code=', result.exception.code)
-                    print('message=', result.exception.message)
-                    print('data=', result.exception.data)
+                    print(result.exception)
                 raise result.exception
             raise NotImplementedError(f'Unknown run_claim result: {type(result)}')
 

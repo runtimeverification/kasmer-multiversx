@@ -276,7 +276,7 @@ def run_claim(
         if last_processed_node != -1:
             print('Node', last_processed_node, 'took', current_time - last_time, 'sec.')
         return Success(kcfg)
-    except BaseException as e:
+    except BaseException as e:  # noqa: B036
         if last_processed_node != -1:
             print('Node', last_processed_node, 'took', current_time - last_time, 'sec.')
         return RunException(kcfg, e, last_processed_node)
@@ -366,7 +366,7 @@ def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int) -> RunClaim
         print(f'{middle_node.id} -> {destination.id}: {final_time-middle_time} sec')
 
         return Success(kcfg)
-    except BaseException as e:
+    except BaseException as e:  # noqa: B036
         return RunException(kcfg, e, start_node_id)
 
 
@@ -405,7 +405,7 @@ def profile_step(tools: Tools, restart_kcfg: KCFG, node_id: int, depth: int, gro
         # TODO: Check that the explorer consumed all instructions and finished successfully.
 
         return Success(kcfg)
-    except BaseException as e:
+    except BaseException as e:  # noqa: B036
         return RunException(kcfg, e, node_id)
 
 
