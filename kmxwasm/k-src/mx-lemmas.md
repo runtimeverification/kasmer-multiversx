@@ -196,6 +196,36 @@ module MX-LEMMAS  [symbolic]
 
   // ----------------------------------------
 
+  rule #setRange(.SparseBytes, 0, Value:Int, Width:Int)
+      => SBChunk(#bytes(Int2Bytes(Width, Value, LE)))
+      [simplification, concrete(Width)]
+  rule #setRange(.SparseBytes, Addr:Int, Value:Int, Width:Int)
+      => SBChunk(#empty(Addr)) SBChunk(#bytes(Int2Bytes(Width, Value, LE)))
+      requires 0 <Int Addr
+      [simplification, concrete(Width, Addr)]
+  rule #setRange(SBChunk(A) M:SparseBytes, Addr:Int, Value:Int, Width:Int)
+      => SBChunk(A) #setRange(M, Addr -Int size(SBChunk(A)), Value, Width)
+      requires size(SBChunk(A)) <=Int Addr
+      [simplification, concrete(Width)]
+  rule #setRange(SBChunk(A) M:SparseBytes, Addr:Int, Value:Int, Width:Int)
+      => substrSparseBytes(SBChunk(A), 0, Addr)
+        #setRange(
+          substrSparseBytes(SBChunk(A) M, Addr, size(SBChunk(A) M)),
+          0, Value, Width
+        )
+      requires 0 <Int Addr
+        andBool Addr <Int size(SBChunk(A))
+      [simplification, concrete(Width, Addr)]
+  rule #setRange(M:SparseBytes, 0, Value:Int, Width:Int)
+      => SBChunk(#bytes(Int2Bytes(Width, Value, LE)))
+        substrSparseBytes(M, Width, size(M))
+      requires Width <Int size(M)
+      [simplification, concrete(Width)]
+  rule #setRange(M:SparseBytes, 0, Value:Int, Width:Int)
+      => SBChunk(#bytes(Int2Bytes(Width, Value, LE)))
+      requires size(M) <=Int Width
+      [simplification, concrete(Width)]
+
   syntax SparseBytes ::= #splitSetRange(SparseBytes, addr:Int, value:Int, width:Int, additionalwidth:Int)  [function]
   rule #splitSetRange(M:SparseBytes, Addr:Int, Value:Int, Width:Int, AdditionalWidth:Int)
       => #setRange(

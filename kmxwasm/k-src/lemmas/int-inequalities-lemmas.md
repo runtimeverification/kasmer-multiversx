@@ -12,6 +12,11 @@ module INT-INEQUALITIES-LEMMAS
   rule A >=Int B => B <=Int A
       [simplification]
 
+  rule A <Int A => false
+      [simplification]
+  rule A <=Int A => true
+      [simplification]
+
   rule (A |Int B) <Int M => true
       requires 0 <=Int M
         andBool A <Int 2 ^Int log2Int(M)
@@ -167,6 +172,17 @@ module INT-INEQUALITIES-LEMMAS
           andBool definedShrInt(A, B)
       [simplification, concrete(B, C)]
 
+  rule A +Int B <=Int A => B <=Int 0  [simplification]
+  rule B +Int A <=Int A => B <=Int 0  [simplification]
+  rule A +Int B <Int A => B <Int 0  [simplification]
+  rule B +Int A <Int A => B <Int 0  [simplification]
+  rule A <=Int A +Int B => 0 <=Int B  [simplification]
+  rule A <=Int B +Int A => 0 <=Int B  [simplification]
+  rule A <Int A +Int B => 0 <Int B  [simplification]
+  rule A <Int B +Int A => 0 <Int B  [simplification]
+
+  rule notBool (A <=Int B) => B <Int A  [simplification]
+  rule notBool (A <Int B) => B <=Int A  [simplification]
 
   rule A +Int B <=Int C => A <=Int C -Int B
       [simplification, concrete(B, C)]
@@ -181,10 +197,18 @@ module INT-INEQUALITIES-LEMMAS
       [simplification, concrete(B, C)]
   rule A -Int B <Int C => A <Int C +Int B
       [simplification, concrete(B, C)]
+  rule A -Int B <=Int C => A -Int C <=Int B
+      [simplification, concrete(A, C)]
+  rule A -Int B <Int C => A -Int C <Int B
+      [simplification, concrete(A, C)]
   rule A <=Int B -Int C => A +Int C <=Int B
       [simplification, concrete(A, C)]
   rule A <Int B -Int C => A +Int C <Int B
       [simplification, concrete(A, C)]
+  rule A <=Int B -Int C => C <=Int B -Int A
+      [simplification, concrete(A, B)]
+  rule A <Int B -Int C => C <Int B -Int A
+      [simplification, concrete(A, B)]
 
   // a * b <= c
   // iff a <= c / b
@@ -284,23 +308,58 @@ module INT-INEQUALITIES-LEMMAS
   // iff A <Int 2^B
   rule log2IntTotal(A) <Int B => A <Int 2 ^Int B
       requires 0 <Int A andBool 0 <=Int B
+          andBool B <=Int 1000 // Making sure there is no OOM when computing 2^B
+      [simplification, concrete(B)]
+  // Partly covering the case when 1000 < B
+  rule log2IntTotal(A) <Int B => true
+      requires 0 <Int A andBool 0 <=Int B
+          andBool 1000 <Int B
+          andBool A <Int 2 ^Int 1000
       [simplification, concrete(B)]
   // log2IntTotal(A) <=Int B
   // iff A <Int 2^(B +Int 1)
   rule log2IntTotal(A) <=Int B => A <Int 2 ^Int (B +Int 1)
       requires 0 <Int A andBool 0 <=Int B
+          andBool B <=Int 1000 // Making sure there is no OOM when computing 2^B
+      [simplification, concrete(B)]
+  // Partly covering the case when 1000 < B
+  rule log2IntTotal(A) <=Int B => true
+      requires 0 <Int A andBool 0 <=Int B
+          andBool 1000 <Int B
+          andBool A <Int 2 ^Int 1001
       [simplification, concrete(B)]
   // b <= log2Int(a)
   // iff 2^b <= a
   rule B <=Int log2IntTotal(A) => 2 ^Int B <=Int A
       requires 0 <Int A andBool 0 <=Int B
+          andBool B <=Int 1000 // Making sure there is no OOM when computing 2^B
+      [simplification, concrete(B)]
+  // Partly covering the case when 1000 < B
+  rule B <=Int log2IntTotal(A) => false
+      requires 0 <Int A andBool 0 <=Int B
+          andBool 1000 <Int B
+          andBool A <Int 2 ^Int 1000
       [simplification, concrete(B)]
   // b < log2Int(a)
   // iff b + 1 <= log2Int(a)
   // iff 2^(b + 1) <= a
   rule B <Int log2IntTotal(A) => 2 ^Int (B +Int 1) <=Int A
       requires 0 <Int A andBool 0 <=Int B
+          andBool B <=Int 1000 // Making sure there is no OOM when computing 2^B
       [simplification, concrete(B)]
+  // Partly covering the case when 1000 < B
+  rule B <Int log2IntTotal(A) => false
+      requires 0 <Int A andBool 0 <=Int B
+          andBool 1000 <Int B
+          andBool A <Int 2 ^Int 1001
+      [simplification, concrete(B)]
+
+  rule A <=Int log2IntTotal(B) => true
+      requires A <=Int 0 andBool 0 <Int B
+      [simplification]
+  rule A <Int log2IntTotal(B) => true
+      requires A <Int 0 andBool 0 <Int B
+      [simplification]
 
 endmodule
 ```
