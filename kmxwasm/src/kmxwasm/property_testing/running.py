@@ -2,6 +2,7 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass
 
+from pyk.cterm import CTerm
 from pyk.kast.inner import KInner
 from pyk.kast.outer import KClaim
 from pyk.kcfg import KCFG
@@ -10,15 +11,11 @@ from pyk.kcfg.kcfg import NodeIdLike
 from pyk.kore.rpc import LogEntry
 from pyk.prelude.collections import LIST
 
-from ..ast.mx import (
+from ..ast.mx import (  # FUNCS, FUNCS_CELL_PATH, MEMS, MEMS_CELL_PATH,
     ACCOUNTS_PATH,
     CALL_STACK_PATH,
     CODE,
-    # FUNCS,
-    # FUNCS_CELL_PATH,
     INTERIM_STATES_PATH,
-    # MEMS,
-    # MEMS_CELL_PATH,
     cfg_changes_call_stack,
     cfg_changes_interim_states,
     cfg_touches_code,
@@ -29,6 +26,7 @@ from ..ast.mx import (
     get_first_k_name,
     get_hostcall_name,
 )
+from ..term_optimizer import KInnerOptimizer, optimize_kcfg
 from ..timing import Timer
 from ..tools import Tools
 from .cell_abstracter import CellAbstracter, multi_cell_abstracter, single_cell_abstracter
@@ -185,6 +183,8 @@ def run_claim(
     restart_kcfg: KCFG | None,
     run_id: int | None,
     depth: int,
+    iterations: int,
+    kinner_optimizer: KInnerOptimizer,
 ) -> RunClaimResult:
     last_processed_node: NodeIdLike = -1
     init_node_id: NodeIdLike = -1
@@ -194,6 +194,7 @@ def run_claim(
         (final_node, target_node_id) = find_final_node(kcfg)
     else:
         (kcfg, init_node_id, target_node_id) = KCFG.from_claim(tools.printer.definition, claim)
+        optimize_kcfg(kcfg, kinner_optimizer)
         final_node = kcfg.node(target_node_id)
 
     kcfg_exploration = KCFGExploration(kcfg)
@@ -213,10 +214,13 @@ def run_claim(
             to_process = [kcfg.node(run_id)]
 
         print('Start: ', init_node_id, 'End: ', target_node_id)
+        current_iteration = 0
         last_time = time.time()
-        while to_process:
+        while to_process and current_iteration < iterations:
             # print([node.id for node in to_process])
-            while to_process:
+            next_current_leaves: set[NodeIdLike] = set()
+            while to_process and current_iteration < iterations:
+                current_iteration += 1
                 node = to_process.pop(0)
                 processed.add(node.id)
                 current_time = time.time()
@@ -279,8 +283,18 @@ def run_claim(
                             t.measure()
                             concretize(all_abstracters, kcfg, leaves)
                             t.measure()
-                    t = Timer('  Check final')
                     current_leaves = new_leaves(kcfg, non_final, final_node.id)
+                    t = Timer('  Normalize results: ' + str(current_leaves))
+                    for node_id in current_leaves:
+                        print('Result: ', node_id)
+                        node = kcfg.node(node_id)
+                        kcfg.replace_node(
+                            node_id=node.id,
+                            cterm=CTerm(kinner_optimizer.optimize(node.cterm.config), node.cterm.constraints),
+                        )
+                        next_current_leaves.add(node_id)
+                    t.measure()
+                    t = Timer('  Check final')
                     for node_id in current_leaves:
                         non_final.add(node_id)
                         node = kcfg.node(node_id)
@@ -295,7 +309,7 @@ def run_claim(
                     for node in kcfg.stuck:
                         return Stuck(kcfg, stuck_node_id=node.id, final_node_id=final_node.id)
             if run_id is not None:
-                to_process += [kcfg.node(node_id) for node_id in current_leaves]
+                to_process += [kcfg.node(node_id) for node_id in next_current_leaves]
             else:
                 to_process = expandable_leaves(kcfg, target_node_id)
 

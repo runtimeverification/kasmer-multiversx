@@ -19,6 +19,7 @@ INSTRS_CELL_NAME = '<instrs>'
 K_CELL_NAME = '<k>'
 WASM_CELL_NAME = '<wasm>'
 CONTRACT_MOD_IDX_CELL_NAME = '<contractModIdx>'
+CALLEE_CELL_NAME = '<callee>'
 MAIN_STORE_CELL_NAME = '<mainStore>'
 FUNCS_CELL_NAME = '<funcs>'
 
@@ -39,10 +40,14 @@ WASM_CELL_PATH = CALL_STATE_PATH + [WASM_CELL_NAME]
 INSTRS_CELL_PATH = WASM_CELL_PATH + [INSTRS_CELL_NAME]
 
 CONTRACT_MOD_IDX_CELL_PATH = CALL_STATE_PATH + [CONTRACT_MOD_IDX_CELL_NAME]
+CALLEE_CELL_PATH = CALL_STATE_PATH + [CALLEE_CELL_NAME]
 
 MAIN_STORE_CELL_PATH = WASM_CELL_PATH + [MAIN_STORE_CELL_NAME]
 FUNCS_CELL_PATH = MAIN_STORE_CELL_PATH + [FUNCS_CELL_NAME]
 MEMS_CELL_PATH = MAIN_STORE_CELL_PATH + ['<mems>']
+
+
+FINISH_EXECUTE_ON_DEST_CONTEXT_LABEL = 'finishExecuteOnDestContext'
 
 
 CODE = KSort('Code')
@@ -182,6 +187,25 @@ def get_first_instr_name(root: KInner) -> str | None:
     if first is None:
         return None
     return first.label.name
+
+
+def get_callee_cell(root: KInner) -> KApply | None:
+    result = find_with_path(root, CALLEE_CELL_PATH)
+    if not result:
+        return None
+    assert isinstance(result, KApply)
+    return result
+
+
+def get_callee(root: KInner) -> str | None:
+    instrs = get_callee_cell(root)
+    if not instrs:
+        return None
+    assert len(instrs.args) == 1
+    callee = instrs.args[0]
+    if not isinstance(callee, KToken):
+        return None
+    return callee.token
 
 
 def get_hostcall_name(hostcall: KApply) -> str | None:

@@ -28,6 +28,7 @@ from .property_testing.paths import KBUILD_DIR, KBUILD_ML_PATH, ROOT
 from .property_testing.printers import print_node
 from .property_testing.running import RunException, Stuck, Success, profile_step, run_claim, split_edge
 from .property_testing.wasm_krun_initializer import WasmKrunInitializer
+from .term_optimizer import KInnerOptimizer, optimize_kcfg
 from .timing import Timer
 
 sys.setrecursionlimit(16000)
@@ -61,6 +62,7 @@ class RunClaim(Action):
     remove: list[int]
     run_node_id: int | None
     depth: int
+    iterations: int
     kcfg_path: Path
     bug_report: BugReport | None
 
@@ -87,12 +89,22 @@ class RunClaim(Action):
                 claim = claim.let(body=wrap_with_generated_top_if_needed(claim.body))
             t.measure()
 
+            optimizer = KInnerOptimizer()
             kcfg: KCFG | None = None
             if self.restart:
                 t = Timer('Loading kcfg')
                 kcfg = load_json_kcfg(self.kcfg_path)
-                for node_id in self.remove:
-                    kcfg.remove_node(node_id)
+                optimize_kcfg(kcfg, optimizer)
+                to_remove = self.remove
+                while to_remove:
+                    current_id = to_remove.pop()
+                    next_edges = [edge.target.id for edge in kcfg.edges(source_id=current_id)]
+                    next_edges += [node.id for split in kcfg.splits(source_id=current_id) for node in split.targets]
+                    next_edges += [node.id for split in kcfg.ndbranches(source_id=current_id) for node in split.targets]
+                    for next_id in next_edges:
+                        if len(kcfg.predecessors(target_id=next_id)) <= 1:
+                            to_remove.append(next_id)
+                    kcfg.remove_node(current_id)
                 t.measure()
             result = run_claim(
                 tools,
@@ -101,6 +113,8 @@ class RunClaim(Action):
                 restart_kcfg=kcfg,
                 run_id=self.run_node_id,
                 depth=self.depth,
+                iterations=self.iterations,
+                kinner_optimizer=optimizer,
             )
             write_kcfg_json(result.kcfg, self.kcfg_path)
 
@@ -158,6 +172,8 @@ class SimplifyBefore(Action):
     def run(self) -> None:
         t = Timer('Loading kcfg')
         kcfg = load_json_kcfg(self.kcfg_path)
+        optimizer = KInnerOptimizer()
+        optimize_kcfg(kcfg, optimizer)
         node_ids = [n.id for n in kcfg.nodes if n.id < self.before_node_id]
         for node_id in node_ids:
             if len(list(kcfg.covers(source_id=node_id))) != 0:
@@ -212,6 +228,8 @@ class BisectAfter(Action):
         ) as tools:
             t = Timer('Loading kcfg')
             kcfg = load_json_kcfg(self.kcfg_path)
+            optimizer = KInnerOptimizer()
+            optimize_kcfg(kcfg, optimizer)
             t.measure()
 
             result = split_edge(tools, kcfg, start_node_id=self.node_id)
@@ -399,6 +417,11 @@ class Profile(Action):
             kcfg.replace_node(node.id, cterm=CTerm(new_config, node.cterm.constraints))
             t.measure()
 
+            t = Timer('Optmize kcfg')
+            optimizer = KInnerOptimizer()
+            optimize_kcfg(kcfg, optimizer)
+            t.measure()
+
             existing = {node.id for node in kcfg.nodes}
 
             steps_needed = self.depth * steps + setup_steps
@@ -558,6 +581,14 @@ def read_flags() -> Action:
         help='How many steps to run at a time.',
     )
     parser.add_argument(
+        '--iterations',
+        dest='iterations',
+        type=int,
+        required=False,
+        default=10000,
+        help='How many batches of --step steps to run.',
+    )
+    parser.add_argument(
         '--bisect-after',
         dest='bisect_after',
         type=int,
@@ -659,6 +690,7 @@ def read_flags() -> Action:
         remove=to_remove,
         run_node_id=run,
         depth=args.step,
+        iterations=args.iterations,
         kcfg_path=Path(args.kcfg),
         booster=args.booster,
         bug_report=args.bug_report,

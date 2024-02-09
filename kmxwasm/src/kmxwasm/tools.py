@@ -78,11 +78,14 @@ class Tools:
                     llvm_definition_dir=self.__llvm_library_definition_dir,
                     # TODO: Remove --no-smt whenever possible.
                     command=(
-                        'kore-rpc-booster', '--no-smt',
+                        'kore-rpc-booster',
+                        # '--no-smt',
                         # '-l', 'Rewrite',
                         # '-l', 'SimplifySuccess',
                         # '-l', 'Simplify',
                         # '-l', 'SimplifyKore',
+                        # '-l', 'SMT',
+                        # '--solver-transcript', 'log.z3',
                         # '--no-post-exec-simplify',
                     ),
                     bug_report=self.__bug_report,
@@ -93,6 +96,10 @@ class Tools:
                     self.__definition_dir,
                     self.printer.main_module,
                     bug_report=self.__bug_report,
+                    command=(
+                        'kore-rpc',
+                        # '--solver-transcript', 'log.z3',
+                    ),
                     # port=39425,
                 )
         if not self.__kore_client:

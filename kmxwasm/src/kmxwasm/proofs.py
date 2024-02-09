@@ -44,6 +44,7 @@ from .kast import (
 from .lazy_explorer import GENERATED_MODULE_NAME, LazyExplorer, kompile_semantics
 from .rules import RuleCreator
 from .specs import Specs, find_specs
+from .term_optimizer import OptimizedKCFG
 from .tools import my_patch_symbol_table
 from .wasm_types import ValType
 
@@ -427,7 +428,7 @@ def execute_function(
 
     if function_state_path.exists():
         json = function_state_path.read_text()
-        kcfg = KCFG.from_json(json)
+        kcfg = OptimizedKCFG.from_json(json)
     else:
         # TODO: This is WRONG, should find a better way to solve the speed issue.
         # We should replace the removed functions with a variable, or something
@@ -438,7 +439,7 @@ def execute_function(
         # TODO: Set kcfg with a LHS only, not an entire claim.
         hacked_term = sort_ac_collections(hacked_term)
         (_rule_creator, claim) = make_claim(hacked_term, constraint, function_addr, functions)
-        kcfg, _init_node_id, target_node_id = KCFG.from_claim(explorer.printer().definition, claim)
+        kcfg, _init_node_id, target_node_id = OptimizedKCFG.from_claim(explorer.printer().definition, claim)
         kcfg.remove_node(target_node_id)
 
     debug = kcfg.get_node(DEBUG_ID)
