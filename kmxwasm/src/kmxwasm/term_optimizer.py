@@ -1,27 +1,16 @@
 import json
-
 from abc import abstractmethod
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Generic, TypeVar, final
+from typing import Any, Generic, TypeVar, final
 
 from pyk.cterm import CSubst, CTerm
 from pyk.kast.inner import KApply, KInner, KLabel, KSequence, KToken, KVariable, bottom_up_with_summary
-from pyk.kast.manip import (
-    bool_to_ml_pred,
-    extract_lhs,
-    extract_rhs,
-    remove_source_attributes,
-    rename_generated_vars,
-)
+from pyk.kast.manip import bool_to_ml_pred, extract_lhs, extract_rhs, remove_source_attributes, rename_generated_vars
+from pyk.kast.outer import KClaim, KDefinition
 from pyk.kcfg.kcfg import KCFG, NodeIdLike
 from pyk.prelude.kbool import andBool
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping
-    from typing import Any
-
-    from pyk.kast.outer import KClaim, KDefinition
 
 A = TypeVar('A')
 
@@ -123,11 +112,6 @@ def optimize_cterm(cterm: CTerm, kast_optimizer: KInnerOptimizer) -> CTerm:
     return CTerm(new_config, cterm.constraints)
 
 
-def optimize_kcfg(kcfg: KCFG, kast_optimizer: KInnerOptimizer) -> None:
-    for node in kcfg.nodes:
-        kcfg.replace_node(node.id, optimize_cterm(node.cterm, kast_optimizer))
-
-
 class OptimizedKCFG(KCFG):
     def __init__(self, cfg_dir: Path | None = None) -> None:
         super().__init__(cfg_dir)
@@ -137,7 +121,7 @@ class OptimizedKCFG(KCFG):
     def from_claim(
         defn: KDefinition, claim: KClaim, cfg_dir: Path | None = None
     ) -> tuple[KCFG, NodeIdLike, NodeIdLike]:
-        cfg = KCFG(cfg_dir=cfg_dir)
+        cfg = OptimizedKCFG(cfg_dir=cfg_dir)
         claim_body = claim.body
         claim_body = defn.instantiate_cell_vars(claim_body)
         claim_body = rename_generated_vars(claim_body)
@@ -154,7 +138,7 @@ class OptimizedKCFG(KCFG):
 
     @staticmethod
     def from_json(s: str) -> KCFG:
-        return KCFG.from_dict(json.loads(s))
+        return OptimizedKCFG.from_dict(json.loads(s))
 
     @staticmethod
     def from_dict(dct: Mapping[str, Any]) -> KCFG:
@@ -213,6 +197,7 @@ class OptimizedKCFG(KCFG):
         node = KCFG.Node(node.id, optimize_cterm(node.cterm, self.__optimizer))
         self._nodes[node.id] = node
         self._created_nodes.add(node.id)
+        print("add_node!!!!!!!!!!!!!!!!!!!!!!")
 
     def create_node(self, cterm: CTerm) -> KCFG.Node:
         term = cterm.kast
@@ -222,6 +207,7 @@ class OptimizedKCFG(KCFG):
         self._node_id += 1
         self._nodes[node.id] = node
         self._created_nodes.add(node.id)
+        print("create_node!!!!!!!!!!!!!!!!!!!!!!")
         return self._nodes[node.id]
 
     def replace_node(self, node_id: NodeIdLike, cterm: CTerm) -> None:
@@ -232,3 +218,4 @@ class OptimizedKCFG(KCFG):
         node = KCFG.Node(node_id, cterm)
         self._nodes[node_id] = node
         self._created_nodes.add(node.id)
+        print("replace_node!!!!!!!!!!!!!!!!!!!!!!")

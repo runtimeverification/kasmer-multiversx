@@ -2,7 +2,6 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from pyk.cterm import CTerm
 from pyk.kast.inner import KInner
 from pyk.kast.outer import KClaim
 from pyk.kcfg import KCFG
@@ -26,7 +25,7 @@ from ..ast.mx import (  # FUNCS, FUNCS_CELL_PATH, MEMS, MEMS_CELL_PATH,
     get_first_k_name,
     get_hostcall_name,
 )
-from ..term_optimizer import KInnerOptimizer, optimize_kcfg
+from ..term_optimizer import OptimizedKCFG
 from ..timing import Timer
 from ..tools import Tools
 from .cell_abstracter import CellAbstracter, multi_cell_abstracter, single_cell_abstracter
@@ -184,7 +183,6 @@ def run_claim(
     run_id: int | None,
     depth: int,
     iterations: int,
-    kinner_optimizer: KInnerOptimizer,
 ) -> RunClaimResult:
     last_processed_node: NodeIdLike = -1
     init_node_id: NodeIdLike = -1
@@ -193,8 +191,7 @@ def run_claim(
         kcfg = restart_kcfg
         (final_node, target_node_id) = find_final_node(kcfg)
     else:
-        (kcfg, init_node_id, target_node_id) = KCFG.from_claim(tools.printer.definition, claim)
-        optimize_kcfg(kcfg, kinner_optimizer)
+        (kcfg, init_node_id, target_node_id) = OptimizedKCFG.from_claim(tools.printer.definition, claim)
         final_node = kcfg.node(target_node_id)
 
     kcfg_exploration = KCFGExploration(kcfg)
@@ -284,16 +281,9 @@ def run_claim(
                             concretize(all_abstracters, kcfg, leaves)
                             t.measure()
                     current_leaves = new_leaves(kcfg, non_final, final_node.id)
-                    t = Timer('  Normalize results: ' + str(current_leaves))
                     for node_id in current_leaves:
                         print('Result: ', node_id)
-                        node = kcfg.node(node_id)
-                        kcfg.replace_node(
-                            node_id=node.id,
-                            cterm=CTerm(kinner_optimizer.optimize(node.cterm.config), node.cterm.constraints),
-                        )
                         next_current_leaves.add(node_id)
-                    t.measure()
                     t = Timer('  Check final')
                     for node_id in current_leaves:
                         non_final.add(node_id)

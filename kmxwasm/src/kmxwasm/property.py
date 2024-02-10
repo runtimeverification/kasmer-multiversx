@@ -28,7 +28,6 @@ from .property_testing.paths import KBUILD_DIR, KBUILD_ML_PATH, ROOT
 from .property_testing.printers import print_node
 from .property_testing.running import RunException, Stuck, Success, profile_step, run_claim, split_edge
 from .property_testing.wasm_krun_initializer import WasmKrunInitializer
-from .term_optimizer import KInnerOptimizer, optimize_kcfg
 from .timing import Timer
 
 sys.setrecursionlimit(16000)
@@ -89,12 +88,10 @@ class RunClaim(Action):
                 claim = claim.let(body=wrap_with_generated_top_if_needed(claim.body))
             t.measure()
 
-            optimizer = KInnerOptimizer()
             kcfg: KCFG | None = None
             if self.restart:
                 t = Timer('Loading kcfg')
                 kcfg = load_json_kcfg(self.kcfg_path)
-                optimize_kcfg(kcfg, optimizer)
                 to_remove = self.remove
                 while to_remove:
                     current_id = to_remove.pop()
@@ -114,7 +111,6 @@ class RunClaim(Action):
                 run_id=self.run_node_id,
                 depth=self.depth,
                 iterations=self.iterations,
-                kinner_optimizer=optimizer,
             )
             write_kcfg_json(result.kcfg, self.kcfg_path)
 
@@ -172,8 +168,6 @@ class SimplifyBefore(Action):
     def run(self) -> None:
         t = Timer('Loading kcfg')
         kcfg = load_json_kcfg(self.kcfg_path)
-        optimizer = KInnerOptimizer()
-        optimize_kcfg(kcfg, optimizer)
         node_ids = [n.id for n in kcfg.nodes if n.id < self.before_node_id]
         for node_id in node_ids:
             if len(list(kcfg.covers(source_id=node_id))) != 0:
@@ -228,8 +222,6 @@ class BisectAfter(Action):
         ) as tools:
             t = Timer('Loading kcfg')
             kcfg = load_json_kcfg(self.kcfg_path)
-            optimizer = KInnerOptimizer()
-            optimize_kcfg(kcfg, optimizer)
             t.measure()
 
             result = split_edge(tools, kcfg, start_node_id=self.node_id)
@@ -418,8 +410,6 @@ class Profile(Action):
             t.measure()
 
             t = Timer('Optmize kcfg')
-            optimizer = KInnerOptimizer()
-            optimize_kcfg(kcfg, optimizer)
             t.measure()
 
             existing = {node.id for node in kcfg.nodes}

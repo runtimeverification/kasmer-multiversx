@@ -23,7 +23,6 @@ from kmxwasm.ast.wasm import (
 )
 from kmxwasm.property_testing.running import Success, run_claim
 from kmxwasm.property_testing.wasm_krun_initializer import WasmKrunInitializer
-from kmxwasm.term_optimizer import KInnerOptimizer
 from kmxwasm.testing.fixtures import Tools
 
 sys.setrecursionlimit(1500000000)
@@ -222,6 +221,5 @@ class TestSimpleProofs:
             run_id=None,
             depth=1000,
             iterations=10000,
-            kinner_optimizer=KInnerOptimizer(),
         )
         assert isinstance(result, Success) == success

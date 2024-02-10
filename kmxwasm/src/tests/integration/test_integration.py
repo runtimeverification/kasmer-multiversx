@@ -7,7 +7,6 @@ from kmxwasm.ast.configuration import wrap_with_generated_top_if_needed
 from kmxwasm.json import load_json_kclaim
 from kmxwasm.property_testing.running import Success, run_claim
 from kmxwasm.property_testing.wasm_krun_initializer import WasmKrunInitializer
-from kmxwasm.term_optimizer import KInnerOptimizer
 from kmxwasm.testing.fixtures import Tools
 
 sys.setrecursionlimit(1500000000)
@@ -34,7 +33,6 @@ def test_success(test_file: Path, tools: Tools) -> None:
         depth=1000,
         iterations=10000,
         run_id=None,
-        kinner_optimizer=KInnerOptimizer(),
     )
 
     assert isinstance(result, Success), [result]
