@@ -1,12 +1,13 @@
 from typing import List, Tuple
 
-from pyk.kast.inner import KApply, KInner, KSort, KVariable
+from pyk.kast.inner import KInner, KSort, KVariable
 from pyk.kast.manip import ml_pred_to_bool
 from pyk.kast.outer import KAtt, KRule
 from pyk.kcfg import KCFG
 from pyk.kcfg.kcfg import NodeIdLike
 from pyk.prelude.kbool import TRUE, andBool
 
+from .ast.configuration import GENERATED_TOP_CELL_NAME, wrap_with_generated_top
 from .kast import (
     fix_configuration_map_items_cterm,
     get_inner,
@@ -16,7 +17,7 @@ from .kast import (
     replace_term_with_seq_variable,
 )
 
-RULE_TOP_CELL = '<generatedTop>'
+RULE_TOP_CELL = GENERATED_TOP_CELL_NAME
 
 
 class RuleCreator:
@@ -35,13 +36,13 @@ class RuleCreator:
         # TODO: This is WRONG, should find a better way to solve the speed issue.
         lhs = replace_single_term(lhs, '<funcs>', KVariable('MyFuncs', KSort('FuncsCell')))
         lhs = replace_term_with_seq_variable(lhs, '<funcAddrs>', 'MyFuncAddrs', KSort('FuncAddrsCell'))
-        lhs = KApply(RULE_TOP_CELL, [lhs, KVariable('MyGeneratedCounter')])
+        lhs = wrap_with_generated_top(lhs, counter=KVariable('MyGeneratedCounter'))
 
         rhs = rhs_cterm.config
         # TODO: This is WRONG, should find a better way to solve the speed issue.
         rhs = replace_single_term(rhs, '<funcs>', KVariable('MyFuncs', KSort('FuncsCell')))
         rhs = replace_term_with_seq_variable(rhs, '<funcAddrs>', 'MyFuncAddrs', KSort('FuncAddrsCell'))
-        rhs = KApply(RULE_TOP_CELL, [rhs, KVariable('MyGeneratedCounter')])
+        rhs = wrap_with_generated_top(rhs, counter=KVariable('MyGeneratedCounter'))
 
         self.__rules.append(
             make_final_rule_new(
