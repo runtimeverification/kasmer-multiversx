@@ -2,9 +2,8 @@ import sys
 from pathlib import Path
 
 import pytest
-from pyk.kast.inner import KApply
-from pyk.prelude.utils import token
 
+from kmxwasm.ast.configuration import wrap_with_generated_top_if_needed
 from kmxwasm.json import load_json_kclaim
 from kmxwasm.property_testing.running import Success, run_claim
 from kmxwasm.property_testing.wasm_krun_initializer import WasmKrunInitializer
@@ -24,7 +23,7 @@ def test_success(test_file: Path, tools: Tools) -> None:
     claim = load_json_kclaim(test_file)
     # Fix the claim, it's not clear why these cells are being
     # removed when generating claims.
-    claim = claim.let(body=KApply('<generatedTop>', [claim.body, KApply('<generatedCounter>', [token(0)])]))
+    claim = claim.let(body=wrap_with_generated_top_if_needed(claim.body))
 
     result = run_claim(
         tools,

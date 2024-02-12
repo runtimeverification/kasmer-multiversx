@@ -9,8 +9,10 @@ from pyk.prelude.collections import list_empty, map_empty, map_of, set_empty
 from pyk.prelude.kbool import FALSE, TRUE
 from pyk.prelude.kint import intToken
 
+from kmxwasm.ast.configuration import wrap_with_generated_top_if_needed
 from kmxwasm.ast.mx import accountCellMap, bytesStack, listBytes, mapIntToBytes
 from kmxwasm.ast.wasm import (
+    elemInstCellMap,
     funcDefCellMap,
     globalInstCellMap,
     memInstCellMap,
@@ -48,6 +50,8 @@ def wasmCell() -> KInner:  # noqa: N802
                     KApply('<nextMemAddr>', intToken(0)),
                     KApply('<globals>', globalInstCellMap([])),
                     KApply('<nextGlobAddr>', intToken(0)),
+                    KApply('<elems>', elemInstCellMap([])),
+                    KApply('<nextElemAddr>', intToken(0)),
                 ),
             ),
             KApply('<deterministicMemoryGrowth>', TRUE),
@@ -144,10 +148,9 @@ def configCell(  # noqa: N802
 def full_configuration(
     k_cell: KInner, vm_output: KInner, addresses: dict[KInner, KInner], accounts: list[KInner], logging: KVariable
 ) -> KInner:
-    return KApply(
-        '<generatedTop>',
+    return wrap_with_generated_top_if_needed(
         configCell(k_cell=k_cell, vm_output=vm_output, addresses=addresses, accounts=accounts, logging=logging),
-        KVariable('GeneratedCounter'),
+        counter=KVariable('GeneratedCounter'),
     )
 
 

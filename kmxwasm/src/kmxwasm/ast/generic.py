@@ -155,7 +155,7 @@ def find_with_path_internal(root: KInner, path: list[str]) -> KInner | Component
 def get_with_path(root: KInner, path: list[str]) -> KInner:
     result = find_with_path_internal(root, path)
     if isinstance(result, ComponentNotFound):
-        raise ValueError(f'Path component not found: {result.element!r}')
+        raise ValueError(f'Path component not found: {result.element!r} in path: {path}')
     return result
 
 
