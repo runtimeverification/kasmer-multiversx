@@ -14,6 +14,7 @@ from pyk.kore.rpc import KoreClientError
 from pyk.prelude.utils import token
 from pyk.utils import BugReport
 
+from .ast.configuration import wrap_with_generated_top_if_needed
 from .ast.mx import (
     instrs_cell_contents,
     replace_instrs_cell,
@@ -83,7 +84,7 @@ class RunClaim(Action):
                 claim = load_json_kclaim(self.claim_path)
                 # Fix the claim, it's not clear why these cells are being
                 # removed when generating claims.
-                claim = claim.let(body=KApply('<generatedTop>', [claim.body, KApply('<generatedCounter>', [token(0)])]))
+                claim = claim.let(body=wrap_with_generated_top_if_needed(claim.body))
             t.measure()
 
             kcfg: KCFG | None = None

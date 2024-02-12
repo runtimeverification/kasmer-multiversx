@@ -29,6 +29,10 @@ def globalInstCellMap(global_insts: Iterable[KInner]) -> KInner:  # noqa: N802
     return cell_map(name='GlobalInstCellMap', items=global_insts)
 
 
+def elemInstCellMap(elem_insts: Iterable[KInner]) -> KInner:  # noqa: N802
+    return cell_map(name='ElemInstCellMap', items=elem_insts)
+
+
 def valStack(items: Iterable[KInner]) -> KInner:  # noqa: N802
     return simple_list(concat_label='concatValStack', empty_label='.ValStack', items=items)
 
