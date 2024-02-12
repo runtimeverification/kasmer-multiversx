@@ -71,9 +71,6 @@ class KInnerOptimizer:
 
         self.__terms: list[KInner] = []
 
-        self.__found = 0
-        self.__not_found = 0
-
     def optimize(self, term: KInner) -> KInner:
         def optimizer(to_optimize: KInner, children: list[int]) -> tuple[KInner, int]:
             if isinstance(to_optimize, KToken) or isinstance(to_optimize, KVariable):
@@ -95,12 +92,7 @@ class KInnerOptimizer:
         id = self.__optimized_terms.cache(term)
         assert id <= len(self.__terms)
         if id == len(self.__terms):
-            self.__not_found += 1
             self.__terms.append(term.build(self.__klabels.values, self.__terms))
-        else:
-            self.__found += 1
-        if (self.__found + self.__not_found) & 0xFFFF == 0:
-            print(self.__found, self.__not_found)
         return id
 
     def cache_klabel(self, label: KLabel) -> int:
@@ -197,7 +189,6 @@ class OptimizedKCFG(KCFG):
         node = KCFG.Node(node.id, optimize_cterm(node.cterm, self.__optimizer))
         self._nodes[node.id] = node
         self._created_nodes.add(node.id)
-        print("add_node!!!!!!!!!!!!!!!!!!!!!!")
 
     def create_node(self, cterm: CTerm) -> KCFG.Node:
         term = cterm.kast
@@ -207,7 +198,6 @@ class OptimizedKCFG(KCFG):
         self._node_id += 1
         self._nodes[node.id] = node
         self._created_nodes.add(node.id)
-        print("create_node!!!!!!!!!!!!!!!!!!!!!!")
         return self._nodes[node.id]
 
     def replace_node(self, node_id: NodeIdLike, cterm: CTerm) -> None:
@@ -218,4 +208,3 @@ class OptimizedKCFG(KCFG):
         node = KCFG.Node(node_id, cterm)
         self._nodes[node_id] = node
         self._created_nodes.add(node.id)
-        print("replace_node!!!!!!!!!!!!!!!!!!!!!!")
