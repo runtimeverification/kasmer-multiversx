@@ -78,7 +78,6 @@ module MX-LEMMAS  [symbolic]
 
   rule { _:Int #Equals undefined } => #Top  [simplification]
   rule { (< _:IValType > _:Int) #Equals undefined } => #Bottom  [simplification]
-  rule { (< _:ValType > _:Int) #Equals undefined } => #Bottom  [simplification]
 
   rule padRightBytesTotal (B:Bytes, Length:Int, Value:Int) => B
       requires Length <=Int lengthBytes(B)
