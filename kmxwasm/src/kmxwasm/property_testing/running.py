@@ -25,7 +25,6 @@ from ..ast.mx import (  # FUNCS, FUNCS_CELL_PATH, MEMS, MEMS_CELL_PATH,
     get_first_k_name,
     get_hostcall_name,
 )
-from ..term_optimizer import OptimizedKCFG
 from ..timing import Timer
 from ..tools import Tools
 from .cell_abstracter import CellAbstracter, multi_cell_abstracter, single_cell_abstracter
@@ -191,7 +190,7 @@ def run_claim(
         kcfg = restart_kcfg
         (final_node, target_node_id) = find_final_node(kcfg)
     else:
-        (kcfg, init_node_id, target_node_id) = OptimizedKCFG.from_claim(tools.printer.definition, claim)
+        (kcfg, init_node_id, target_node_id) = KCFG.from_claim(tools.printer.definition, claim)
         final_node = kcfg.node(target_node_id)
 
     kcfg_exploration = KCFGExploration(kcfg)

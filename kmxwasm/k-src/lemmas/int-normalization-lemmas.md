@@ -248,16 +248,97 @@ module INT-ARITHMETIC-NORMALIZATION-LEMMAS
   imports private CEILS-SYNTAX
   imports private INT
 
-  rule X -Int X => 0  [simplification]
+  // The normal form for a formula with + and - replaces X - Y by X + (-1) * Y.
+  //
+  // The normal form for a formula with + is:
+  // ((...((symbolic + symbolic) + symbolic) + ...) + symbolic) + concrete.
+  //
+  // The rules below complement the ones in INT-KORE
+  rule X -Int Y => X +Int (-1 *Int Y)  [simplification]
+  rule X +Int (Y +Int Z) => (X +Int Y) +Int Z  [simplification]
 
-  rule (((X modIntTotal Y) +Int Z) +Int T) modIntTotal Y => (X +Int Z +Int T) modIntTotal Y
-      [simplification]
-  rule (((X modIntTotal Y) +Int Z) -Int T) modIntTotal Y => (X +Int Z -Int T) modIntTotal Y
-      [simplification]
-  rule ((X modIntTotal Y) +Int Z) modIntTotal Y => (X +Int Z) modIntTotal Y
-      [simplification]
-  rule (X +Int (Z modIntTotal Y)) modIntTotal Y => (X +Int Z) modIntTotal Y
-      [simplification]
+  rule I +Int X => X +Int I  [simplification, symbolic(X), concrete(I)]
+  rule (X +Int I) +Int Y => (X +Int Y) +Int I  [simplification, symbolic(X, Y), concrete(I)]
+
+  // The normal form for a formula with * is:
+  // concrete * (symbolic * (...(symbolic * (symbolic * symbolic))...)).
+  rule (X *Int Y) *Int Z => X *Int (Y *Int Z)  [simplification]
+
+  rule X *Int I => I *Int X  [simplification, symbolic(X), concrete(I)]
+  rule X *Int (I *Int Y) => I *Int (X *Int Y)  [simplification, symbolic(X, Y), concrete(I)]
+  rule I1 *Int (I2 *Int X) => (I1 *Int I2) *Int X  [simplification, symbolic(X), concrete(I1, I2)]
+
+  rule 1 *Int X => X  [simplification]
+  rule 0 *Int _ => 0  [simplification]
+
+  // Distributivity for multiplication with constants.
+  rule I *Int (X +Int Y) => I *Int X +Int I *Int Y
+      [simplification, symbolic(X), concrete(I)]
+  rule I *Int (X +Int Y) => I *Int X +Int I *Int Y
+      [simplification, symbolic(Y), concrete(I)]
+
+  // Reverse distributivity for different-constants * same-term.
+  //
+  // It would be really nice if the backend would check the equality for the
+  // two occurrences of X by matching. The next best option is to make these
+  // rules low-priority, so they are applied only after the formula has already
+  // stabilized (including normalization).
+  rule X +Int X => 2 *Int X  [simplification(200)]
+  rule X +Int I *Int X => (1 +Int I) *Int X  [simplification(200), concrete(I)]
+  rule I *Int X +Int X => (1 +Int I) *Int X  [simplification(200), concrete(I)]
+  rule I1 *Int X +Int I2 *Int X => (I1 +Int I2) *Int X  [simplification(200), concrete(I1, I2)]
+
+  // The backends do not allow to do meta-manipulation of terms (e.g. to sort
+  // them by some criteria), so this is an attempt to catch the most common
+  // non-basic cases for reverse distributivity:
+
+  // Distance 1:
+  rule (X +Int Y) +Int X => 2 *Int X +Int Y
+      [simplification(200)]
+  rule (X +Int Y) +Int I *Int X => (1 +Int I) *Int X +Int Y
+      [simplification(200), concrete(I)]
+  rule (I *Int X +Int Y) +Int X => (1 +Int I) *Int X +Int Y
+      [simplification(200), concrete(I)]
+  rule (I1 *Int X +Int Y) +Int I2 *Int X => (I1 +Int I2) *Int X +Int Y
+      [simplification(200), symbolic(X), concrete(I1, I2)]
+
+  rule (Y +Int X) +Int X => Y +Int 2 *Int X
+      [simplification(200)]
+  rule (Y +Int X) +Int I *Int X => Y +Int (1 +Int I) *Int X
+      [simplification(200), concrete(I)]
+  rule (Y +Int I *Int X) +Int X => Y +Int (1 +Int I) *Int X
+      [simplification(200), concrete(I)]
+  rule (Y +Int I1 *Int X) +Int I2 *Int X => Y +Int (I1 +Int I2) *Int X
+      [simplification(200), concrete(I1, I2)]
+
+  // Distance 2:
+  rule ((X +Int Y) +Int Z) +Int X => (2 *Int X +Int Y) +Int Z
+      [simplification(200)]
+  rule ((X +Int Y) +Int Z) +Int I *Int X => ((1 +Int I) *Int X +Int Y) +Int Z
+      [simplification(200), concrete(I)]
+  rule ((I *Int X +Int Y) +Int Z) +Int X => ((1 +Int I) *Int X +Int Y) +Int Z
+      [simplification(200), concrete(I)]
+  rule ((I1 *Int X +Int Y) +Int Z) +Int I2 *Int X => ((I1 +Int I2) *Int X +Int Y) +Int Z
+      [simplification(200), symbolic(X), concrete(I1, I2)]
+
+  rule ((Y +Int X) +Int Z) +Int X => (Y +Int 2 *Int X) +Int Z
+      [simplification(200)]
+  rule ((Y +Int X) +Int Z) +Int I *Int X => (Y +Int (1 +Int I) *Int X) +Int Z
+      [simplification(200), concrete(I)]
+  rule ((Y +Int I *Int X) +Int Z) +Int X => (Y +Int (1 +Int I) *Int X) +Int Z
+      [simplification(200), concrete(I)]
+  rule ((Y +Int I1 *Int X) +Int Z) +Int I2 *Int X => (Y +Int (I1 +Int I2) *Int X) +Int Z
+      [simplification(200), concrete(I1, I2)]
+
+  // Moved to proven-mx-lemmas.md
+  // rule (((X modIntTotal Y) +Int Z) +Int T) modIntTotal Y => (X +Int Z +Int T) modIntTotal Y
+  //     [simplification]
+  // rule (((X modIntTotal Y) +Int Z) -Int T) modIntTotal Y => (X +Int Z -Int T) modIntTotal Y
+  //     [simplification]
+  // rule ((X modIntTotal Y) +Int Z) modIntTotal Y => (X +Int Z) modIntTotal Y
+  //     [simplification]
+  // rule (X +Int (Z modIntTotal Y)) modIntTotal Y => (X +Int Z) modIntTotal Y
+  //     [simplification]
   rule (X +Int Y) modIntTotal Z => (X +Int (Y modInt Z)) modIntTotal Z
       requires Z =/=Int 0 andBool Y >=Int Z
       [simplification, concrete(Y, Z)]

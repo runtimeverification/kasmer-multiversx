@@ -78,7 +78,8 @@ module MX-LEMMAS  [symbolic]
 
   rule { _:Int #Equals undefined } => #Top  [simplification]
   rule { (< _:IValType > _:Int) #Equals undefined } => #Bottom  [simplification]
-  rule { (< _:ValType > _:Int) #Equals undefined } => #Bottom  [simplification]
+  rule { (< _:FValType > _:Float) #Equals undefined } => #Bottom  [simplification]
+  rule { (< _:RefValType > _:Int) #Equals undefined } => #Bottom  [simplification]
 
   rule padRightBytesTotal (B:Bytes, Length:Int, Value:Int) => B
       requires Length <=Int lengthBytes(B)
@@ -1052,6 +1053,17 @@ module MX-LEMMAS  [symbolic]
 
   rule notBool notBool B => B
       [simplification]
+
+  // rule -1 <=Int #bigIntSign(_) => true  [simplification, smt-lemma]
+  // rule #bigIntSign(_) <=Int 1 => true  [simplification, smt-lemma]
+
+  rule X <=Int #bigIntSign(_) => true requires X <=Int -1  [simplification]
+  rule X <Int #bigIntSign(_) => true requires X <Int -1  [simplification]
+  rule #bigIntSign(_) <=Int X => true requires 1 <=Int X  [simplification]
+  rule #bigIntSign(_) <Int X => true requires 1 <Int X  [simplification]
+
+  rule 0 <=Int #bigIntSign(X) => true requires 0 <=Int X  [simplification]
+  rule #bigIntSign(X) <=Int 0 => true requires X <=Int 0  [simplification]
 endmodule
 
 ```

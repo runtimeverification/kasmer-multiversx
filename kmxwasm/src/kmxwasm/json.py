@@ -7,8 +7,6 @@ from pyk.kast.inner import KInner
 from pyk.kast.outer import KClaim
 from pyk.kcfg import KCFG
 
-from .term_optimizer import OptimizedKCFG
-
 
 def load_json_dict(input_file: Path) -> Mapping[str, Any]:
     with input_file.open() as f:
@@ -28,7 +26,7 @@ def load_json_kinner_from_krun(input_file: Path) -> KInner:
 
 def load_json_kcfg(input_file: Path) -> KCFG:
     value = load_json_dict(input_file)
-    return OptimizedKCFG.from_dict(value)
+    return KCFG.from_dict(value)
 
 
 def load_json_kclaim(input_file: Path) -> KClaim:

@@ -79,6 +79,7 @@ class Tools:
                     # TODO: Remove --no-smt whenever possible.
                     command=(
                         'kore-rpc-booster',
+                        '--smt-timeout', '1000',
                         # '--no-smt',
                         # '-l', 'Rewrite',
                         # '-l', 'SimplifySuccess',
@@ -99,6 +100,8 @@ class Tools:
                     command=(
                         'kore-rpc',
                         # '--solver-transcript', 'log.z3',
+                        '--smt-timeout', '1000',
+                        # '--debug-equation', 'xyzzy2'
                     ),
                     # port=39425,
                 )
