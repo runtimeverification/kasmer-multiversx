@@ -218,6 +218,7 @@ class TestSimpleProofs:
             WasmKrunInitializer(tools),
             claim,
             restart_kcfg=None,
+            kcfg_path=None,
             run_id=None,
             depth=1000,
             iterations=10000,

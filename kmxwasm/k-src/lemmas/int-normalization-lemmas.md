@@ -376,7 +376,7 @@ module INT-ARITHMETIC-NORMALIZATION-LEMMAS
   // Let A be Y divIntTotal 8
   // Let B be Y modIntTotal 8.
   // A * 8 + B <= A * 8 + 7, which is obviously true.
-  rule A:Int <Int 2 ^IntTotal ((( log2IntTotal(A) +Int 8) divIntTotal 8) *Int 8)
+  rule A:Int <Int 2 ^IntTotal (8 *Int (( log2IntTotal(A) +Int 8) divIntTotal 8))
       => true
       requires 0 <Int A
       [simplification]

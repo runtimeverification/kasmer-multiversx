@@ -1,6 +1,7 @@
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
+from pathlib import Path
 
 from pyk.kast.inner import KInner
 from pyk.kast.outer import KClaim
@@ -179,6 +180,7 @@ def run_claim(
     wasm_initializer: WasmKrunInitializer,
     claim: KClaim,
     restart_kcfg: KCFG | None,
+    kcfg_path: Path | None,
     run_id: int | None,
     depth: int,
     iterations: int,
@@ -190,7 +192,7 @@ def run_claim(
         kcfg = restart_kcfg
         (final_node, target_node_id) = find_final_node(kcfg)
     else:
-        (kcfg, init_node_id, target_node_id) = KCFG.from_claim(tools.printer.definition, claim)
+        (kcfg, init_node_id, target_node_id) = KCFG.from_claim(tools.printer.definition, claim, cfg_dir=kcfg_path)
         final_node = kcfg.node(target_node_id)
 
     kcfg_exploration = KCFGExploration(kcfg)
@@ -313,7 +315,6 @@ def run_claim(
 
 def new_leaves(kcfg: KCFG, existing: set[NodeIdLike], final: NodeIdLike) -> list[NodeIdLike]:
     return [node.id for node in kcfg.leaves if node.id not in existing and node.id != final]
-
 
 def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int) -> RunClaimResult:
     kcfg = restart_kcfg

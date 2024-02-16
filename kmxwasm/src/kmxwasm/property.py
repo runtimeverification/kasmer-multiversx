@@ -23,7 +23,7 @@ from .ast.mx import (
     set_interim_states_cell_content,
 )
 from .build import HASKELL, kbuild_semantics
-from .json import load_json_kcfg, load_json_kclaim, write_kcfg_json
+from .json import load_json_kclaim
 from .property_testing.paths import KBUILD_DIR, KBUILD_ML_PATH, ROOT
 from .property_testing.printers import print_node
 from .property_testing.running import RunException, Stuck, Success, profile_step, run_claim, split_edge
@@ -91,7 +91,7 @@ class RunClaim(Action):
             kcfg: KCFG | None = None
             if self.restart:
                 t = Timer('Loading kcfg')
-                kcfg = load_json_kcfg(self.kcfg_path)
+                kcfg = KCFG.read_cfg_data(self.kcfg_path, id='random_id')
                 to_remove = self.remove
                 while to_remove:
                     current_id = to_remove.pop()
@@ -108,11 +108,12 @@ class RunClaim(Action):
                 WasmKrunInitializer(tools),
                 claim=claim,
                 restart_kcfg=kcfg,
+                kcfg_path=self.kcfg_path,
                 run_id=self.run_node_id,
                 depth=self.depth,
                 iterations=self.iterations,
             )
-            write_kcfg_json(result.kcfg, self.kcfg_path)
+            result.kcfg.write_cfg_data()
 
             if isinstance(result, Stuck):
                 stuck_node = result.kcfg.get_node(result.stuck_node_id)
@@ -167,7 +168,7 @@ class SimplifyBefore(Action):
 
     def run(self) -> None:
         t = Timer('Loading kcfg')
-        kcfg = load_json_kcfg(self.kcfg_path)
+        kcfg = KCFG.read_cfg_data(self.kcfg_path, id='random_id')
         node_ids = [n.id for n in kcfg.nodes if n.id < self.before_node_id]
         for node_id in node_ids:
             if len(list(kcfg.covers(source_id=node_id))) != 0:
@@ -200,7 +201,7 @@ class SimplifyBefore(Action):
             kcfg.create_edge(source_id=parent.id, target_id=child.id, depth=steps)
         t.measure()
         t = Timer('Writing kcfg')
-        write_kcfg_json(kcfg, self.kcfg_path)
+        kcfg.write_cfg_data()
         t.measure()
 
 
@@ -221,11 +222,11 @@ class BisectAfter(Action):
             bug_report=self.bug_report,
         ) as tools:
             t = Timer('Loading kcfg')
-            kcfg = load_json_kcfg(self.kcfg_path)
+            kcfg = KCFG.read_cfg_data(self.kcfg_path, id='random_id')
             t.measure()
 
             result = split_edge(tools, kcfg, start_node_id=self.node_id)
-            write_kcfg_json(result.kcfg, self.kcfg_path)
+            result.kcfg.write_cfg_data()
 
             if isinstance(result, Success):
                 print('Success')
@@ -384,7 +385,7 @@ class Profile(Action):
             bug_report=self.bug_report,
         ) as tools:
             t = Timer('Loading kcfg')
-            kcfg = load_json_kcfg(self.kcfg_path)
+            kcfg = KCFG.read_cfg_data(self.kcfg_path, id='random_id')
             t.measure()
 
             t = Timer('Removing nodes')
@@ -494,7 +495,7 @@ class ShowNode(Action):
             bug_report=None,
         ) as tools:
             t = Timer('Loading kcfg')
-            kcfg = load_json_kcfg(self.kcfg_path)
+            kcfg = KCFG.read_cfg_data(self.kcfg_path, id='random_id')
             t.measure()
             print('Printing: ', self.node_id)
             node = kcfg.get_node(self.node_id)
@@ -519,7 +520,7 @@ class Tree(Action):
             bug_report=None,
         ) as tools:
             t = Timer('Loading kcfg')
-            kcfg = load_json_kcfg(self.kcfg_path)
+            kcfg = KCFG.read_cfg_data(self.kcfg_path, id='random_id')
             t.measure()
             show = KCFGShow(tools.printer, tools.node_printer)
             for line in show.pretty(kcfg):

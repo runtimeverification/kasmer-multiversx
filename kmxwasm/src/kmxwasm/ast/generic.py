@@ -58,7 +58,7 @@ def set_single_argument_multiple_kapply_contents(
             return node
 
         if len(node.args) != 1:
-            raise ValueError(f'Expected node {name} to heve exactly 1 child, found {len(node.args)}.')
+            raise ValueError(f'Expected node {name} to have exactly 1 child, found {len(node.args)}.')
 
         nonlocal index
         contents = contents_generator(index)

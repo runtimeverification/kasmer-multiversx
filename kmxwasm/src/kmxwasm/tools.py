@@ -79,7 +79,8 @@ class Tools:
                     # TODO: Remove --no-smt whenever possible.
                     command=(
                         'kore-rpc-booster',
-                        '--smt-timeout', '1000',
+                        '--smt-timeout',
+                        '1000',
                         # '--no-smt',
                         # '-l', 'Rewrite',
                         # '-l', 'SimplifySuccess',
@@ -100,7 +101,8 @@ class Tools:
                     command=(
                         'kore-rpc',
                         # '--solver-transcript', 'log.z3',
-                        '--smt-timeout', '1000',
+                        '--smt-timeout',
+                        '1000',
                         # '--debug-equation', 'xyzzy2'
                     ),
                     # port=39425,
@@ -175,6 +177,7 @@ def my_patch_symbol_table(symbol_table: SymbolTable) -> None:
     symbol_table['_%Int_'] = lambda c1, c2: f'({c1}) %Int ({c2})'
     symbol_table['_%IntTotal_'] = lambda c1, c2: f'({c1}) %IntTotal ({c2})'
     symbol_table['_^Int_'] = lambda c1, c2: f'({c1}) ^Int ({c2})'
+    symbol_table['_^IntTotal_'] = lambda c1, c2: f'({c1}) ^IntTotal ({c2})'
     symbol_table['_^%Int_'] = lambda c1, c2: f'({c1}) ^%Int ({c2})'
     symbol_table['_+Int_'] = lambda c1, c2: f'({c1}) +Int ({c2})'
     symbol_table['_-Int_'] = lambda c1, c2: f'({c1}) -Int ({c2})'
