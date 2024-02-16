@@ -316,6 +316,7 @@ def run_claim(
 def new_leaves(kcfg: KCFG, existing: set[NodeIdLike], final: NodeIdLike) -> list[NodeIdLike]:
     return [node.id for node in kcfg.leaves if node.id not in existing and node.id != final]
 
+
 def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int) -> RunClaimResult:
     kcfg = restart_kcfg
     (final_node, _) = find_final_node(kcfg)

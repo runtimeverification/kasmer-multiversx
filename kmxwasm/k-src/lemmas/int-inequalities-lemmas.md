@@ -267,9 +267,9 @@ module INT-INEQUALITIES-LEMMAS
   // a * b <= c
   // iff a <= c / b
   // iff a <= trunc(c/b)
-  rule A <=Int C divIntTotal B => A *Int B <=Int C 
+  rule A <=Int C divIntTotal B => A *Int B <=Int C
       requires 0 <Int B andBool 0 <=Int C
-      [simplification, concrete(A), label(xyzzy1)]
+      [simplification, concrete(A)]
   // a < trunc(c/b)
   // iff a + 1 <= trunc(c/b)
   // iff a + 1 <= trunc(c/b) + frac(c/b)
@@ -277,13 +277,13 @@ module INT-INEQUALITIES-LEMMAS
   // iff (a + 1) * b <= c
   rule A <Int C divIntTotal B => (A +Int 1) *Int B <=Int C 
       requires 0 <Int B andBool 0 <=Int C
-      [simplification, concrete(A), label(xyzzy2)]
+      [simplification, concrete(A)]
   // a < b * c
   // iff a / c < b
   // iff trunc(a/c) < b
   rule A divIntTotal C <Int B => A <Int B *Int C
       requires 0 <Int C andBool 0 <=Int A
-      [simplification, concrete(B), label(xyzzy3)]
+      [simplification, concrete(B)]
   // trunc(a/c) <= b
   // iff trunc(a/c) < b + 1
   // iff trunc(a/c) + frac(a/c) < b + 1
@@ -291,7 +291,7 @@ module INT-INEQUALITIES-LEMMAS
   // iff a < (b + 1) * c
   rule A divIntTotal C <=Int B => A <Int (B +Int 1) *Int C
       requires 0 <Int C andBool 0 <=Int A
-      [simplification, concrete(B), label(xyzzy4)]
+      [simplification, concrete(B)]
 
   // Moved to proven-mx-lemmas
   // rule (_X modIntTotal Y) <Int Y => true

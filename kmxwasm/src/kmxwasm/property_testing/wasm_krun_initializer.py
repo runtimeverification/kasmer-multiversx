@@ -51,10 +51,7 @@ class WasmKrunInitializer:
         else:
             krun_cell = self.__prepare_krun_cell(start_cell, first)
             print('*' * 30, 'Initializing WASM:', acct_address)
-            print(self.__tools.printer.pretty_print(krun_cell))
-            print('--------------------------------------------')
             krun_result = self.__tools.krun(krun_cell)
-            print(self.__tools.printer.pretty_print(krun_result))
 
             wasm_cell = get_wasm_cell(krun_result)
             current_module = get_contract_mod_idx_cell(krun_result)
