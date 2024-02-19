@@ -210,6 +210,32 @@ module INT-INEQUALITIES-LEMMAS
   rule A <Int B -Int C => C <Int B -Int A
       [simplification, concrete(A, B)]
 
+  rule A <=Int B *Int X => A /Int B <=Int X
+      requires 0 <Int B andBool A %Int B ==Int 0
+      [simplification, concrete(A, B)]
+  rule A <=Int B *Int X => X <=Int A /Int B 
+      requires B <Int 0 andBool A %Int B ==Int 0
+      [simplification, concrete(A, B)]
+  rule A *Int X <=Int B => X <=Int B /Int A
+      requires 0 <Int A andBool B %Int A ==Int 0
+      [simplification, concrete(A, B)]
+  rule A *Int X <=Int B => B /Int A <=Int X
+      requires A <Int 0 andBool B %Int A ==Int 0
+      [simplification, concrete(A, B)]
+
+  rule A <Int B *Int X => A /Int B <Int X
+      requires 0 <Int B andBool A %Int B ==Int 0
+      [simplification, concrete(A, B)]
+  rule A <Int B *Int X => X <Int A /Int B 
+      requires B <Int 0 andBool A %Int B ==Int 0
+      [simplification, concrete(A, B)]
+  rule A *Int X <Int B => X <Int B /Int A
+      requires 0 <Int A andBool B %Int A ==Int 0
+      [simplification, concrete(A, B)]
+  rule A *Int X <Int B => B /Int A <Int X
+      requires A <Int 0 andBool B %Int A ==Int 0
+      [simplification, concrete(A, B)]
+
   // a * b <= c
   // iff a <= c / b
   // iff a <= trunc(c/b)
