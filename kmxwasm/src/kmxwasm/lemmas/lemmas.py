@@ -1,6 +1,6 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
-from pyk.kast.att import _ANY, _NULLARY, AttEntry, AttKey, Atts, KAtt
+from pyk.kast.att import _ANY, _NULLARY, EMPTY_ATT, AttKey, Atts, KAtt
 from pyk.kast.inner import KInner, KRewrite, KSequence, KVariable, Subst
 from pyk.kast.manip import count_vars, free_vars
 from pyk.kast.outer import KClaim, KDefinition, KFlatModule, KImport, KRequire, KRule
@@ -33,7 +33,7 @@ class Lemma:
     lhs: KInner
     rhs: KInner
     requires: KInner = TRUE
-    attributes: list[AttEntry] = field(default_factory=list)
+    att: KAtt = EMPTY_ATT
 
     def make_claim(self, proof: KInner) -> KClaim:
         assert is_ml(self.lhs) == is_ml(self.rhs)
@@ -67,8 +67,7 @@ class Lemma:
         lhs = kast_defn.sort_vars(lhs)
         rhs = kast_defn.sort_vars(rhs)
 
-        entries = [Atts.SIMPLIFICATION('')] + self.attributes
-        return KRule(body=KRewrite(lhs, rhs), requires=self.requires, att=KAtt(entries=entries))
+        return KRule(body=KRewrite(lhs, rhs), requires=self.requires, att=self.att.update([Atts.SIMPLIFICATION('')]))
 
 
 @dataclass(frozen=True)
