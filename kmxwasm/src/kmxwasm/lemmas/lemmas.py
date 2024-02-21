@@ -24,11 +24,8 @@ class Attribute:
         d[self.name] = self.value
 
 
-smt_lemma: AttEntry = AttEntry(AttKey('smt_lemma', type=_NULLARY), '')
-
-
-def concrete(*args: KVariable) -> AttEntry:
-    return AttEntry(AttKey('concrete', type=_ANY), ','.join(var.name for var in args))
+SMT_LEMMA = AttKey('smt_lemma', type=_NULLARY)
+CONCRETE = AttKey('concrete', type=_ANY)
 
 
 @dataclass(frozen=True)
@@ -70,8 +67,8 @@ class Lemma:
         lhs = kast_defn.sort_vars(lhs)
         rhs = kast_defn.sort_vars(rhs)
 
-        atts = [AttEntry(Atts.SIMPLIFICATION, '')] + self.attributes
-        return KRule(body=KRewrite(lhs, rhs), requires=self.requires, att=KAtt(entries=atts))
+        entries = [Atts.SIMPLIFICATION('')] + self.attributes
+        return KRule(body=KRewrite(lhs, rhs), requires=self.requires, att=KAtt(entries=entries))
 
 
 @dataclass(frozen=True)
@@ -130,7 +127,7 @@ class HelperLemma:
 
 def make_helper_lemmas_module(lemmas: list[HelperLemma], trusted: bool = False) -> KFlatModule:
     def make_trusted(c: KClaim) -> KClaim:
-        return c.let_att(c.att.update([AttEntry(AttKey('trusted', type=_NULLARY), '')]))
+        return c.let_att(c.att.update([Atts.TRUSTED('')]))
 
     claims = [l.make_claim() for l in lemmas]
     if trusted:
