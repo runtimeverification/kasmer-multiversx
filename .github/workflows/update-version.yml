@@ -42,7 +42,7 @@ jobs:
       - name: 'Update pyk release tag'
         run: |
           PYK_VERSION=$(cat ./deps/pyk_release)
-          sed -i 's!pyk = { git = "https://github.com/runtimeverification/pyk.git", tag = "[v0-9\.]*" }!pyk = { git = "https://github.com/runtimeverification/pyk.git", tag = "v'${PYK_VERSION}'" }!' kmxwasm/pyproject.toml
+          sed -i 's!pyk = { git = "https://github.com/runtimeverification/pyk.git", tag = "[v0-9\.]*" }!pyk = { git = "https://github.com/runtimeverification/pyk.git", tag = "'${PYK_VERSION}'" }!' kmxwasm/pyproject.toml
           poetry -C kmxwasm update
           git add kmxwasm/pyproject.toml kmxwasm/poetry.lock && git commit -m 'kmxwasm/{pyproject.toml,poetry.lock}: sync Poetry files' || true
       - name: 'Update Nix flake inputs'
