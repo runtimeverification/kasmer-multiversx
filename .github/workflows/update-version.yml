@@ -17,6 +17,7 @@ jobs:
       - name: 'Check out code'
         uses: actions/checkout@v3
         with:
+          submodules: recursive
           token: ${{ secrets.JENKINS_GITHUB_PAT }}
       - name: 'Configure GitHub user'
         run: |
