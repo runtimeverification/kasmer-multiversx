@@ -43,8 +43,8 @@ jobs:
           token: ${{ secrets.JENKINS_GITHUB_PAT }}
           submodules: recursive
       - uses: actions/setup-python@v5
-          with:
-            python-version: '3.10'
+        with:
+          python-version: '3.10'
       - name: 'Install Poetry'
         uses: Gr1N/setup-poetry@v8
       - name: 'Build and run code quality checks'
