@@ -2,6 +2,7 @@ import subprocess
 from pathlib import Path
 from typing import Any, Optional
 
+from pyk.kast.att import _NULLARY, AttEntry, AttKey
 from pyk.kast.outer import KAtt, KDefinition, KFlatModule, KImport, KProduction, KRequire, KTerminal
 from pyk.kcfg import KCFGExplore
 from pyk.konvert import krule_to_kore
@@ -79,7 +80,9 @@ class LazyExplorer:
 
     def __write_semantics(self) -> None:
         identifier_sentences = [
-            KProduction(sort=sort, items=[KTerminal(token.token)], att=KAtt({'token': ''}))
+            KProduction(
+                sort=sort, items=[KTerminal(token.token)], att=KAtt([AttEntry(AttKey('token', type=_NULLARY), '')])
+            )
             for sort, tokens in self.__identifiers.sort_to_ids.items()
             for token in tokens
         ]

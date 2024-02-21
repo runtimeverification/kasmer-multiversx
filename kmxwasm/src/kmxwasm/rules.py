@@ -1,5 +1,6 @@
 from typing import List, Tuple
 
+from pyk.kast.att import _ANY, AttEntry, AttKey
 from pyk.kast.inner import KInner, KSort, KVariable
 from pyk.kast.manip import ml_pred_to_bool
 from pyk.kast.outer import KAtt, KRule
@@ -59,8 +60,12 @@ class RuleCreator:
 
 
 def default_atts(priority: int, rule_index: int) -> KAtt:
-    att_dict = {'priority': str(priority), 'label': f'summaryrule{rule_index}'}
-    return KAtt(atts=att_dict)
+    return KAtt(
+        [
+            AttEntry(AttKey('priority', type=_ANY), str(priority)),
+            AttEntry(AttKey('label', type=_ANY), f'summaryrule{rule_index}'),
+        ]
+    )
 
 
 def make_final_rule_new(

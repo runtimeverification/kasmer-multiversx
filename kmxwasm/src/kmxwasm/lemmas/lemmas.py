@@ -1,8 +1,9 @@
 from dataclasses import dataclass, field
 
+from pyk.kast.att import _ANY, _NULLARY, AttEntry, AttKey, Atts, KAtt
 from pyk.kast.inner import KInner, KRewrite, KSequence, KVariable, Subst
 from pyk.kast.manip import count_vars, free_vars
-from pyk.kast.outer import KAtt, KClaim, KDefinition, KFlatModule, KImport, KRequire, KRule
+from pyk.kast.outer import KClaim, KDefinition, KFlatModule, KImport, KRequire, KRule
 from pyk.prelude.k import DOTS
 from pyk.prelude.kbool import TRUE
 from pyk.prelude.ml import mlAnd, mlEquals
@@ -23,11 +24,11 @@ class Attribute:
         d[self.name] = self.value
 
 
-smt_lemma = Attribute('smt-lemma')
+smt_lemma: AttEntry = AttEntry(AttKey('smt_lemma', type=_NULLARY), '')
 
 
-def concrete(*args: KVariable) -> Attribute:
-    return Attribute('concrete', ', '.join(var.name for var in args))
+def concrete(*args: KVariable) -> AttEntry:
+    return AttEntry(AttKey('concrete', type=_ANY), ','.join(var.name for var in args))
 
 
 @dataclass(frozen=True)
@@ -35,7 +36,7 @@ class Lemma:
     lhs: KInner
     rhs: KInner
     requires: KInner = TRUE
-    attributes: list[Attribute] = field(default_factory=list)
+    attributes: list[AttEntry] = field(default_factory=list)
 
     def make_claim(self, proof: KInner) -> KClaim:
         assert is_ml(self.lhs) == is_ml(self.rhs)
@@ -69,10 +70,8 @@ class Lemma:
         lhs = kast_defn.sort_vars(lhs)
         rhs = kast_defn.sort_vars(rhs)
 
-        atts = {'simplification': ''}
-        for att in self.attributes:
-            att.add_to_dict(atts)
-        return KRule(body=KRewrite(lhs, rhs), requires=self.requires, att=KAtt(atts))
+        atts = [AttEntry(Atts.SIMPLIFICATION, '')] + self.attributes
+        return KRule(body=KRewrite(lhs, rhs), requires=self.requires, att=KAtt(entries=atts))
 
 
 @dataclass(frozen=True)
@@ -131,9 +130,7 @@ class HelperLemma:
 
 def make_helper_lemmas_module(lemmas: list[HelperLemma], trusted: bool = False) -> KFlatModule:
     def make_trusted(c: KClaim) -> KClaim:
-        d = dict(c.att.atts)
-        d['trusted'] = ''
-        return c.let_att(c.att.let(atts=d))
+        return c.let_att(c.att.update([AttEntry(AttKey('trusted', type=_NULLARY), '')]))
 
     claims = [l.make_claim() for l in lemmas]
     if trusted:
