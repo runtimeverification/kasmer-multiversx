@@ -1,7 +1,7 @@
 from pyk.cterm import CTerm
 from pyk.kast.inner import KApply, KInner, KSequence, KToken
 from pyk.kcfg import KCFG
-from pyk.prelude.collections import list_of, map_empty
+from pyk.prelude.collections import list_of
 from pyk.prelude.utils import token
 
 from ..ast.mx import (
@@ -11,6 +11,7 @@ from ..ast.mx import (
     get_wasm_cell,
     listBytes,
     mapIntToBytes,
+    mapIntToInt,
     replace_contract_mod_idx_cell,
     replace_wasm_cell,
     set_accounts_cell_content,
@@ -79,7 +80,7 @@ class WasmKrunInitializer:
         krun_cell = set_logging_cell_content(krun_cell, token(''))
         krun_cell = set_generated_counter_cell_content(krun_cell, token(0))
         krun_cell = set_call_args_cell_content(krun_cell, listBytes([]))
-        krun_cell = set_big_int_heap_cell_content(krun_cell, map_empty())
+        krun_cell = set_big_int_heap_cell_content(krun_cell, mapIntToInt({}))
         krun_cell = set_buffer_heap_cell_content(krun_cell, mapIntToBytes({}))
         krun_cell = set_exit_code_cell_content(krun_cell, token(0))
 

@@ -661,7 +661,7 @@ def run_for_input(
         # Real symbolic inputs
         # <elrond>
         ('<bufferHeap>', 'MyBuffers', KSort('MapIntToBytes')),
-        ('<bigIntHeap>', 'MyInts', MAP),
+        ('<bigIntHeap>', 'MyInts', KSort('MapIntToInt')),
         # <elrond>/<node>/<callState>
         ('<callArgs>', 'MyCallArgs', KSort('ListBytes')),
         ('<caller>', 'MyCaller', BYTES),
