@@ -2,6 +2,7 @@
 
 import sys
 
+from pyk.kast.att import KAtt
 from pyk.prelude.collections import LIST
 from pyk.prelude.kbool import BOOL, FALSE, TRUE, andBool, notBool, orBool
 from pyk.prelude.kint import INT, eqInt, gtInt, leInt, ltInt
@@ -34,13 +35,13 @@ from .expression import (
     var,
 )
 from .lemmas import (
+    CONCRETE,
+    SMT_LEMMA,
     HelperLemma,
     Lemma,
     LemmaProof,
-    concrete,
     make_helper_lemmas_module,
     make_proven_lemmas_module,
-    smt_lemma,
 )
 from .proof import basicListInduction, proofSplit, proofVar
 
@@ -165,8 +166,8 @@ LEMMAS = [
         name='pound-bool',
         proof=[proofSplit(B)],
         lemmas=[
-            Lemma(leInt(v(0), poundBool(B)), TRUE, attributes=[smt_lemma]),
-            Lemma(leInt(poundBool(B), v(1)), TRUE, attributes=[smt_lemma]),
+            Lemma(leInt(v(0), poundBool(B)), TRUE, att=KAtt([SMT_LEMMA('')])),
+            Lemma(leInt(poundBool(B), v(1)), TRUE, att=KAtt([SMT_LEMMA('')])),
             Lemma(ltInt(poundBool(B), v(1)), notBool(B)),
             Lemma(mlEquals(v(0), poundBool(B)), mlEquals(FALSE, B)),
             Lemma(mlEquals(v(1), poundBool(B)), mlEquals(TRUE, B)),
@@ -176,7 +177,7 @@ LEMMAS = [
         name='list-size',
         proof=[basicListInduction(L)],
         lemmas=[
-            Lemma(geInt(sizeList(L), v(0)), TRUE, attributes=[smt_lemma]),
+            Lemma(geInt(sizeList(L), v(0)), TRUE, att=KAtt([SMT_LEMMA('')])),
         ],
     ),
     LemmaProof(
@@ -220,18 +221,18 @@ LEMMAS = [
                 modIntTotal(addInt(X, modIntTotal(Z, Y)), Y),
                 modIntTotal(addInt(X, Z), Y),
             ),
-            Lemma(ltInt(modIntTotal(X, Y), Y), TRUE, requires=gtInt(Y, v(0)), attributes=[smt_lemma]),
+            Lemma(ltInt(modIntTotal(X, Y), Y), TRUE, requires=gtInt(Y, v(0)), att=KAtt([SMT_LEMMA('')])),
             Lemma(
                 leInt(v(0), modIntTotal(X, Y)),
                 TRUE,
                 requires=gtInt(Y, v(0)),
-                attributes=[smt_lemma],
+                att=KAtt([SMT_LEMMA('')]),
             ),
             Lemma(
                 modIntTotal(addInt(X, Y), Z),
                 modIntTotal(addInt(X, modInt(Y, Z)), Z),
                 requires=andBool([notBool(eqInt(Z, v(0))), geInt(Y, Z)]),
-                attributes=[concrete(Y, Z)],
+                att=KAtt([CONCRETE('Y,Z')]),
             ),
             Lemma(
                 mlEquals(modIntTotal(addInt(X, Y), M), modIntTotal(addInt(X, Z), M)),
@@ -241,7 +242,6 @@ LEMMAS = [
                 modIntTotal(X, Y),
                 X,
                 requires=andBool([leInt(v(0), X), ltInt(X, Y)]),
-                attributes=[],
             ),
         ],
     ),

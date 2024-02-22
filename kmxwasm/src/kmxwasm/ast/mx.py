@@ -57,8 +57,12 @@ def mapIntToBytes(int_to_bytes: dict[KInner, KInner]) -> KInner:  # noqa: N802
     )
 
 
+def mapIntToInt(int_to_int: dict[KInner, KInner]) -> KInner:  # noqa: N802
+    return k_map(concat_label='_MapIntToInt_', item_label='_Int2Int|->_', empty_label='.MapIntToInt', items=int_to_int)
+
+
 def bytesStack(items: Iterable[KInner]) -> KInner:  # noqa: N802
-    return simple_list(concat_label='bytesStackList', empty_label='.List{"bytesStackList"}_BytesStack', items=items)
+    return simple_list(concat_label='bytesStackList', empty_label='.List{"bytesStackList"}', items=items)
 
 
 def accountCellMap(accounts: Iterable[KInner]) -> KInner:  # noqa: N802
