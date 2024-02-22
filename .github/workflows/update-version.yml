@@ -1,0 +1,54 @@
+name: 'Update Version'
+on:
+  push:
+    branches:
+      - '_update-deps/runtimeverification/mx-semantics'
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  update-versions:
+    name: 'Update pyk version'
+    runs-on: [self-hosted, linux, flyweight]
+    steps:
+      - name: 'Check out code'
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          token: ${{ secrets.JENKINS_GITHUB_PAT }}
+      - name: 'Configure GitHub user'
+        run: |
+          git config user.name devops
+          git config user.email devops@runtimeverification.com
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: 'Install Poetry'
+        uses: Gr1N/setup-poetry@v8
+      - name: 'Update mx-semantics submodule, pyk/K releases'
+        run: |
+          mx_semantics_version=$(cat deps/mx-semantics_release)
+          cd kmxwasm/k-src/mx-semantics
+          git fetch --tags
+          git checkout v${mx_semantics_version}
+          cd ../../..
+          git add kmxwasm/k-src/mx-semantics && git commit -m "kmxwasm/k-src/mx-semantics: update submodule v${mx_semantics_version}" || true
+          cat kmxwasm/k-src/mx-semantics/deps/wasm-semantics/deps/k_release > deps/k_release
+          cat kmxwasm/k-src/mx-semantics/deps/wasm-semantics/deps/pyk_release > deps/pyk_release
+          git add deps/k_release deps/pyk_release && git commit -m 'deps/{k_release,pyk_release}: update versions' || true
+      - name: 'Update pyk release tag'
+        run: |
+          PYK_VERSION=$(cat ./deps/pyk_release)
+          sed -i 's!pyk = { git = "https://github.com/runtimeverification/pyk.git", tag = "[v0-9\.]*" }!pyk = { git = "https://github.com/runtimeverification/pyk.git", tag = "'${PYK_VERSION}'" }!' kmxwasm/pyproject.toml
+          poetry -C kmxwasm update
+          git add kmxwasm/pyproject.toml kmxwasm/poetry.lock && git commit -m 'kmxwasm/{pyproject.toml,poetry.lock}: sync Poetry files' || true
+      - name: 'Update Nix flake inputs'
+        run: |
+          cd kmxwasm
+          nix --extra-experimental-features 'nix-command flakes' --show-trace flake update
+          git add flake.nix flake.lock && git commit -m 'kmxwasm/flake.{nix,lock}: update Nix derivations' || true
+      - name: 'Push updates'
+        run: git push

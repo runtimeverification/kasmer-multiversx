@@ -81,7 +81,7 @@ def get_first_instruction(term: KInner) -> Optional[KInner]:
     while True:
         if not isinstance(term, KApply):
             return term
-        if term.label.name == '.List{"listStmt"}_EmptyStmts':
+        if term.label.name == '.List{"listStmt"}':
             return None
         if not term.label.name == '___WASM-COMMON-SYNTAX_Instrs_Instr_Instrs':
             return term
@@ -120,7 +120,7 @@ def load_vec_type(term: KInner) -> VecType:
     types: List[ValType] = []
     while True:
         assert isinstance(term, KApply), term
-        if term.label.name == '.List{"listValTypes"}_ValTypes':
+        if term.label.name == '.List{"listValTypes"}':
             assert term.arity == 0, term
             return VecType(types)
         if term.label.name == 'listValTypes':
