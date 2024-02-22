@@ -7,10 +7,10 @@ module PROVEN-MX-LEMMAS
     imports private LIST
 
     rule  ( 0 <=Int #bool ( _B:Bool ) => true )
-      [simplification(), smt-lemma()]
+      [smt-lemma, simplification()]
 
     rule  ( #bool ( _B:Bool ) <=Int 1 => true )
-      [simplification(), smt-lemma()]
+      [smt-lemma, simplification()]
 
     rule  ( #bool ( B:Bool ) <Int 1 => notBool (B:Bool) )
       [simplification()]
@@ -22,7 +22,7 @@ module PROVEN-MX-LEMMAS
       [simplification()]
 
     rule  ( size ( _L:List ) >=Int 0 => true )
-      [simplification(), smt-lemma()]
+      [smt-lemma, simplification()]
 
     rule  ( X:Int <=Int maxInt ( Y:Int , Z:Int ) => true )
       requires ( X:Int <=Int Y:Int
@@ -86,17 +86,17 @@ module PROVEN-MX-LEMMAS
 
     rule  ( (_X:Int) modIntTotal (Y:Int) <Int Y:Int => true )
       requires Y:Int >Int 0
-      [simplification(), smt-lemma()]
+      [smt-lemma, simplification()]
 
     rule  ( 0 <=Int (_X:Int) modIntTotal (Y:Int) => true )
       requires Y:Int >Int 0
-      [simplification(), smt-lemma()]
+      [smt-lemma, simplification()]
 
     rule  ( ((X:Int) +Int (Y:Int)) modIntTotal (Z:Int) => ((X:Int) +Int ((Y:Int) modInt (Z:Int))) modIntTotal (Z:Int) )
       requires ( notBool (Z:Int ==Int 0)
        andBool ( Y:Int >=Int Z:Int
                ))
-      [simplification(), concrete(Y, Z)]
+      [concrete(Y,Z), simplification()]
 
     rule  ( { ((X:Int) +Int (Y:Int)) modIntTotal (M:Int) #Equals ((X:Int) +Int (Z:Int)) modIntTotal (M:Int) }:Bool => { (Y:Int) modIntTotal (M:Int) #Equals (Z:Int) modIntTotal (M:Int) }:Bool )
       [simplification()]

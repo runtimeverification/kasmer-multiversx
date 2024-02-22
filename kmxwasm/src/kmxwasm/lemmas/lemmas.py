@@ -24,7 +24,7 @@ class Attribute:
         d[self.name] = self.value
 
 
-SMT_LEMMA = AttKey('smt_lemma', type=_NULLARY)
+SMT_LEMMA = AttKey('smt-lemma', type=_NULLARY)
 CONCRETE = AttKey('concrete', type=_ANY)
 
 

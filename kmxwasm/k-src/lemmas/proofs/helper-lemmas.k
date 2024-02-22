@@ -285,7 +285,7 @@ module HELPER-LEMMAS-TRUSTED
        ensures ( 0 <=Int (X:Int) %IntTotal (M:Int)
        andBool ( (X:Int) %IntTotal (M:Int) <Int M:Int
                ))
-      [trusted()]
+      [trusted]
 
     claim  <mandos>
            <k>
@@ -304,7 +304,7 @@ module HELPER-LEMMAS-TRUSTED
        ensures ( (X:Int) %IntTotal (M:Int) <=Int 0
        andBool ( M:Int <Int (X:Int) %IntTotal (M:Int)
                ))
-      [trusted()]
+      [trusted]
 
     claim  <mandos>
            <k>
@@ -323,7 +323,7 @@ module HELPER-LEMMAS-TRUSTED
        ensures ( 0 <=Int (X:Int) modIntTotal (M:Int)
        andBool ( (X:Int) modIntTotal (M:Int) <Int M:Int
                ))
-      [trusted()]
+      [trusted]
 
     claim  <mandos>
            <k>
@@ -342,7 +342,7 @@ module HELPER-LEMMAS-TRUSTED
        ensures ( 0 <=Int (X:Int) modIntTotal (M:Int)
        andBool ( (X:Int) modIntTotal (M:Int) <Int (0) -Int (M:Int)
                ))
-      [trusted()]
+      [trusted]
 
     claim  <mandos>
            <k>
@@ -359,7 +359,7 @@ module HELPER-LEMMAS-TRUSTED
          </mandos>
       requires 0 <Int M:Int
        ensures X:Int ==Int (((X:Int) /IntTotal (M:Int)) *Int (M:Int)) +Int ((X:Int) %IntTotal (M:Int))
-      [trusted()]
+      [trusted]
 
     claim  <mandos>
            <k>
@@ -376,7 +376,7 @@ module HELPER-LEMMAS-TRUSTED
          </mandos>
       requires M:Int <Int 0
        ensures X:Int ==Int (((X:Int) /IntTotal (M:Int)) *Int (M:Int)) +Int ((X:Int) %IntTotal (M:Int))
-      [trusted()]
+      [trusted]
 
     claim  <mandos>
            <k>
@@ -397,7 +397,7 @@ module HELPER-LEMMAS-TRUSTED
        andBool ( (X:Int) %IntTotal (M:Int) ==Int (Z:Int) %IntTotal (M:Int)
                ))))
        ensures X:Int ==Int (((X:Int) /IntTotal (M:Int)) *Int (M:Int)) +Int ((X:Int) %IntTotal (M:Int))
-      [trusted()]
+      [trusted]
 
     claim  <mandos>
            <k>
@@ -418,7 +418,7 @@ module HELPER-LEMMAS-TRUSTED
        andBool ( (X:Int) %IntTotal (M:Int) ==Int (Z:Int) %IntTotal (M:Int)
                ))))
        ensures X:Int ==Int (((X:Int) /IntTotal (M:Int)) *Int (M:Int)) +Int ((X:Int) %IntTotal (M:Int))
-      [trusted()]
+      [trusted]
 
     claim  <mandos>
            <k>
@@ -435,7 +435,7 @@ module HELPER-LEMMAS-TRUSTED
          </mandos>
       requires 0 <Int M:Int
        ensures X:Int ==Int (((X:Int) divIntTotal (M:Int)) *Int (M:Int)) +Int ((X:Int) modIntTotal (M:Int))
-      [trusted()]
+      [trusted]
 
     claim  <mandos>
            <k>
@@ -452,7 +452,7 @@ module HELPER-LEMMAS-TRUSTED
          </mandos>
       requires M:Int <Int 0
        ensures X:Int ==Int (((X:Int) divIntTotal (M:Int)) *Int (M:Int)) +Int ((X:Int) modIntTotal (M:Int))
-      [trusted()]
+      [trusted]
 
     claim  <mandos>
            <k>
@@ -469,7 +469,7 @@ module HELPER-LEMMAS-TRUSTED
          </mandos>
       requires notBool (0 ==Int M:Int)
        ensures X:Int ==Int ((X:Int) *Int (M:Int)) divIntTotal (M:Int)
-      [trusted()]
+      [trusted]
 
     claim  <mandos>
            <k>
@@ -486,7 +486,7 @@ module HELPER-LEMMAS-TRUSTED
          </mandos>
       requires notBool (0 ==Int M:Int)
        ensures (X:Int) modIntTotal (M:Int) ==Int (((Y:Int) *Int (M:Int)) +Int (X:Int)) modIntTotal (M:Int)
-      [trusted()]
+      [trusted]
 
     claim  <mandos>
            <k>
@@ -507,7 +507,7 @@ module HELPER-LEMMAS-TRUSTED
        andBool ( (X:Int) modIntTotal (M:Int) ==Int (Z:Int) modIntTotal (M:Int)
                ))))
        ensures X:Int ==Int (((X:Int) divIntTotal (M:Int)) *Int (M:Int)) +Int ((X:Int) modIntTotal (M:Int))
-      [trusted()]
+      [trusted]
 
     claim  <mandos>
            <k>
@@ -528,6 +528,6 @@ module HELPER-LEMMAS-TRUSTED
        andBool ( (X:Int) modIntTotal (M:Int) ==Int (Z:Int) modIntTotal (M:Int)
                ))))
        ensures X:Int ==Int (((X:Int) divIntTotal (M:Int)) *Int (M:Int)) +Int ((X:Int) modIntTotal (M:Int))
-      [trusted()]
+      [trusted]
 
 endmodule
