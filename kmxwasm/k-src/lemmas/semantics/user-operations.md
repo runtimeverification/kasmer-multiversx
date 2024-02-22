@@ -1,6 +1,6 @@
 ```k
-require "syntax.md"
-require "destructors.md"
+requires "syntax.md"
+requires "destructors.md"
 
 module USER-OPERATIONS
   imports DESTRUCTORS

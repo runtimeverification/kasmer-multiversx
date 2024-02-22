@@ -1,7 +1,7 @@
 ```k
-require "ceils.k"
-require "lemmas/int-normalization-lemmas.md"
-require "lemmas/int-inequalities-lemmas.md"
+requires "ceils.k"
+requires "lemmas/int-normalization-lemmas.md"
+requires "lemmas/int-inequalities-lemmas.md"
 
 module MX-LEMMAS-BASIC
   imports BOOL

@@ -1,6 +1,6 @@
 ```k
-require "../ceils-syntax.k"
-require "int-normalization-lemmas.md"
+requires "../ceils-syntax.k"
+requires "int-normalization-lemmas.md"
 
 module INT-INEQUALITIES-LEMMAS
   imports private CEILS-SYNTAX

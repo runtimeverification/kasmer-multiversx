@@ -1,4 +1,4 @@
-require "ceils-syntax.k"
+requires "ceils-syntax.k"
 
 module CEILS
     imports BOOL
