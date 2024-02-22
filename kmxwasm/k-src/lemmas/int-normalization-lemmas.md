@@ -29,7 +29,7 @@ Arithmetic expressions
 The normal form of an arithmetic expression is less well defined.
 
 ```k
-require "../ceils-syntax.k"
+requires "../ceils-syntax.k"
 
 module INT-NORMALIZATION-LEMMAS-BASIC
   imports BOOL

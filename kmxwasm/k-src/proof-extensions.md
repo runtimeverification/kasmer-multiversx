@@ -1,5 +1,5 @@
 ```k
-require "mx-semantics/elrond.md"
+requires "mx-semantics/elrond.md"
 
 module PROOF-EXTENSIONS
   imports ELROND
