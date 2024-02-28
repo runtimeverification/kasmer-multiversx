@@ -5,7 +5,6 @@ from dataclasses import dataclass
 from pyk.kast.inner import KInner
 from pyk.kast.outer import KClaim
 from pyk.kcfg import KCFG
-from pyk.kcfg.exploration import KCFGExploration
 from pyk.kcfg.kcfg import NodeIdLike
 from pyk.kore.rpc import LogEntry
 from pyk.prelude.collections import LIST
@@ -170,8 +169,6 @@ def run_claim(
         (kcfg, init_node_id, target_node_id) = KCFG.from_claim(tools.printer.definition, claim)
         final_node = kcfg.node(target_node_id)
 
-    kcfg_exploration = KCFGExploration(kcfg)
-
     a = abstracters(target_node_id)
     all_abstracters = [abstracter for abstracter, _, _ in a]
     all_cut_points = [cut_point for _, cps, _ in a for cut_point in cps] + CUT_POINT_RULES
@@ -205,7 +202,6 @@ def run_claim(
                 assert len(list(kcfg.splits(source_id=node.id))) == 0
                 assert len(list(kcfg.successors(node.id))) == 0
 
-                logs: dict[int, tuple[LogEntry, ...]] = {}
                 try:
                     if command_is_new_wasm_instance(node.cterm.config):
                         print('is new wasm')
@@ -215,12 +211,8 @@ def run_claim(
                     elif touches_abstract_content(all_abstract_identifiers, node.cterm.config):
                         print('changes abstracted cell')
                         t = Timer('  Run call stack change')
-                        tools.explorer.extend(
-                            kcfg_exploration=kcfg_exploration,
-                            node=node,
-                            logs=logs,
-                            execute_depth=1,
-                        )
+                        extend_result = tools.explorer.extend_cterm(node.cterm, node_id=node.id, execute_depth=1)
+                        kcfg.extend(extend_result, node, {})
                         t.measure()
                     else:
                         t = Timer('  Abstract')
@@ -238,13 +230,10 @@ def run_claim(
                                 if call_name is not None:
                                     processing.append(call_name)
                             print(f'  First: {processing}', flush=True)
-                            tools.explorer.extend(
-                                kcfg_exploration=kcfg_exploration,
-                                node=node,
-                                logs=logs,
-                                execute_depth=depth,
-                                cut_point_rules=all_cut_points,
+                            extend_result = tools.explorer.extend_cterm(
+                                node.cterm, node_id=node.id, cut_point_rules=all_cut_points, execute_depth=depth
                             )
+                            kcfg.extend(extend_result, node, {})
                             t.measure()
                         finally:
                             t = Timer('  Concretize')
@@ -259,9 +248,9 @@ def run_claim(
                         non_final.add(node_id)
                         node = kcfg.node(node_id)
                         if quick_implication_check(node.cterm.config, final_node.cterm.config):
-                            csubst = tools.explorer.cterm_implies(node.cterm, final_node.cterm)
-                            if csubst:
-                                kcfg.create_cover(node.id, final_node.id, csubst)
+                            implies_result = tools.explorer.cterm_symbolic.implies(node.cterm, final_node.cterm)
+                            if implies_result.csubst:
+                                kcfg.create_cover(node.id, final_node.id, implies_result.csubst)
                     t.measure()
                 except ValueError:
                     if not kcfg.stuck:
@@ -290,8 +279,6 @@ def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int) -> RunClaim
     kcfg = restart_kcfg
     (final_node, _) = find_final_node(kcfg)
 
-    kcfg_exploration = KCFGExploration(kcfg)
-
     try:
         # preecompute the explorer to make time measurements more reliable.
         assert tools.explorer
@@ -315,9 +302,8 @@ def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int) -> RunClaim
 
         start_time = time.time()
 
-        logs: dict[int, tuple[LogEntry, ...]] = {}
-
-        tools.explorer.extend(kcfg_exploration=kcfg_exploration, node=start, logs=logs, execute_depth=half_depth)
+        extend_result = tools.explorer.extend_cterm(start.cterm, node_id=start.id, execute_depth=half_depth)
+        kcfg.extend(extend_result, start, {})
         middle_node: KCFG.Node | None = None
         for node in kcfg.leaves:
             if node.id in to_ignore:
@@ -325,16 +311,17 @@ def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int) -> RunClaim
             assert not middle_node
             middle_node = node
 
-            csubst = tools.explorer.cterm_implies(node.cterm, final_node.cterm)
+            csubst = tools.explorer.cterm_symbolic.implies(node.cterm, final_node.cterm)
             assert not csubst, [csubst, node.id, final_node.id, to_ignore]
         assert middle_node
 
         middle_time = time.time()
         print(f'{start.id} -> {middle_node.id}: {middle_time-start_time} sec')
 
-        tools.explorer.extend(
-            kcfg_exploration=kcfg_exploration, node=middle_node, logs=logs, execute_depth=total_depth - half_depth
+        extend_result = tools.explorer.extend_cterm(
+            middle_node.cterm, node_id=middle_node.id, execute_depth=total_depth - half_depth
         )
+        kcfg.extend(extend_result, middle_node, {})
         result_node: KCFG.Node | None = None
         for node in kcfg.leaves:
             if node.id in to_ignore:
@@ -344,7 +331,7 @@ def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int) -> RunClaim
 
         assert result_node
 
-        csubst = tools.explorer.cterm_implies(result_node.cterm, destination.cterm)
+        csubst = tools.explorer.cterm_symbolic.implies(result_node.cterm, destination.cterm)
         if not csubst:
             print('*' * 30, 'Antecedent', '*' * 30)
             print_node(tools.printer, result_node)
@@ -372,7 +359,6 @@ def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int) -> RunClaim
 
 def profile_step(tools: Tools, restart_kcfg: KCFG, node_id: int, depth: int, groups: int) -> RunClaimResult:
     kcfg = restart_kcfg
-    kcfg_exploration = KCFGExploration(kcfg)
 
     try:
         # precompute the explorer to make time measurements more reliable.
@@ -386,7 +372,8 @@ def profile_step(tools: Tools, restart_kcfg: KCFG, node_id: int, depth: int, gro
         logs: dict[int, tuple[LogEntry, ...]] = {}
 
         timer = Timer('Warming up the explorer')
-        tools.explorer.extend(kcfg_exploration=kcfg_exploration, node=start, logs=logs, execute_depth=1)
+        extend_result = tools.explorer.extend_cterm(start.cterm, node_id=start.id, execute_depth=1)
+        kcfg.extend(extend_result, start, logs)
         edges = kcfg.edges(source_id=node_id)
         assert len(edges) == 1
         kcfg.remove_node(edges[0].target.id)
@@ -394,9 +381,9 @@ def profile_step(tools: Tools, restart_kcfg: KCFG, node_id: int, depth: int, gro
         assert len(edges) == 0
         timer.measure()
 
-        logs = {}
         timer = Timer(f'Running {depth} steps.')
-        tools.explorer.extend(kcfg_exploration=kcfg_exploration, node=start, logs=logs, execute_depth=depth)
+        extend_result = tools.explorer.extend_cterm(start.cterm, node_id=start.id, execute_depth=depth)
+        kcfg.extend(extend_result, start, {})
         time = timer.measure()
 
         print(f'Average time per group: {time / groups}')

@@ -2,6 +2,7 @@ import subprocess
 from pathlib import Path
 from typing import Any, Optional
 
+from pyk.cterm import CTermSymbolic
 from pyk.kast.att import Atts
 from pyk.kast.outer import KAtt, KDefinition, KFlatModule, KImport, KProduction, KRequire, KTerminal
 from pyk.kcfg import KCFGExplore
@@ -80,7 +81,7 @@ class LazyExplorer:
 
     def __write_semantics(self) -> None:
         identifier_sentences = [
-            KProduction(sort=sort, items=[KTerminal(token.token)], att=KAtt([Atts.TOKEN('')]))
+            KProduction(sort=sort, items=[KTerminal(token.token)], att=KAtt([Atts.TOKEN(None)]))
             for sort, tokens in self.__identifiers.sort_to_ids.items()
             for token in tokens
         ]
@@ -138,6 +139,7 @@ def make_explorer(kprove: KProve, is_debug: bool, module: Module) -> tuple[KCFGE
         port = None
     server = kore_server(kprove.definition_dir, kprove.main_module, port=port)
     kore_client = KoreClient('localhost', server.port)
-    explorer = KCFGExplore(kprove, kore_client)
+    cterm_symbolic = CTermSymbolic(kore_client, kprove.definition, kprove.kompiled_kore)
+    explorer = KCFGExplore(kprove, cterm_symbolic)
     kore_client.add_module(module)
     return (explorer, server, kore_client)

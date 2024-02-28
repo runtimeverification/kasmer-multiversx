@@ -301,7 +301,7 @@ def my_step(explorer: LazyExplorer, kcfg: KCFG, node_id: int) -> List[int]:
 
     print(f'Executing {node.id}!', flush=True)
     try:
-        (cterm, next_cterms, depth, _is_vacuous, next_node_logs) = explorer.get().cterm_execute(
+        (cterm, next_cterms, depth, _is_vacuous, next_node_logs) = explorer.get().cterm_symbolic.execute(
             node.cterm, depth=1, module_name=GENERATED_MODULE_NAME
         )
     except BaseException:
