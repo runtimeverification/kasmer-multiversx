@@ -286,7 +286,7 @@ def new_leaves(kcfg: KCFG, existing: set[NodeIdLike], final: NodeIdLike) -> list
     return [node.id for node in kcfg.leaves if node.id not in existing and node.id != final]
 
 
-def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int) -> RunClaimResult:
+def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int, depth: int | None) -> RunClaimResult:
     kcfg = restart_kcfg
     (final_node, _) = find_final_node(kcfg)
 
@@ -309,7 +309,12 @@ def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int) -> RunClaim
         destination = edges[0].target
         total_depth = edges[0].depth
         assert total_depth > 1
-        half_depth = total_depth // 2
+
+        if depth is not None:
+            assert 0 < depth < total_depth
+            split_depth = depth
+        else:
+            split_depth = total_depth // 2
 
         kcfg.remove_edge(source_id=start_node_id, target_id=destination.id)
 
@@ -317,7 +322,7 @@ def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int) -> RunClaim
 
         logs: dict[int, tuple[LogEntry, ...]] = {}
 
-        tools.explorer.extend(kcfg_exploration=kcfg_exploration, node=start, logs=logs, execute_depth=half_depth)
+        tools.explorer.extend(kcfg_exploration=kcfg_exploration, node=start, logs=logs, execute_depth=split_depth)
         middle_node: KCFG.Node | None = None
         for node in kcfg.leaves:
             if node.id in to_ignore:
@@ -333,7 +338,7 @@ def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int) -> RunClaim
         print(f'{start.id} -> {middle_node.id}: {middle_time-start_time} sec')
 
         tools.explorer.extend(
-            kcfg_exploration=kcfg_exploration, node=middle_node, logs=logs, execute_depth=total_depth - half_depth
+            kcfg_exploration=kcfg_exploration, node=middle_node, logs=logs, execute_depth=total_depth - split_depth
         )
         result_node: KCFG.Node | None = None
         for node in kcfg.leaves:

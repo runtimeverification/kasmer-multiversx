@@ -199,6 +199,7 @@ class BisectAfter(Action):
     node_id: int
     kcfg_path: Path
     booster: bool
+    depth: int | None
     bug_report: BugReport | None
 
     def run(self) -> None:
@@ -214,7 +215,7 @@ class BisectAfter(Action):
             kcfg = load_json_kcfg(self.kcfg_path)
             t.measure()
 
-            result = split_edge(tools, kcfg, start_node_id=self.node_id)
+            result = split_edge(tools, kcfg, start_node_id=self.node_id, depth=self.depth)
             write_kcfg_json(result.kcfg, self.kcfg_path)
 
             if isinstance(result, Success):
@@ -622,7 +623,13 @@ def read_flags() -> Action:
     if args.tree:
         return Tree(Path(args.kcfg), booster=args.booster)
     if args.bisect_after:
-        return BisectAfter(args.bisect_after, Path(args.kcfg), booster=args.booster, bug_report=args.bug_report)
+        return BisectAfter(
+            args.bisect_after,
+            Path(args.kcfg),
+            booster=args.booster,
+            bug_report=args.bug_report,
+            depth=args.step,
+        )
     if args.simplify_before:
         return SimplifyBefore(args.simplify_before, Path(args.kcfg))
 
