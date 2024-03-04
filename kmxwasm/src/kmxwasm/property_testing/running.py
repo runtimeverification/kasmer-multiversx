@@ -423,5 +423,6 @@ def find_final_node(kcfg: KCFG) -> tuple[KCFG.Node, NodeIdLike]:
 
 
 def expandable_leaves(kcfg: KCFG, target_node_id: NodeIdLike) -> list[KCFG.Node]:
-    return [node for node in kcfg.leaves if not node.id == target_node_id]
+    stuck = {node.id for node in kcfg.stuck}
+    return [node for node in kcfg.leaves if not node.id == target_node_id and not node.id in stuck]
     # [node for node in kcfg.leaves if not node.id in processed]
