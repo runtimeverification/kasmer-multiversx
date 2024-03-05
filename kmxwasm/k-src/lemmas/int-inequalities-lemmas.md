@@ -7,15 +7,17 @@ module INT-INEQUALITIES-LEMMAS
   imports private INT-NORMALIZATION-LEMMAS-BASIC
   imports private INT
 
-  rule A >Int B => B <Int A
-      [simplification]
-  rule A >=Int B => B <=Int A
-      [simplification]
+  // Moved to proven-mx-lemmas.md
+  // rule A >Int B => B <Int A
+  //     [simplification]
+  // rule A >=Int B => B <=Int A
+  //     [simplification]
 
-  rule A <Int A => false
-      [simplification]
-  rule A <=Int A => true
-      [simplification]
+  // Moved to proven-mx-lemmas.md
+  // rule A <Int A => false
+  //     [simplification]
+  // rule A <=Int A => true
+  //     [simplification]
 
   rule (A |Int B) <Int M => true
       requires 0 <=Int M
@@ -172,43 +174,47 @@ module INT-INEQUALITIES-LEMMAS
           andBool definedShrInt(A, B)
       [simplification, concrete(B, C)]
 
-  rule A +Int B <=Int A => B <=Int 0  [simplification]
-  rule B +Int A <=Int A => B <=Int 0  [simplification]
-  rule A +Int B <Int A => B <Int 0  [simplification]
-  rule B +Int A <Int A => B <Int 0  [simplification]
-  rule A <=Int A +Int B => 0 <=Int B  [simplification]
-  rule A <=Int B +Int A => 0 <=Int B  [simplification]
-  rule A <Int A +Int B => 0 <Int B  [simplification]
-  rule A <Int B +Int A => 0 <Int B  [simplification]
+  // Moved to proven-mx-lemmas.md
+  // rule A +Int B <=Int A => B <=Int 0  [simplification]
+  // rule B +Int A <=Int A => B <=Int 0  [simplification]
+  // rule A +Int B <Int A => B <Int 0  [simplification]
+  // rule B +Int A <Int A => B <Int 0  [simplification]
+  // rule A <=Int A +Int B => 0 <=Int B  [simplification]
+  // rule A <=Int B +Int A => 0 <=Int B  [simplification]
+  // rule A <Int A +Int B => 0 <Int B  [simplification]
+  // rule A <Int B +Int A => 0 <Int B  [simplification]
 
-  rule notBool (A <=Int B) => B <Int A  [simplification]
-  rule notBool (A <Int B) => B <=Int A  [simplification]
+  // Moved to proven-mx-lemmas.md
+  // rule notBool (A <=Int B) => B <Int A  [simplification]
+  // rule notBool (A <Int B) => B <=Int A  [simplification]
 
-  rule A +Int B <=Int C => A <=Int C -Int B
-      [simplification, concrete(B, C)]
-  rule A +Int B <Int C => A <Int C -Int B
-      [simplification, concrete(B, C)]
-  rule A <=Int B +Int C => A -Int C <=Int B
-      [simplification, concrete(A, C)]
-  rule A <Int B +Int C => A -Int C <Int B
-      [simplification, concrete(A, C)]
+  // Moved to proven-mx-lemmas.md
+  // rule A +Int B <=Int C => A <=Int C -Int B
+  //     [simplification, concrete(B, C)]
+  // rule A +Int B <Int C => A <Int C -Int B
+  //     [simplification, concrete(B, C)]
+  // rule A <=Int B +Int C => A -Int C <=Int B
+  //     [simplification, concrete(A, C)]
+  // rule A <Int B +Int C => A -Int C <Int B
+  //     [simplification, concrete(A, C)]
 
-  rule A -Int B <=Int C => A <=Int C +Int B
-      [simplification, concrete(B, C)]
-  rule A -Int B <Int C => A <Int C +Int B
-      [simplification, concrete(B, C)]
-  rule A -Int B <=Int C => A -Int C <=Int B
-      [simplification, concrete(A, C)]
-  rule A -Int B <Int C => A -Int C <Int B
-      [simplification, concrete(A, C)]
-  rule A <=Int B -Int C => A +Int C <=Int B
-      [simplification, concrete(A, C)]
-  rule A <Int B -Int C => A +Int C <Int B
-      [simplification, concrete(A, C)]
-  rule A <=Int B -Int C => C <=Int B -Int A
-      [simplification, concrete(A, B)]
-  rule A <Int B -Int C => C <Int B -Int A
-      [simplification, concrete(A, B)]
+  // Moved to proven-mx-lemmas.md
+  // rule A -Int B <=Int C => A <=Int C +Int B
+  //     [simplification, concrete(B, C)]
+  // rule A -Int B <Int C => A <Int C +Int B
+  //     [simplification, concrete(B, C)]
+  // rule A -Int B <=Int C => A -Int C <=Int B
+  //     [simplification, concrete(A, C)]
+  // rule A -Int B <Int C => A -Int C <Int B
+  //     [simplification, concrete(A, C)]
+  // rule A <=Int B -Int C => A +Int C <=Int B
+  //     [simplification, concrete(A, C)]
+  // rule A <Int B -Int C => A +Int C <Int B
+  //     [simplification, concrete(A, C)]
+  // rule A <=Int B -Int C => C <=Int B -Int A
+  //     [simplification, concrete(A, B)]
+  // rule A <Int B -Int C => C <Int B -Int A
+  //     [simplification, concrete(A, B)]
 
   // if A %Int B == 0 then A /Int B == A / B
   // Has tests
@@ -336,12 +342,13 @@ module INT-INEQUALITIES-LEMMAS
       requires 0 <Int C andBool 0 <=Int A
       [simplification, concrete(B)]
 
-  rule (_X modIntTotal Y) <Int Y => true
-      requires Y >Int 0
-      [simplification, smt-lemma]
-  rule 0 <=Int (_X modIntTotal Y) => true
-      requires Y >Int 0
-      [simplification, smt-lemma]
+  // Moved to proven-mx-lemmas.md
+  // rule (_X modIntTotal Y) <Int Y => true
+  //     requires Y >Int 0
+  //     [simplification, smt-lemma]
+  // rule 0 <=Int (_X modIntTotal Y) => true
+  //     requires Y >Int 0
+  //     [simplification, smt-lemma]
 
   // Has tests
   rule 0 <=Int log2IntTotal(_:Int) => true
