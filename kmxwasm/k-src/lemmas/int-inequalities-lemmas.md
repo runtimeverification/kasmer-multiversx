@@ -211,28 +211,36 @@ module INT-INEQUALITIES-LEMMAS
       [simplification, concrete(A, B)]
 
   // if A %Int B == 0 then A /Int B == A / B
+  // Has tests
   rule A <=Int B *Int X => A /Int B <=Int X
       requires 0 <Int B andBool A %Int B ==Int 0
       [simplification, concrete(A, B)]
+  // Has tests
   rule A <=Int B *Int X => X <=Int A /Int B
       requires B <Int 0 andBool A %Int B ==Int 0
       [simplification, concrete(A, B)]
+  // Has tests
   rule A *Int X <=Int B => X <=Int B /Int A
       requires 0 <Int A andBool B %Int A ==Int 0
       [simplification, concrete(A, B)]
+  // Has tests
   rule A *Int X <=Int B => B /Int A <=Int X
       requires A <Int 0 andBool B %Int A ==Int 0
       [simplification, concrete(A, B)]
 
+  // Has tests
   rule A <Int B *Int X => A /Int B <Int X
       requires 0 <Int B andBool A %Int B ==Int 0
       [simplification, concrete(A, B)]
+  // Has tests
   rule A <Int B *Int X => X <Int A /Int B
       requires B <Int 0 andBool A %Int B ==Int 0
       [simplification, concrete(A, B)]
+  // Has tests
   rule A *Int X <Int B => X <Int B /Int A
       requires 0 <Int A andBool B %Int A ==Int 0
       [simplification, concrete(A, B)]
+  // Has tests
   rule A *Int X <Int B => B /Int A <Int X
       requires A <Int 0 andBool B %Int A ==Int 0
       [simplification, concrete(A, B)]
@@ -240,6 +248,7 @@ module INT-INEQUALITIES-LEMMAS
   // a * b <= c
   // iff a <= c / b
   // iff a <= trunc(c/b)
+  // Has tests
   rule B *Int A <=Int C => A <=Int C /Int B
       requires 0 <Int B andBool 0 <=Int C
       [simplification, concrete(B, C)]
@@ -253,6 +262,7 @@ module INT-INEQUALITIES-LEMMAS
   // iff a < c / b
   // iff a < trunc(c/b) + frac(c/b)
   // iff a <= trunc(c/b)   (frac(c/b) > 0)
+  // Has tests
   rule B *Int A <Int C
       =>  #if C modInt B ==Int 0
           #then
@@ -273,6 +283,7 @@ module INT-INEQUALITIES-LEMMAS
   // iff a / c <= b
   // iff trunc(a/c) + frac(a/c) <= b
   // iff trunc(a/c) < b   (frac(a/c) > 0)
+  // Has tests
   rule A <=Int C *Int B
         =>  #if A modInt C ==Int 0
             #then
@@ -286,6 +297,7 @@ module INT-INEQUALITIES-LEMMAS
   // a < b * c
   // iff a / c < b
   // iff trunc(a/c) < b
+  // Has tests
   rule A <Int C *Int B => A /Int C <Int B
       requires 0 <Int C andBool 0 <=Int B
       [simplification, concrete(A, C)]
@@ -294,6 +306,7 @@ module INT-INEQUALITIES-LEMMAS
   // a * b <= c
   // iff a <= c / b
   // iff a <= trunc(c/b)
+  // Has tests
   rule A <=Int C divIntTotal B => A *Int B <=Int C
       requires 0 <Int B andBool 0 <=Int C
       [simplification, concrete(A)]
@@ -302,12 +315,14 @@ module INT-INEQUALITIES-LEMMAS
   // iff a + 1 <= trunc(c/b) + frac(c/b)
   // iff a + 1 <= c/b
   // iff (a + 1) * b <= c
+  // Has tests
   rule A <Int C divIntTotal B => (A +Int 1) *Int B <=Int C
       requires 0 <Int B andBool 0 <=Int C
       [simplification, concrete(A)]
   // a < b * c
   // iff a / c < b
   // iff trunc(a/c) < b
+  // Has tests
   rule A divIntTotal C <Int B => A <Int B *Int C
       requires 0 <Int C andBool 0 <=Int A
       [simplification, concrete(B)]
@@ -316,6 +331,7 @@ module INT-INEQUALITIES-LEMMAS
   // iff trunc(a/c) + frac(a/c) < b + 1
   // iff a / c < b + 1
   // iff a < (b + 1) * c
+  // Has tests
   rule A divIntTotal C <=Int B => A <Int (B +Int 1) *Int C
       requires 0 <Int C andBool 0 <=Int A
       [simplification, concrete(B)]
@@ -327,17 +343,20 @@ module INT-INEQUALITIES-LEMMAS
       requires Y >Int 0
       [simplification, smt-lemma]
 
+  // Has tests
   rule 0 <=Int log2IntTotal(_:Int) => true
       [simplification, smt-lemma]
   // log2IntTotal(A) <Int B
   // iff log2IntTotal(A) <=Int B -Int 1
   // iff A <Int 2^(B -Int 1 +Int 1)
   // iff A <Int 2^B
+  // Has tests
   rule log2IntTotal(A) <Int B => A <Int 2 ^Int B
       requires 0 <Int A andBool 0 <=Int B
           andBool B <=Int 1000 // Making sure there is no OOM when computing 2^B
       [simplification, concrete(B)]
   // Partly covering the case when 1000 < B
+  // Has tests
   rule log2IntTotal(A) <Int B => true
       requires 0 <Int A andBool 0 <=Int B
           andBool 1000 <Int B
@@ -345,11 +364,13 @@ module INT-INEQUALITIES-LEMMAS
       [simplification, concrete(B)]
   // log2IntTotal(A) <=Int B
   // iff A <Int 2^(B +Int 1)
+  // Has tests
   rule log2IntTotal(A) <=Int B => A <Int 2 ^Int (B +Int 1)
       requires 0 <Int A andBool 0 <=Int B
           andBool B <=Int 1000 // Making sure there is no OOM when computing 2^B
       [simplification, concrete(B)]
   // Partly covering the case when 1000 < B
+  // Has tests
   rule log2IntTotal(A) <=Int B => true
       requires 0 <Int A andBool 0 <=Int B
           andBool 1000 <Int B
@@ -357,11 +378,13 @@ module INT-INEQUALITIES-LEMMAS
       [simplification, concrete(B)]
   // b <= log2Int(a)
   // iff 2^b <= a
+  // Has tests
   rule B <=Int log2IntTotal(A) => 2 ^Int B <=Int A
       requires 0 <Int A andBool 0 <=Int B
           andBool B <=Int 1000 // Making sure there is no OOM when computing 2^B
       [simplification, concrete(B)]
   // Partly covering the case when 1000 < B
+  // Has tests
   rule B <=Int log2IntTotal(A) => false
       requires 0 <Int A andBool 0 <=Int B
           andBool 1000 <Int B
@@ -370,27 +393,33 @@ module INT-INEQUALITIES-LEMMAS
   // b < log2Int(a)
   // iff b + 1 <= log2Int(a)
   // iff 2^(b + 1) <= a
+  // Has tests
   rule B <Int log2IntTotal(A) => 2 ^Int (B +Int 1) <=Int A
       requires 0 <Int A andBool 0 <=Int B
           andBool B <=Int 1000 // Making sure there is no OOM when computing 2^B
       [simplification, concrete(B)]
   // Partly covering the case when 1000 < B
+  // Has tests
   rule B <Int log2IntTotal(A) => false
       requires 0 <Int A andBool 0 <=Int B
           andBool 1000 <Int B
           andBool A <Int 2 ^Int 1002
       [simplification, concrete(B)]
 
+  // Has tests
   rule A <=Int log2IntTotal(_) => true
       requires A <=Int 0
       [simplification]
+  // Has tests
   rule A <Int log2IntTotal(_) => true
       requires A <Int 0
       [simplification]
 
+  // Has tests
   rule 0 =/=Int A divIntTotal B => B <=Int A
       requires 0 <=Int A andBool 0 <Int B
       [simplification]
+  // Has tests
   rule 0 ==Int A divIntTotal B => A <Int B
       requires 0 <=Int A andBool 0 <Int B
       [simplification]
