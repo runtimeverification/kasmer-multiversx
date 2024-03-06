@@ -1,7 +1,6 @@
 import json
 import subprocess
 import sys
-from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
@@ -52,21 +51,22 @@ def test_aborted(
 
     args = AbortTestParams(testcase)
 
-    test_wasm = load_wasm(wat_to_wasm(tmp_path, testcase.with_suffix('.wat')))
+    wasm_path = wat_to_wasm(tmp_path, testcase.with_suffix('.wat'))
+    test_wasm = load_wasm(str(wasm_path))
 
     claim_str = generate_test_claim(args, kbuild.definition_dir(package, LLVM), test_wasm)
     claim_path = tmp_path / 'claim.json'
     claim_path.write_text(claim_str)
 
     if bug_report is not None:
-        bug_report.add_file(claim_path, f'claims/{testcase.stem}-spec.json')
+        bug_report.add_file(claim_path, Path(f'claims/{testcase.stem}-spec.json'))
 
     cmd = ['bash', str(SCRIPT_FILE), str(KMXWASM_DIR), str(claim_path), str(tmp_path / 'kcfg')]
     res = subprocess.run(cmd, check=True, capture_output=True, text=True)
 
     if bug_report is not None:
-        bug_report.add_file_contents(res.stdout, f'logs/{testcase.stem}.out')
-        bug_report.add_file_contents(res.stderr, f'logs/{testcase.stem}.err')
+        bug_report.add_file_contents(res.stdout, Path(f'logs/{testcase.stem}.out'))
+        bug_report.add_file_contents(res.stderr, Path(f'logs/{testcase.stem}.err'))
 
     # Then
     cnt_aborted = res.stderr.count('[Info#proxy] Booster Aborted')
@@ -78,7 +78,8 @@ def test_aborted(
 
 def generate_test_claim(args: AbortTestParams, llvm_dir: Path, test_wasm: KInner) -> str:
     empty_conf, init_subst = deploy_test(krun=KRun(llvm_dir), test_wasm=test_wasm, contract_wasms={})
-    claim, _, _ = generate_claim(args.endpoint, args.input_types, empty_conf, init_subst)
+    input_types = tuple(args.input_types)
+    claim, _, _ = generate_claim(args.endpoint, input_types, empty_conf, init_subst)
     return kast_to_json_str(claim)
 
 
