@@ -15,9 +15,7 @@ LEMMA_PROOFS = 'lemma-proofs'
 LEMMA_TESTS = 'lemma-tests'
 
 
-def kbuild_semantics(
-    output_dir: Path, config_file: Path, target: str, llvm: bool, booster: bool, bug_report: BugReport | None
-) -> Tools:
+def kompile(output_dir: Path, config_file: Path, target: str, llvm: bool, booster: bool) -> tuple[KBuild, Project]:
     kbuild = KBuild(output_dir)
     package = Project.load(config_file)
 
@@ -43,6 +41,14 @@ def kbuild_semantics(
         t = Timer(f'Kompiling {LLVM_LIBRARY}:')
         kbuild.kompile(package, LLVM_LIBRARY)
         t.measure()
+
+    return kbuild, package
+
+
+def kbuild_semantics(
+    output_dir: Path, config_file: Path, target: str, llvm: bool, booster: bool, bug_report: BugReport | None
+) -> Tools:
+    kbuild, package = kompile(output_dir, config_file, target, llvm, booster)
 
     return Tools(
         definition_dir=kbuild.definition_dir(package, target),
