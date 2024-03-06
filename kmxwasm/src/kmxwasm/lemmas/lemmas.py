@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from pyk.kast.att import _ANY, _NULLARY, EMPTY_ATT, AttKey, Atts, KAtt
+from pyk.kast.att import _ANY, _NONE, EMPTY_ATT, AttKey, Atts, KAtt
 from pyk.kast.inner import KInner, KRewrite, KSequence, KVariable, Subst
 from pyk.kast.manip import count_vars, free_vars
 from pyk.kast.outer import KClaim, KDefinition, KFlatModule, KImport, KRequire, KRule
@@ -24,7 +24,7 @@ class Attribute:
         d[self.name] = self.value
 
 
-SMT_LEMMA = AttKey('smt-lemma', type=_NULLARY)
+SMT_LEMMA = AttKey('smt-lemma', type=_NONE)
 CONCRETE = AttKey('concrete', type=_ANY)
 
 
@@ -126,7 +126,7 @@ class HelperLemma:
 
 def make_helper_lemmas_module(lemmas: list[HelperLemma], trusted: bool = False) -> KFlatModule:
     def make_trusted(c: KClaim) -> KClaim:
-        return c.let_att(c.att.update([Atts.TRUSTED('')]))
+        return c.let_att(c.att.update([Atts.TRUSTED(None)]))
 
     claims = [l.make_claim() for l in lemmas]
     if trusted:

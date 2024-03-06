@@ -166,8 +166,8 @@ LEMMAS = [
         name='pound-bool',
         proof=[proofSplit(B)],
         lemmas=[
-            Lemma(leInt(v(0), poundBool(B)), TRUE, att=KAtt([SMT_LEMMA('')])),
-            Lemma(leInt(poundBool(B), v(1)), TRUE, att=KAtt([SMT_LEMMA('')])),
+            Lemma(leInt(v(0), poundBool(B)), TRUE, att=KAtt([SMT_LEMMA(None)])),
+            Lemma(leInt(poundBool(B), v(1)), TRUE, att=KAtt([SMT_LEMMA(None)])),
             Lemma(ltInt(poundBool(B), v(1)), notBool(B)),
             Lemma(mlEquals(v(0), poundBool(B)), mlEquals(FALSE, B)),
             Lemma(mlEquals(v(1), poundBool(B)), mlEquals(TRUE, B)),
@@ -177,7 +177,7 @@ LEMMAS = [
         name='list-size',
         proof=[basicListInduction(L)],
         lemmas=[
-            Lemma(geInt(sizeList(L), v(0)), TRUE, att=KAtt([SMT_LEMMA('')])),
+            Lemma(geInt(sizeList(L), v(0)), TRUE, att=KAtt([SMT_LEMMA(None)])),
         ],
     ),
     LemmaProof(
@@ -259,12 +259,12 @@ LEMMAS = [
                 modIntTotal(addInt(X, modIntTotal(Z, Y)), Y),
                 modIntTotal(addInt(X, Z), Y),
             ),
-            Lemma(ltInt(modIntTotal(X, Y), Y), TRUE, requires=gtInt(Y, v(0)), att=KAtt([SMT_LEMMA('')])),
+            Lemma(ltInt(modIntTotal(X, Y), Y), TRUE, requires=gtInt(Y, v(0)), att=KAtt([SMT_LEMMA(None)])),
             Lemma(
                 leInt(v(0), modIntTotal(X, Y)),
                 TRUE,
                 requires=gtInt(Y, v(0)),
-                att=KAtt([SMT_LEMMA('')]),
+                att=KAtt([SMT_LEMMA(None)]),
             ),
             Lemma(
                 modIntTotal(addInt(X, Y), Z),
