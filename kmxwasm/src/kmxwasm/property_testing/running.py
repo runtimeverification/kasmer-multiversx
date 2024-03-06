@@ -255,8 +255,9 @@ def run_claim(
                 except ValueError:
                     if not kcfg.stuck:
                         raise
-                    for node in kcfg.stuck:
-                        return Stuck(kcfg, stuck_node_id=node.id, final_node_id=final_node.id)
+
+                for node in kcfg.stuck:
+                    return Stuck(kcfg, stuck_node_id=node.id, final_node_id=final_node.id)
             if run_id is not None:
                 to_process += [kcfg.node(node_id) for node_id in current_leaves]
             else:
