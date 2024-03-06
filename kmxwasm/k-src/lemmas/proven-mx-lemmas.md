@@ -72,6 +72,84 @@ module PROVEN-MX-LEMMAS
                ))
       [simplification()]
 
+    rule  ( X:Int >Int Y:Int => Y:Int <Int X:Int )
+      [simplification()]
+
+    rule  ( X:Int >=Int Y:Int => Y:Int <=Int X:Int )
+      [simplification()]
+
+    rule  ( X:Int <Int X:Int => false )
+      [simplification()]
+
+    rule  ( X:Int <=Int X:Int => true )
+      [simplification()]
+
+    rule  ( (X:Int) +Int (Y:Int) <=Int X:Int => Y:Int <=Int 0 )
+      [simplification()]
+
+    rule  ( (Y:Int) +Int (X:Int) <=Int X:Int => Y:Int <=Int 0 )
+      [simplification()]
+
+    rule  ( (X:Int) +Int (Y:Int) <Int X:Int => Y:Int <Int 0 )
+      [simplification()]
+
+    rule  ( (Y:Int) +Int (X:Int) <Int X:Int => Y:Int <Int 0 )
+      [simplification()]
+
+    rule  ( X:Int <=Int (X:Int) +Int (Y:Int) => 0 <=Int Y:Int )
+      [simplification()]
+
+    rule  ( X:Int <=Int (Y:Int) +Int (X:Int) => 0 <=Int Y:Int )
+      [simplification()]
+
+    rule  ( X:Int <Int (X:Int) +Int (Y:Int) => 0 <Int Y:Int )
+      [simplification()]
+
+    rule  ( X:Int <Int (Y:Int) +Int (X:Int) => 0 <Int Y:Int )
+      [simplification()]
+
+    rule  ( notBool (X:Int <=Int Y:Int) => Y:Int <Int X:Int )
+      [simplification()]
+
+    rule  ( notBool (X:Int <Int Y:Int) => Y:Int <=Int X:Int )
+      [simplification()]
+
+    rule  ( (X:Int) +Int (Y:Int) <=Int Z:Int => X:Int <=Int (Z:Int) -Int (Y:Int) )
+      [concrete(Y, Z), simplification()]
+
+    rule  ( (X:Int) +Int (Y:Int) <Int Z:Int => X:Int <Int (Z:Int) -Int (Y:Int) )
+      [concrete(Y, Z), simplification()]
+
+    rule  ( X:Int <=Int (Y:Int) +Int (Z:Int) => (X:Int) -Int (Z:Int) <=Int Y:Int )
+      [concrete(X, Z), simplification()]
+
+    rule  ( X:Int <Int (Y:Int) +Int (Z:Int) => (X:Int) -Int (Z:Int) <Int Y:Int )
+      [concrete(X, Z), simplification()]
+
+    rule  ( (X:Int) -Int (Y:Int) <=Int Z:Int => X:Int <=Int (Y:Int) +Int (Z:Int) )
+      [concrete(Y, Z), simplification()]
+
+    rule  ( (X:Int) -Int (Y:Int) <Int Z:Int => X:Int <Int (Y:Int) +Int (Z:Int) )
+      [concrete(Y, Z), simplification()]
+
+    rule  ( (X:Int) -Int (Y:Int) <=Int Z:Int => (X:Int) -Int (Z:Int) <=Int Y:Int )
+      [concrete(X, Z), simplification()]
+
+    rule  ( (X:Int) -Int (Y:Int) <Int Z:Int => (X:Int) -Int (Z:Int) <Int Y:Int )
+      [concrete(X, Z), simplification()]
+
+    rule  ( X:Int <=Int (Y:Int) -Int (Z:Int) => (X:Int) +Int (Z:Int) <=Int Y:Int )
+      [concrete(X, Z), simplification()]
+
+    rule  ( X:Int <Int (Y:Int) -Int (Z:Int) => (X:Int) +Int (Z:Int) <Int Y:Int )
+      [concrete(X, Z), simplification()]
+
+    rule  ( X:Int <=Int (Y:Int) -Int (Z:Int) => Z:Int <=Int (Y:Int) -Int (X:Int) )
+      [concrete(X, Y), simplification()]
+
+    rule  ( X:Int <Int (Y:Int) -Int (Z:Int) => Z:Int <Int (Y:Int) -Int (X:Int) )
+      [concrete(X, Y), simplification()]
+
     rule  ( ((((X:Int) modIntTotal (Y:Int)) +Int (Z:Int)) +Int (T:Int)) modIntTotal (Y:Int) => (((X:Int) +Int (Z:Int)) +Int (T:Int)) modIntTotal (Y:Int) )
       [simplification()]
 
