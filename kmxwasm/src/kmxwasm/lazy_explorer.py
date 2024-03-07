@@ -140,6 +140,6 @@ def make_explorer(kprove: KProve, is_debug: bool, module: Module) -> tuple[KCFGE
     server = kore_server(kprove.definition_dir, kprove.main_module, port=port)
     kore_client = KoreClient('localhost', server.port)
     cterm_symbolic = CTermSymbolic(kore_client, kprove.definition, kprove.kompiled_kore)
-    explorer = KCFGExplore(kprove, cterm_symbolic)
+    explorer = KCFGExplore(cterm_symbolic)
     kore_client.add_module(module)
     return (explorer, server, kore_client)
