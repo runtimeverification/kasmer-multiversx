@@ -95,7 +95,7 @@ class Tools:
 
         if not self.__explorer:
             cterm_symbolic = CTermSymbolic(self.__kore_client, self.printer.definition, self.printer.kompiled_kore)
-            self.__explorer = KCFGExplore(self.printer, cterm_symbolic)
+            self.__explorer = KCFGExplore(cterm_symbolic)
         return self.__explorer
 
     def krun(self, cfg: KInner) -> KInner:

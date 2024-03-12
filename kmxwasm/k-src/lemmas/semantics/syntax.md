@@ -3,18 +3,18 @@ module PROOF-SYNTAX
   imports BOOL
   imports LIST
 
-  syntax ProofOperation ::= "nop"  [klabel(proofNop), symbol]
-                          | var(KItem)  [klabel(proofVar), symbol]
-                          | split(Bool, ProofOperationList, ProofOperationList)  [klabel(proofSplit), symbol]
+  syntax ProofOperation ::= "nop"  [symbol(proofNop)]
+                          | var(KItem)  [symbol(proofVar)]
+                          | split(Bool, ProofOperationList, ProofOperationList)  [symbol(proofSplit)]
                           | DestructOperation
                           | ProofUserOperation
-  syntax ProofOperationList ::= List{ProofOperation, ";"}  [klabel(proofOperationList), symbol]
+  syntax ProofOperationList ::= List{ProofOperation, ";"}  [symbol(proofOperationList)]
 
   syntax ProofUserOperation
   syntax DestructOperation
 
-  syntax KItem  ::= runProof(ProofOperationList)  [klabel(runProof), symbol]
-                  | runProofStep(ProofOperation)  [klabel(runProofStep), symbol]
-                  | "end"  [klabel(proofEnd), symbol]
+  syntax KItem  ::= runProof(ProofOperationList)  [symbol(runProof)]
+                  | runProofStep(ProofOperation)  [symbol(runProofStep)]
+                  | "end"  [symbol(proofEnd)]
 endmodule
 ```
