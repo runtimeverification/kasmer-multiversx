@@ -1,6 +1,7 @@
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
+from pathlib import Path
 
 from pyk.kast.inner import KInner
 from pyk.kast.outer import KClaim
@@ -156,6 +157,7 @@ def run_claim(
     wasm_initializer: WasmKrunInitializer,
     claim: KClaim,
     restart_kcfg: KCFG | None,
+    kcfg_path: Path | None,
     run_id: int | None,
     depth: int,
 ) -> RunClaimResult:
@@ -166,7 +168,7 @@ def run_claim(
         kcfg = restart_kcfg
         (final_node, target_node_id) = find_final_node(kcfg)
     else:
-        (kcfg, init_node_id, target_node_id) = KCFG.from_claim(tools.printer.definition, claim)
+        (kcfg, init_node_id, target_node_id) = KCFG.from_claim(tools.printer.definition, claim, cfg_dir=kcfg_path)
         final_node = kcfg.node(target_node_id)
 
     a = abstracters(target_node_id)
