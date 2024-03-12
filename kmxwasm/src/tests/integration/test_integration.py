@@ -32,6 +32,7 @@ def test_success(test_file: Path, tools: Tools) -> None:
         restart_kcfg=None,
         kcfg_path=None,
         depth=1000,
+        iterations=10000,
         run_id=None,
     )
 

@@ -61,6 +61,7 @@ class RunClaim(Action):
     remove: list[int]
     run_node_id: int | None
     depth: int
+    iterations: int
     kcfg_path: Path
     bug_report: BugReport | None
 
@@ -102,6 +103,7 @@ class RunClaim(Action):
                 kcfg_path=self.kcfg_path,
                 run_id=self.run_node_id,
                 depth=self.depth,
+                iterations=self.iterations,
             )
             result.kcfg.write_cfg_data()
 
@@ -559,6 +561,14 @@ def read_flags() -> Action:
         help='How many steps to run at a time.',
     )
     parser.add_argument(
+        '--iterations',
+        dest='iterations',
+        type=int,
+        required=False,
+        default=10000,
+        help='How many batches of --step steps to run.',
+    )
+    parser.add_argument(
         '--bisect-after',
         dest='bisect_after',
         type=int,
@@ -660,6 +670,7 @@ def read_flags() -> Action:
         remove=to_remove,
         run_node_id=run,
         depth=args.step,
+        iterations=args.iterations,
         kcfg_path=Path(args.kcfg),
         booster=args.booster,
         bug_report=args.bug_report,

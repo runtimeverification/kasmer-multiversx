@@ -160,6 +160,7 @@ def run_claim(
     kcfg_path: Path | None,
     run_id: int | None,
     depth: int,
+    iterations: int,
 ) -> RunClaimResult:
     last_processed_node: NodeIdLike = -1
     init_node_id: NodeIdLike = -1
@@ -186,10 +187,11 @@ def run_claim(
             to_process = [kcfg.node(run_id)]
 
         print('Start: ', init_node_id, 'End: ', target_node_id)
+        current_iteration = 0
         last_time = time.time()
-        while to_process:
-            # print([node.id for node in to_process])
-            while to_process:
+        while to_process and current_iteration < iterations:
+            while to_process and current_iteration < iterations:
+                current_iteration += 1
                 node = to_process.pop(0)
                 processed.add(node.id)
                 current_time = time.time()
