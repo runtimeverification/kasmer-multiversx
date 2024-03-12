@@ -3,6 +3,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Any, Optional
 
+from pyk.cterm import CTermSymbolic
 from pyk.kast.inner import KInner
 from pyk.kast.kast import kast_term
 from pyk.kast.pretty import SymbolTable
@@ -93,7 +94,8 @@ class Tools:
             self.__kore_client = KoreClient('localhost', self.__kore_server.port, bug_report=self.__bug_report)
 
         if not self.__explorer:
-            self.__explorer = KCFGExplore(self.printer, self.__kore_client)
+            cterm_symbolic = CTermSymbolic(self.__kore_client, self.printer.definition, self.printer.kompiled_kore)
+            self.__explorer = KCFGExplore(cterm_symbolic)
         return self.__explorer
 
     def krun(self, cfg: KInner) -> KInner:

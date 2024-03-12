@@ -38,7 +38,7 @@ module CEILS
     rule substrBytesTotal(Arg0:Bytes, StartIndex:Int, EndIndex:Int)
         => substrBytes(Arg0, StartIndex, EndIndex)
         requires definedSubstrBytes(Arg0, StartIndex, EndIndex)
-        [concrete, simplification]
+        [concrete, simplification(10)]
 
     rule substrBytes(Arg0:Bytes, StartIndex:Int, EndIndex:Int)
         => substrBytesTotal(Arg0, StartIndex, EndIndex)
@@ -67,7 +67,7 @@ module CEILS
     rule replaceAtBytesTotal(Dest:Bytes, Index:Int, Src:Bytes)
         => replaceAtBytes(Dest, Index, Src)
         requires definedReplaceAtBytes(Dest, Index, Src)
-        [concrete, simplification]
+        [concrete, simplification(10)]
 
     rule replaceAtBytes(Dest:Bytes, Index:Int, Src:Bytes)
         => replaceAtBytesTotal(Dest, Index, Src)
@@ -95,7 +95,7 @@ module CEILS
     rule padRightBytesTotal(Arg0:Bytes, Length:Int, Value:Int)
         => padRightBytes(Arg0, Length, Value)
         requires definedPadRightBytes(Arg0, Length, Value)
-        [concrete, simplification]
+        [concrete, simplification(10)]
 
     rule padRightBytes(Arg0:Bytes, Length:Int, Value:Int)
         => padRightBytesTotal(Arg0, Length, Value)
@@ -129,7 +129,7 @@ module CEILS
     rule Arg0:Int modIntTotal Arg1:Int
         => Arg0 modInt Arg1
         requires definedModInt(Arg0, Arg1)
-        [concrete, simplification]
+        [concrete, simplification(10)]
 
     rule Arg0:Int modInt Arg1:Int
         => Arg0 modIntTotal Arg1 // Arg0 modIntTotal Arg1
@@ -157,7 +157,7 @@ module CEILS
     rule Arg0:Int divIntTotal Arg1:Int
         => Arg0 divInt Arg1
         requires definedDivInt(Arg0, Arg1)
-        [concrete, simplification]
+        [concrete, simplification(10)]
 
     rule Arg0:Int divInt Arg1:Int
         => Arg0 divIntTotal Arg1
@@ -176,7 +176,7 @@ module CEILS
     rule Arg0:Int <<IntTotal Arg1:Int
         => Arg0 <<Int Arg1
         requires definedShlInt(Arg0, Arg1)
-        [concrete, simplification]
+        [concrete, simplification(10)]
 
     rule Arg0:Int <<Int Arg1:Int
         => Arg0 <<IntTotal Arg1
@@ -197,7 +197,7 @@ module CEILS
     rule Arg0:Int >>IntTotal Arg1:Int
         => Arg0 >>Int Arg1
         requires definedShrInt(Arg0, Arg1)
-        [concrete, simplification]
+        [concrete, simplification(10)]
 
     rule Arg0:Int >>Int Arg1:Int
         => Arg0 >>IntTotal Arg1
@@ -222,7 +222,7 @@ module CEILS
     rule Arg0:Int ^IntTotal Arg1:Int
         => Arg0 ^Int Arg1
         requires definedPowInt(Arg0, Arg1)
-        [concrete, simplification]
+        [concrete, simplification(10)]
 
     rule Arg0:Int ^Int Arg1:Int
         => Arg0 ^IntTotal Arg1
@@ -249,7 +249,7 @@ module CEILS
     rule Arg0:Int %IntTotal Arg1:Int
         => Arg0 %Int Arg1
         requires definedTModInt(Arg0, Arg1)
-        [concrete, simplification]
+        [concrete, simplification(10)]
 
     rule Arg0:Int %Int Arg1:Int
         => Arg0 %IntTotal Arg1
@@ -276,7 +276,7 @@ module CEILS
     rule Arg0:Int /IntTotal Arg1:Int
         => Arg0 /Int Arg1
         requires definedTDivInt(Arg0, Arg1)
-        [concrete, simplification]
+        [concrete, simplification(10)]
 
     rule Arg0:Int /Int Arg1:Int
         => Arg0 /IntTotal Arg1
@@ -301,7 +301,7 @@ module CEILS
     rule log2IntTotal(Arg0:Int)
         => log2Int(Arg0)
         requires definedLog2Int(Arg0)
-        [concrete, simplification]
+        [concrete, simplification(10)]
 
     rule log2Int(Arg0:Int)
         => log2IntTotal(Arg0)
@@ -323,7 +323,7 @@ module CEILS
     rule #getElemSegmentTotal(Arg0:ElemSegment, Arg1:Int)
         => #getElemSegment(Arg0, Arg1)
         requires definedGetElemSegment(Arg0, Arg1)
-        [concrete, simplification]
+        [concrete, simplification(10)]
 
     rule #getElemSegment(Arg0:ElemSegment, Arg1:Int)
         => #getElemSegmentTotal(Arg0, Arg1)
@@ -350,7 +350,7 @@ module CEILS
     rule #getIntsTotal(Arg0:Ints, Arg1:Int)
         => #getInts(Arg0, Arg1)
         requires definedGetInts(Arg0, Arg1)
-        [concrete, simplification]
+        [concrete, simplification(10)]
 
     rule #getInts(Arg0:Ints, Arg1:Int)
         => #getIntsTotal(Arg0, Arg1)
@@ -376,7 +376,7 @@ module CEILS
     rule projectBytesTotal(Arg0:KItem)
         => {Arg0}:>Bytes
         requires definedProjectBytes(Arg0)
-        [concrete, simplification]
+        [concrete, simplification(10)]
 
     rule {Arg0:KItem}:>Bytes
         => projectBytesTotal(Arg0)
@@ -400,7 +400,7 @@ module CEILS
     rule projectIntTotal(Arg0:KItem)
         => {Arg0}:>Int
         requires definedProjectInt(Arg0)
-        [concrete, simplification]
+        [concrete, simplification(10)]
 
     rule {Arg0:KItem}:>Int
         => projectIntTotal(Arg0)
@@ -415,7 +415,7 @@ module CEILS
     rule M:Map[Key:KItem] orDefault _:KItem
         => M[Key]
         requires definedMapLookup(M, Key)
-        [concrete, simplification]
+        [concrete, simplification(10)]
     rule M:Map[Key:KItem]
         => M[Key] orDefault 0
         requires definedMapLookup(M, Key)

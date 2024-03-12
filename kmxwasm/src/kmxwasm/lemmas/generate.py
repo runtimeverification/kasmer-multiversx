@@ -166,8 +166,8 @@ LEMMAS = [
         name='pound-bool',
         proof=[proofSplit(B)],
         lemmas=[
-            Lemma(leInt(v(0), poundBool(B)), TRUE, att=KAtt([SMT_LEMMA('')])),
-            Lemma(leInt(poundBool(B), v(1)), TRUE, att=KAtt([SMT_LEMMA('')])),
+            Lemma(leInt(v(0), poundBool(B)), TRUE, att=KAtt([SMT_LEMMA(None)])),
+            Lemma(leInt(poundBool(B), v(1)), TRUE, att=KAtt([SMT_LEMMA(None)])),
             Lemma(ltInt(poundBool(B), v(1)), notBool(B)),
             Lemma(mlEquals(v(0), poundBool(B)), mlEquals(FALSE, B)),
             Lemma(mlEquals(v(1), poundBool(B)), mlEquals(TRUE, B)),
@@ -177,7 +177,7 @@ LEMMAS = [
         name='list-size',
         proof=[basicListInduction(L)],
         lemmas=[
-            Lemma(geInt(sizeList(L), v(0)), TRUE, att=KAtt([SMT_LEMMA('')])),
+            Lemma(geInt(sizeList(L), v(0)), TRUE, att=KAtt([SMT_LEMMA(None)])),
         ],
     ),
     LemmaProof(
@@ -202,6 +202,44 @@ LEMMAS = [
         ],
     ),
     LemmaProof(
+        name='int-inequalities-simple',
+        proof=[
+            proofVar(X),
+            proofVar(Y),
+            proofVar(Y),  # duplicate in order to remove kompile unused var warnings
+            proofVar(Z),
+            proofVar(Z),  # duplicate in order to remove kompile unused var warnings
+        ],
+        lemmas=[
+            Lemma(gtInt(X, Y), ltInt(Y, X)),
+            Lemma(geInt(X, Y), leInt(Y, X)),
+            Lemma(ltInt(X, X), FALSE),
+            Lemma(leInt(X, X), TRUE),
+            Lemma(leInt(addInt(X, Y), X), leInt(Y, v(0))),
+            Lemma(leInt(addInt(Y, X), X), leInt(Y, v(0))),
+            Lemma(ltInt(addInt(X, Y), X), ltInt(Y, v(0))),
+            Lemma(ltInt(addInt(Y, X), X), ltInt(Y, v(0))),
+            Lemma(leInt(X, addInt(X, Y)), leInt(v(0), Y)),
+            Lemma(leInt(X, addInt(Y, X)), leInt(v(0), Y)),
+            Lemma(ltInt(X, addInt(X, Y)), ltInt(v(0), Y)),
+            Lemma(ltInt(X, addInt(Y, X)), ltInt(v(0), Y)),
+            Lemma(notBool(leInt(X, Y)), ltInt(Y, X)),
+            Lemma(notBool(ltInt(X, Y)), leInt(Y, X)),
+            Lemma(leInt(addInt(X, Y), Z), leInt(X, subInt(Z, Y)), att=KAtt([CONCRETE('Y, Z')])),
+            Lemma(ltInt(addInt(X, Y), Z), ltInt(X, subInt(Z, Y)), att=KAtt([CONCRETE('Y, Z')])),
+            Lemma(leInt(X, addInt(Y, Z)), leInt(subInt(X, Z), Y), att=KAtt([CONCRETE('X, Z')])),
+            Lemma(ltInt(X, addInt(Y, Z)), ltInt(subInt(X, Z), Y), att=KAtt([CONCRETE('X, Z')])),
+            Lemma(leInt(subInt(X, Y), Z), leInt(X, addInt(Y, Z)), att=KAtt([CONCRETE('Y, Z')])),
+            Lemma(ltInt(subInt(X, Y), Z), ltInt(X, addInt(Y, Z)), att=KAtt([CONCRETE('Y, Z')])),
+            Lemma(leInt(subInt(X, Y), Z), leInt(subInt(X, Z), Y), att=KAtt([CONCRETE('X, Z')])),
+            Lemma(ltInt(subInt(X, Y), Z), ltInt(subInt(X, Z), Y), att=KAtt([CONCRETE('X, Z')])),
+            Lemma(leInt(X, subInt(Y, Z)), leInt(addInt(X, Z), Y), att=KAtt([CONCRETE('X, Z')])),
+            Lemma(ltInt(X, subInt(Y, Z)), ltInt(addInt(X, Z), Y), att=KAtt([CONCRETE('X, Z')])),
+            Lemma(leInt(X, subInt(Y, Z)), leInt(Z, subInt(Y, X)), att=KAtt([CONCRETE('X, Y')])),
+            Lemma(ltInt(X, subInt(Y, Z)), ltInt(Z, subInt(Y, X)), att=KAtt([CONCRETE('X, Y')])),
+        ],
+    ),
+    LemmaProof(
         name='mod-int-total',
         proof=[proofVar(X), proofVar(Y), proofVar(Z), proofVar(T), proofVar(M)],
         lemmas=[
@@ -221,12 +259,12 @@ LEMMAS = [
                 modIntTotal(addInt(X, modIntTotal(Z, Y)), Y),
                 modIntTotal(addInt(X, Z), Y),
             ),
-            Lemma(ltInt(modIntTotal(X, Y), Y), TRUE, requires=gtInt(Y, v(0)), att=KAtt([SMT_LEMMA('')])),
+            Lemma(ltInt(modIntTotal(X, Y), Y), TRUE, requires=gtInt(Y, v(0)), att=KAtt([SMT_LEMMA(None)])),
             Lemma(
                 leInt(v(0), modIntTotal(X, Y)),
                 TRUE,
                 requires=gtInt(Y, v(0)),
-                att=KAtt([SMT_LEMMA('')]),
+                att=KAtt([SMT_LEMMA(None)]),
             ),
             Lemma(
                 modIntTotal(addInt(X, Y), Z),
