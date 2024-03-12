@@ -190,6 +190,7 @@ def run_claim(
         current_iteration = 0
         last_time = time.time()
         while to_process and current_iteration < iterations:
+            next_current_leaves: set[NodeIdLike] = set()
             while to_process and current_iteration < iterations:
                 current_iteration += 1
                 node = to_process.pop(0)
@@ -246,8 +247,11 @@ def run_claim(
                             t.measure()
                             concretize(all_abstracters, kcfg, leaves)
                             t.measure()
-                    t = Timer('  Check final')
                     current_leaves = new_leaves(kcfg, non_final, final_node.id)
+                    print('Result: ', current_leaves)
+                    for node_id in current_leaves:
+                        next_current_leaves.add(node_id)
+                    t = Timer('  Check final')
                     for node_id in current_leaves:
                         non_final.add(node_id)
                         node = kcfg.node(node_id)
@@ -263,7 +267,7 @@ def run_claim(
                 for node in kcfg.stuck:
                     return Stuck(kcfg, stuck_node_id=node.id, final_node_id=final_node.id)
             if run_id is not None:
-                to_process += [kcfg.node(node_id) for node_id in current_leaves]
+                to_process += [kcfg.node(node_id) for node_id in next_current_leaves]
             else:
                 to_process = expandable_leaves(kcfg, target_node_id)
 
