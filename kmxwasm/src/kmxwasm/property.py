@@ -92,8 +92,16 @@ class RunClaim(Action):
             if self.restart:
                 t = Timer('Loading kcfg')
                 kcfg = KCFG.read_cfg_data(self.kcfg_path, id='random_id')
-                for node_id in self.remove:
-                    kcfg.remove_node(node_id)
+                to_remove = self.remove
+                while to_remove:
+                    current_id = to_remove.pop()
+                    next_edges = [edge.target.id for edge in kcfg.edges(source_id=current_id)]
+                    next_edges += [node.id for split in kcfg.splits(source_id=current_id) for node in split.targets]
+                    next_edges += [node.id for split in kcfg.ndbranches(source_id=current_id) for node in split.targets]
+                    for next_id in next_edges:
+                        if len(kcfg.predecessors(target_id=next_id)) <= 1:
+                            to_remove.append(next_id)
+                    kcfg.remove_node(current_id)
                 t.measure()
             result = run_claim(
                 tools,
