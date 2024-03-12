@@ -161,6 +161,7 @@ def my_patch_symbol_table(symbol_table: SymbolTable) -> None:
     symbol_table['_%Int_'] = lambda c1, c2: f'({c1}) %Int ({c2})'
     symbol_table['_%IntTotal_'] = lambda c1, c2: f'({c1}) %IntTotal ({c2})'
     symbol_table['_^Int_'] = lambda c1, c2: f'({c1}) ^Int ({c2})'
+    symbol_table['_^IntTotal_'] = lambda c1, c2: f'({c1}) ^IntTotal ({c2})'
     symbol_table['_^%Int_'] = lambda c1, c2: f'({c1}) ^%Int ({c2})'
     symbol_table['_+Int_'] = lambda c1, c2: f'({c1}) +Int ({c2})'
     symbol_table['_-Int_'] = lambda c1, c2: f'({c1}) -Int ({c2})'

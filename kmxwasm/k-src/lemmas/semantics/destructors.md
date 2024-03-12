@@ -7,7 +7,7 @@ module DESTRUCTORS
 
   syntax DestructOperation ::=
               "destruct" List "as" "head_tail" "(" ProofOperationList ")" "empty" "(" ProofOperationList ")"
-              [klabel(destructList), symbol]
+              [symbol(destructList)]
 
   rule  runProofStep(destruct ListItem(_) _:List as head_tail(Ops) empty(_))
         => runProof(Ops)
