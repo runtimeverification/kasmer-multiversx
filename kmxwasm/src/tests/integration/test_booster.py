@@ -78,7 +78,7 @@ def test_aborted(
         ).run()
     except Exception as e:
         if bug_report is not None:
-            bug_report.add_file_contents(str(e), Path(f'exception'))
+            bug_report.add_file_contents(str(e), Path('exception'))
         raise e from None
 
     captured = capfd.readouterr()
