@@ -13,7 +13,7 @@ from pyk.kbuild.project import Project
 from pyk.ktool.krun import KRun
 
 from kmxwasm.build import LLVM
-from kmxwasm.property_testing.paths import KMXWASM_DIR
+from kmxwasm.property import RunClaim
 
 sys.setrecursionlimit(1500000000)
 
@@ -44,6 +44,7 @@ def test_aborted(
     kompiled: tuple[KBuild, Project],
     tmp_path: Path,
     bug_report: BugReport | None,
+    capfd: pytest.CaptureFixture[str],
 ) -> None:
 
     # Given
@@ -61,16 +62,34 @@ def test_aborted(
     if bug_report is not None:
         bug_report.add_file(claim_path, Path(f'claims/{testcase.stem}-spec.json'))
 
-    cmd = ['bash', str(SCRIPT_FILE), str(KMXWASM_DIR), str(claim_path), str(tmp_path / 'kcfg')]
-    res = subprocess.run(cmd, check=True, capture_output=True, text=True)
+    # When
+
+    try:
+        RunClaim(
+            claim_path=claim_path,
+            is_k=False,
+            restart=False,
+            booster=True,
+            remove=[],
+            run_node_id=None,
+            depth=1,
+            kcfg_path=tmp_path / 'kcfg',
+            bug_report=bug_report,
+        ).run()
+    except Exception as e:
+        if bug_report is not None:
+            bug_report.add_file_contents(str(e), Path(f'exception'))
+        raise e from None
+
+    captured = capfd.readouterr()
 
     if bug_report is not None:
-        bug_report.add_file_contents(res.stdout, Path(f'logs/{testcase.stem}.out'))
-        bug_report.add_file_contents(res.stderr, Path(f'logs/{testcase.stem}.err'))
+        bug_report.add_file_contents(captured.out, Path(f'logs/{testcase.stem}.out'))
+        bug_report.add_file_contents(captured.err, Path(f'logs/{testcase.stem}.err'))
 
     # Then
-    cnt_aborted = res.stderr.count('[Info#proxy] Booster Aborted')
-    cnt_stuck = res.stderr.count('[Info#proxy] Booster Stuck')
+    cnt_aborted = captured.err.count('[Info#proxy] Booster Aborted')
+    cnt_stuck = captured.err.count('[Info#proxy] Booster Stuck')
 
     assert args.aborted == cnt_aborted
     assert args.stuck == cnt_stuck
