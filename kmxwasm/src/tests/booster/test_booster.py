@@ -18,7 +18,7 @@ from kmxwasm.property import RunClaim
 sys.setrecursionlimit(1500000000)
 
 
-TEST_DATA = (Path(__file__).parent / 'data' / 'booster').resolve(strict=True)
+TEST_DATA = (Path(__file__).parent / 'data').resolve(strict=True)
 TEST_FILES = TEST_DATA.glob('*.json')
 SCRIPT_FILE = TEST_DATA / 'run.sh'
 
