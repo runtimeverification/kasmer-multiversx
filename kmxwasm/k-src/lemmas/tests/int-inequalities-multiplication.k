@@ -336,7 +336,6 @@ module INT-INEQUALITIES-MULTIPLICATION
     // rule A <Int C *Int B => A /Int C <Int B
     //     requires 0 <Int C andBool 0 <=Int B
     //     [simplification, concrete(A, C)]
-    // Has tests
     claim
       <k>
         runSimplification(
