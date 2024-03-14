@@ -213,5 +213,14 @@ class TestSimpleProofs:
         ids=[test_id for test_id, *_ in SIMPLE_PROOFS_DATA],
     )
     def test_run_claim(self, tools: Tools, test_id: str, claim: KClaim, success: bool) -> None:
-        result = run_claim(tools, WasmKrunInitializer(tools), claim, restart_kcfg=None, run_id=None, depth=1000)
+        result = run_claim(
+            tools,
+            WasmKrunInitializer(tools),
+            claim,
+            restart_kcfg=None,
+            kcfg_path=None,
+            run_id=None,
+            depth=1000,
+            iterations=10000,
+        )
         assert isinstance(result, Success) == success

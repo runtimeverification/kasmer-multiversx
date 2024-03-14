@@ -78,8 +78,19 @@ class Tools:
                     self.printer.main_module,
                     llvm_definition_dir=self.__llvm_library_definition_dir,
                     # TODO: Remove --no-smt whenever possible.
-                    command=('kore-rpc-booster', '--no-smt'),
-                    # command=('kore-rpc-booster', '--no-smt', '-l', 'Rewrite'),
+                    command=(
+                        'kore-rpc-booster',
+                        '--smt-timeout',
+                        '1000',
+                        # '--no-smt',
+                        # '-l', 'Rewrite',
+                        # '-l', 'SimplifySuccess',
+                        # '-l', 'Simplify',
+                        # '-l', 'SimplifyKore',
+                        # '-l', 'SMT',
+                        # '--solver-transcript', 'log.z3',
+                        # '--no-post-exec-simplify',
+                    ),
                     bug_report=self.__bug_report,
                     # port=39425,
                 )
@@ -88,6 +99,14 @@ class Tools:
                     self.__definition_dir,
                     self.printer.main_module,
                     bug_report=self.__bug_report,
+                    command=(
+                        'kore-rpc',
+                        '--smt-timeout',
+                        '1000',
+                        # '--solver-transcript', 'log.z3',
+                        # '--log-entries', 'DebugSolverSend,DebugSolverRecv,DebugAttemptEquation',
+                        # '--debug-equation', 'xyzzy2'
+                    ),
                     # port=39425,
                 )
         if not self.__kore_client:
@@ -161,6 +180,7 @@ def my_patch_symbol_table(symbol_table: SymbolTable) -> None:
     symbol_table['_%Int_'] = lambda c1, c2: f'({c1}) %Int ({c2})'
     symbol_table['_%IntTotal_'] = lambda c1, c2: f'({c1}) %IntTotal ({c2})'
     symbol_table['_^Int_'] = lambda c1, c2: f'({c1}) ^Int ({c2})'
+    symbol_table['_^IntTotal_'] = lambda c1, c2: f'({c1}) ^IntTotal ({c2})'
     symbol_table['_^%Int_'] = lambda c1, c2: f'({c1}) ^%Int ({c2})'
     symbol_table['_+Int_'] = lambda c1, c2: f'({c1}) +Int ({c2})'
     symbol_table['_-Int_'] = lambda c1, c2: f'({c1}) -Int ({c2})'

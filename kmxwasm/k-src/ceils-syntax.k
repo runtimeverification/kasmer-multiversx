@@ -25,38 +25,38 @@ module CEILS-SYNTAX
     // ---------------------------------------
 
     syntax Bytes ::= substrBytesTotal(Bytes, startIndex: Int, endIndex: Int)
-        [function, total, klabel(substrBytesTotal), symbol, no-evaluators]
+        [function, total, symbol(substrBytesTotal), no-evaluators]
     syntax Bytes ::= replaceAtBytesTotal(dest: Bytes, index: Int, src: Bytes)
-        [function, total, klabel(replaceAtBytesTotal), symbol, no-evaluators]
+        [function, total, symbol(replaceAtBytesTotal), no-evaluators]
     syntax Bytes ::= padRightBytesTotal(Bytes, length: Int, value: Int)
-        [function, total, klabel(padRightBytesTotal), symbol, no-evaluators]
+        [function, total, symbol(padRightBytesTotal), no-evaluators]
     syntax Int ::= Int "modIntTotal" Int
-        [function, total, klabel(modIntTotal), symbol, no-evaluators, smtlib(modIntTotal)]
+        [function, total, symbol(modIntTotal), no-evaluators, smtlib(modIntTotal)]
     syntax Int ::= Int "divIntTotal" Int
-        [function, total, klabel(divIntTotal), symbol, no-evaluators, smt-hook(div)]
+        [function, total, symbol(divIntTotal), no-evaluators, smt-hook(div)]
     syntax Int ::= Int "<<IntTotal" Int
-        [function, total, klabel(shlIntTotal), symbol, no-evaluators]
+        [function, total, symbol(shlIntTotal), no-evaluators]
     syntax Int ::= Int ">>IntTotal" Int
-        [function, total, klabel(shrIntTotal), symbol, no-evaluators]
+        [function, total, symbol(shrIntTotal), no-evaluators]
     syntax Int ::= Int "^IntTotal" Int
-        [function, total, klabel(powIntTotal), symbol, no-evaluators]
+        [function, total, symbol(powIntTotal), no-evaluators]
     syntax Int ::= Int "%IntTotal" Int
-        [function, total, klabel(tModIntTotal), symbol, no-evaluators, smtlib(tModInt)]
+        [function, total, symbol(tModIntTotal), no-evaluators, smtlib(tModInt)]
     syntax Int ::= Int "/IntTotal" Int
-        [function, total, klabel(tDivIntTotal), symbol, no-evaluators, smtlib(tDivInt)]
+        [function, total, symbol(tDivIntTotal), no-evaluators, smtlib(tDivInt)]
     syntax Int ::= log2IntTotal(Int)
-        [ function, total, klabel(log2IntTotal), symbol, no-evaluators,
+        [ function, total, symbol(log2IntTotal), no-evaluators,
           smtlib(log2IntTotal)
         ]
     syntax Bytes ::= projectBytesTotal(KItem)
-        [function, total, klabel(projectBytesTotal), symbol, no-evaluators]
+        [function, total, symbol(projectBytesTotal), no-evaluators]
     syntax Int ::= projectIntTotal(KItem)
-        [function, total, klabel(projectIntTotal), symbol, no-evaluators]
+        [function, total, symbol(projectIntTotal), no-evaluators]
 
 
     syntax Int ::= #getIntsTotal(Ints, Int)
-        [function, total, klabel(#getIntsTotal), symbol, no-evaluators/*, smtlib(poundGetInts)*/]
+        [function, total, symbol(#getIntsTotal), no-evaluators/*, smtlib(poundGetInts)*/]
     syntax Index ::= #getElemSegmentTotal(ElemSegment, Int)
-        [function, total, klabel(#getElemSegmentTotal), symbol, no-evaluators]
+        [function, total, symbol(#getElemSegmentTotal), no-evaluators]
 
 endmodule
