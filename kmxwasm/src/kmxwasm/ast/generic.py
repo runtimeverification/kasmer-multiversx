@@ -17,7 +17,7 @@ def get_single_argument_kapply_contents(root: KInner, name: str) -> KInner | Non
         if result:
             raise ValueError(f'Expected at most one node named {name}, found more.')
         if len(node.args) != 1:
-            raise ValueError(f'Expected node {name} to heve exactly 1 child, found {len(node.args)}.')
+            raise ValueError(f'Expected node {name} to have exactly 1 child, found {len(node.args)}.')
         result = node.args[0]
         return node
 
@@ -40,7 +40,7 @@ def set_single_argument_kapply_contents(root: KInner, name: str, contents: KInne
         already_replaced = True
 
         if len(node.args) != 1:
-            raise ValueError(f'Expected node {name} to heve exactly 1 child, found {len(node.args)}.')
+            raise ValueError(f'Expected node {name} to have exactly 1 child, found {len(node.args)}.')
         return node.let(args=[contents])
 
     return bottom_up(replace_contents, root)
@@ -58,7 +58,7 @@ def set_single_argument_multiple_kapply_contents(
             return node
 
         if len(node.args) != 1:
-            raise ValueError(f'Expected node {name} to heve exactly 1 child, found {len(node.args)}.')
+            raise ValueError(f'Expected node {name} to have exactly 1 child, found {len(node.args)}.')
 
         nonlocal index
         contents = contents_generator(index)

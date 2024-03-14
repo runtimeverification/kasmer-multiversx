@@ -1,6 +1,7 @@
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
+from pathlib import Path
 
 from pyk.kast.inner import KInner
 from pyk.kast.outer import KClaim
@@ -156,8 +157,10 @@ def run_claim(
     wasm_initializer: WasmKrunInitializer,
     claim: KClaim,
     restart_kcfg: KCFG | None,
+    kcfg_path: Path | None,
     run_id: int | None,
     depth: int,
+    iterations: int,
 ) -> RunClaimResult:
     last_processed_node: NodeIdLike = -1
     init_node_id: NodeIdLike = -1
@@ -166,7 +169,7 @@ def run_claim(
         kcfg = restart_kcfg
         (final_node, target_node_id) = find_final_node(kcfg)
     else:
-        (kcfg, init_node_id, target_node_id) = KCFG.from_claim(tools.printer.definition, claim)
+        (kcfg, init_node_id, target_node_id) = KCFG.from_claim(tools.printer.definition, claim, cfg_dir=kcfg_path)
         final_node = kcfg.node(target_node_id)
 
     a = abstracters(target_node_id)
@@ -184,10 +187,12 @@ def run_claim(
             to_process = [kcfg.node(run_id)]
 
         print('Start: ', init_node_id, 'End: ', target_node_id)
+        current_iteration = 0
         last_time = time.time()
-        while to_process:
-            # print([node.id for node in to_process])
-            while to_process:
+        while to_process and current_iteration < iterations:
+            next_current_leaves: set[NodeIdLike] = set()
+            while to_process and current_iteration < iterations:
+                current_iteration += 1
                 node = to_process.pop(0)
                 processed.add(node.id)
                 current_time = time.time()
@@ -242,8 +247,11 @@ def run_claim(
                             t.measure()
                             concretize(all_abstracters, kcfg, leaves)
                             t.measure()
-                    t = Timer('  Check final')
                     current_leaves = new_leaves(kcfg, non_final, final_node.id)
+                    print('Result: ', current_leaves)
+                    for node_id in current_leaves:
+                        next_current_leaves.add(node_id)
+                    t = Timer('  Check final')
                     for node_id in current_leaves:
                         non_final.add(node_id)
                         node = kcfg.node(node_id)
@@ -259,7 +267,7 @@ def run_claim(
                 for node in kcfg.stuck:
                     return Stuck(kcfg, stuck_node_id=node.id, final_node_id=final_node.id)
             if run_id is not None:
-                to_process += [kcfg.node(node_id) for node_id in current_leaves]
+                to_process += [kcfg.node(node_id) for node_id in next_current_leaves]
             else:
                 to_process = expandable_leaves(kcfg, target_node_id)
 

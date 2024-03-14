@@ -3,8 +3,8 @@
 requires "../../mx-wasm.md"
 
 module MX-WASM-LEMMA-TESTS-SYNTAX
-  syntax KItem  ::= runSimplification(KItem)   [klabel(runSimplification), symbol]
-                  | doneSimplification(KItem)  [klabel(doneSimplification), symbol]
+  syntax KItem  ::= runSimplification(KItem)   [symbol(runSimplification)]
+                  | doneSimplification(KItem)  [symbol(doneSimplification)]
 endmodule
 
 module MX-WASM-LEMMA-TESTS

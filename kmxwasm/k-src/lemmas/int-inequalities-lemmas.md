@@ -346,6 +346,7 @@ module INT-INEQUALITIES-LEMMAS
   // rule (_X modIntTotal Y) <Int Y => true
   //     requires Y >Int 0
   //     [simplification, smt-lemma]
+  // Moved to proven-mx-lemmas.md
   // rule 0 <=Int (_X modIntTotal Y) => true
   //     requires Y >Int 0
   //     [simplification, smt-lemma]

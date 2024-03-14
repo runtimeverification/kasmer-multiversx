@@ -6,6 +6,8 @@ from pyk.ktool.kprint import KPrint
 from pyk.prelude.kbool import TRUE
 
 from ..ast.mx import (
+    FINISH_EXECUTE_ON_DEST_CONTEXT_LABEL,
+    get_callee,
     get_first_command,
     get_first_instr,
     get_first_k_item,
@@ -46,9 +48,11 @@ def node_summary(node: CTerm, printer: KPrint) -> list[str]:
 
     summary: list[str] = []
     instr = get_first_instr(node.config)
+    is_finish_execute_on_dest_context = False
     if instr is not None:
         summary = [f'instrs: {print_short_left(instr)}']
-    else:
+        is_finish_execute_on_dest_context = instr.label.name == FINISH_EXECUTE_ON_DEST_CONTEXT_LABEL
+    if instr is None or is_finish_execute_on_dest_context:
         command = get_first_command(node.config)
         if command is not None:
             summary = [f'command: {print_short_left(command)}']
@@ -58,6 +62,10 @@ def node_summary(node: CTerm, printer: KPrint) -> list[str]:
                 summary = [f'k: {print_short_left(kitem)}']
             else:
                 summary = ['Nothing to execute']
+
+    callee = get_callee(node.config)
+    if callee is not None:
+        summary.append(f'callee: {callee}')
 
     log = get_logging_cell_content(node.config)
     if not isinstance(log, KVariable):
