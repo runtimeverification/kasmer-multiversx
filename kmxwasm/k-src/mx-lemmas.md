@@ -7,6 +7,7 @@ requires "lemmas/int-normalization-lemmas.md"
 module MX-LEMMAS-BASIC
   imports BOOL
   imports INT
+  imports INT-ENCODING-BASIC
   imports INT-NORMALIZATION-LEMMAS-BASIC
 
   syntax Bool ::= #setRangeActuallySets(addr:Int, val:Int, width:Int)  [function, total]
