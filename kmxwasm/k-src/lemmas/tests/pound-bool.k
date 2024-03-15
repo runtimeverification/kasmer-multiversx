@@ -23,7 +23,28 @@ module POUND-BOOL
               ( ( ( ( ( ( #bool(_B7) &Int #bool(B6) ) &Int #bool(B5) ) &Int #bool(B4) ) &Int #bool(B3) ) &Int #bool(B1) ) &Int #bool(B2) )
             ) modIntTotal (4294967296) ==Int 0
           )
-        ) => doneSimplification(4)
+        ) => doneSimplification(#bool(B1) ==Int 0)
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+
+    claim
+      <k>
+        runSimplification(
+          ( ( ( ( ( ( ( (#bool ( B1 )) &Int (#bool ( B2 )))
+                    +Int (#bool ( B1 ))
+                    )
+                  +Int (((#bool ( B3 )) &Int (#bool ( B1 ))) &Int (#bool ( B2 )))
+                  )
+                +Int ((((#bool ( B4 )) &Int (#bool ( B3 ))) &Int (#bool ( B1 ))) &Int (#bool ( B2 )))
+                )
+              +Int (((((#bool ( B5 )) &Int (#bool ( B4 ))) &Int (#bool ( B3 ))) &Int (#bool ( B1 ))) &Int (#bool ( B2 )))
+              )
+            +Int ((((((#bool ( B6 )) &Int (#bool ( B5 ))) &Int (#bool ( B4 ))) &Int (#bool ( B3 ))) &Int (#bool ( B1 ))) &Int (#bool ( B2 )))
+            )
+          +Int (((((((#bool ( B7 )) &Int (#bool ( B6 ))) &Int (#bool ( B5 ))) &Int (#bool ( B4 ))) &Int (#bool ( B3 ))) &Int (#bool ( B1 ))) &Int (#bool ( B2 )))
+          ) modIntTotal (4294967296) ==Int 0
+        ) => doneSimplification(#bool(B1) ==Int 0)
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>

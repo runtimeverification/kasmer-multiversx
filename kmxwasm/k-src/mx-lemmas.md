@@ -1,7 +1,8 @@
 ```k
 requires "ceils.k"
-requires "lemmas/int-normalization-lemmas.md"
+requires "lemmas/int-encoding-lemmas.md"
 requires "lemmas/int-inequalities-lemmas.md"
+requires "lemmas/int-normalization-lemmas.md"
 
 module MX-LEMMAS-BASIC
   imports BOOL
@@ -29,6 +30,7 @@ endmodule
 module MX-LEMMAS  [symbolic]
   imports private CEILS
   imports private ELROND
+  imports INT-ENCODING-LEMMAS
   imports private INT-INEQUALITIES-LEMMAS
   imports private INT-KORE
   imports private INT-NORMALIZATION-LEMMAS
