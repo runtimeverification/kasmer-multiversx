@@ -73,6 +73,7 @@ def test_aborted(
             remove=[],
             run_node_id=None,
             depth=1,
+            iterations=10000,
             kcfg_path=tmp_path / 'kcfg',
             bug_report=bug_report,
         ).run()
