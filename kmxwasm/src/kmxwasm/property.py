@@ -22,13 +22,14 @@ from .ast.mx import (
     set_call_stack_cell_content,
     set_interim_states_cell_content,
 )
-from .build import HASKELL, kbuild_semantics
+from .build import HASKELL, Kompiled, kbuild_semantics
 from .json import load_json_kclaim
 from .property_testing.paths import KBUILD_DIR, KBUILD_ML_PATH, ROOT
 from .property_testing.printers import print_node
 from .property_testing.running import RunException, Stuck, Success, profile_step, run_claim, split_edge
 from .property_testing.wasm_krun_initializer import WasmKrunInitializer
 from .timing import Timer
+from .tools import Tools
 
 sys.setrecursionlimit(16000)
 
@@ -64,16 +65,10 @@ class RunClaim(Action):
     iterations: int
     kcfg_path: Path
     bug_report: BugReport | None
+    kompiled: Kompiled | None
 
     def run(self) -> None:
-        with kbuild_semantics(
-            output_dir=KBUILD_DIR,
-            config_file=KBUILD_ML_PATH,
-            target=HASKELL,
-            llvm=True,
-            booster=self.booster,
-            bug_report=self.bug_report,
-        ) as tools:
+        with self.make_tools() as tools:
             t = Timer('Loading the claim')
             if self.is_k:
                 claims = tools.kprove.get_claims(self.claim_path)
@@ -159,6 +154,20 @@ class RunClaim(Action):
                     print(result.exception)
                 raise result.exception
             raise NotImplementedError(f'Unknown run_claim result: {type(result)}')
+
+    def make_tools(self) -> Tools:
+        if self.kompiled:
+            kompiled = self.kompiled
+        else:
+            kompiled = Kompiled(
+                output_dir=KBUILD_DIR,
+                config_file=KBUILD_ML_PATH,
+                target=HASKELL,
+                llvm=True,
+                booster=self.booster,
+            )
+
+        return kompiled.make_tools(self.bug_report)
 
 
 @dataclass(frozen=True)
@@ -682,6 +691,7 @@ def read_flags() -> Action:
         kcfg_path=Path(args.kcfg),
         booster=args.booster,
         bug_report=args.bug_report,
+        kompiled=None,
     )
 
 
