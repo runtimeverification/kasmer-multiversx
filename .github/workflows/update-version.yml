@@ -36,8 +36,8 @@ jobs:
           git checkout v${mx_semantics_version}
           cd ../../..
           git add kmxwasm/k-src/mx-semantics && git commit -m "kmxwasm/k-src/mx-semantics: update submodule v${mx_semantics_version}" || true
-          cat kmxwasm/k-src/mx-semantics/deps/wasm-semantics/deps/k_release > deps/k_release
-          cat kmxwasm/k-src/mx-semantics/deps/wasm-semantics/deps/pyk_release > deps/pyk_release
+          cat kmxwasm/k-src/mx-semantics/deps/k_release > deps/k_release
+          cat kmxwasm/k-src/mx-semantics/deps/pyk_release > deps/pyk_release
           git add deps/k_release deps/pyk_release && git commit -m 'deps/{k_release,pyk_release}: update versions' || true
       - name: 'Update poetry files'
         run: |
