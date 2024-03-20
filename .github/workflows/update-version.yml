@@ -41,7 +41,6 @@ jobs:
           git add deps/k_release deps/pyk_release && git commit -m 'deps/{k_release,pyk_release}: update versions' || true
       - name: 'Update poetry files'
         run: |
-          PYK_VERSION=$(cat ./deps/pyk_release)
           KMULTIVERSX_VERSION=$(cat ./deps/mx-semantics_release)
           sed -i 's!kmultiversx = { git = "https://github.com/runtimeverification/mx-semantics.git", tag = "[v0-9\.]*", subdirectory = "kmultiversx" }!kmultiversx = { git = "https://github.com/runtimeverification/mx-semantics.git", tag = "v'${KMULTIVERSX_VERSION}'", subdirectory = "kmultiversx" }!' kmxwasm/pyproject.toml
           poetry -C kmxwasm update
