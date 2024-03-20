@@ -5,7 +5,8 @@ FROM runtimeverificationinc/kframework-k:ubuntu-${K_DISTRO}-${K_COMMIT}
 RUN    apt-get update        \
     && apt-get upgrade --yes \
     && apt-get install --yes \
-         curl
+         curl                \
+         wabt
 
 RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/usr python3 - --version 1.3.2
 

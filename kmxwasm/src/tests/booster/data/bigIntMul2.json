@@ -1,0 +1,5 @@
+{
+    "comment": "aborted once for each bigIntGetUnsignedArgument",
+    "inputs": ["BigUint"],
+    "aborted": 1
+}
