@@ -1,5 +1,4 @@
 import os
-from dataclasses import dataclass
 from pathlib import Path
 
 from pyk.kbuild.kbuild import KBuild
@@ -16,7 +15,6 @@ LEMMA_PROOFS = 'lemma-proofs'
 LEMMA_TESTS = 'lemma-tests'
 
 
-@dataclass(frozen=True)
 class Kompiled:
     def __init__(self, output_dir: Path, config_file: Path, target: str, llvm: bool, booster: bool):
 
