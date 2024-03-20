@@ -106,7 +106,7 @@ kbuild-%: k-src/mx-semantics/deps/wasm-semantics/blockchain-k-plugin/krypto.md
 			--emit-json \
 			-I k-src \
 			-I k-src/mx-semantics/deps \
-			--directory ../.build/defn/haskell \
+			--output-definition ../.build/defn/haskell \
 			--main-module MX-WASM \
 			--syntax-module MX-WASM-SYNTAX \
 			k-src/mx-wasm.md
