@@ -545,7 +545,7 @@ colors = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "kmultiversx"
-version = "0.1.18"
+version = "0.1.19"
 description = "Python tools for Elrond semantics"
 optional = false
 python-versions = "^3.10"
@@ -560,8 +560,8 @@ pykwasm = {git = "https://github.com/runtimeverification/wasm-semantics.git", ta
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/mx-semantics.git"
-reference = "v0.1.18"
-resolved_reference = "4af77f42275842833c697480961e572ce1ad304c"
+reference = "v0.1.19"
+resolved_reference = "4ec0176287d917b6bbbbb2abfafbb378df780889"
 subdirectory = "kmultiversx"
 
 [[package]]
@@ -1075,17 +1075,17 @@ testing = ["fields", "hunter", "process-tests", "pytest-xdist", "six", "virtuale
 
 [[package]]
 name = "pytest-mock"
-version = "3.12.0"
+version = "3.14.0"
 description = "Thin-wrapper around the mock package for easier use with pytest"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "pytest-mock-3.12.0.tar.gz", hash = "sha256:31a40f038c22cad32287bb43932054451ff5583ff094bca6f675df2f8bc1a6e9"},
-    {file = "pytest_mock-3.12.0-py3-none-any.whl", hash = "sha256:0972719a7263072da3a21c7f4773069bcc7486027d7e8e1f81d98a47e701bc4f"},
+    {file = "pytest-mock-3.14.0.tar.gz", hash = "sha256:2719255a1efeceadbc056d6bf3df3d1c5015530fb40cf347c0f9afac88410bd0"},
+    {file = "pytest_mock-3.14.0-py3-none-any.whl", hash = "sha256:0b72c38033392a5f4621342fe11e9219ac11ec9d375f8e2a0c164539e0d70f6f"},
 ]
 
 [package.dependencies]
-pytest = ">=5.0"
+pytest = ">=6.2.5"
 
 [package.extras]
 dev = ["pre-commit", "pytest-asyncio", "tox"]
@@ -1262,4 +1262,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "8a279d29096da10e27d38da45bb0cfdfe3e6d4a7deb0071f9583b82f6234515a"
+content-hash = "cac93130a74f09dc5e22521f9db2a1f70c5ebcc568f9dc7d577f90c97093c0aa"
