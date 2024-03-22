@@ -242,4 +242,16 @@ module INT-INEQUALITIES-LOG2INT
       <instrs> .K </instrs>
       requires X <Int 0
 
+    claim
+      <k>
+        runSimplification(
+          log2IntTotal ( X ) <Int 34359738360
+        ) => doneSimplification(
+          true
+        )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+      requires 0 <Int X andBool X <Int 2 ^Int 800
+
 endmodule

@@ -338,6 +338,36 @@ module CEILS
 
     //-------------------------------------
 
+    rule definedSignedWidth(W:Int, I:Int)
+        => 0 <=Int I
+          andBool
+            ( ( W ==Int 1 andBool I <Int 256 )
+            orBool (W ==Int 2 andBool I <Int 65536)
+            orBool (W ==Int 4 andBool I <Int 4294967296)
+            )
+
+    rule #Ceil(#signedWidth(Arg0:Int, Arg1:Int))
+        =>  { definedSignedWidth(Arg0, Arg1) #Equals true }
+        [simplification]
+
+    rule #signedWidthTotal(Arg0:Int, Arg1:Int)
+        => #signedWidth(Arg0, Arg1)
+        requires definedSignedWidth(Arg0, Arg1)
+        [concrete, simplification(10)]
+
+    rule #signedWidth(Arg0:Int, Arg1:Int)
+        => #signedWidthTotal(Arg0, Arg1)
+        requires definedSignedWidth(Arg0, Arg1)
+        [symbolic(Arg0), simplification]
+
+    rule #signedWidth(Arg0:Int, Arg1:Int)
+        => #signedWidthTotal(Arg0, Arg1)
+        requires definedSignedWidth(Arg0, Arg1)
+        [symbolic(Arg1), simplification]
+
+
+    //-------------------------------------
+
     rule definedGetInts(Is:Ints, I:Int)
         => 0 <=Int I andBool I <=Int #lenInts(Is)
 

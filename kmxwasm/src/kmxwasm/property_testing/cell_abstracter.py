@@ -40,12 +40,13 @@ class CellAbstracter:
             self.__should_be_concrete.remove(node_id)
 
     def concretize_kcfg(self, kcfg: KCFG, with_variable: set[NodeIdLike]) -> None:
-        for node in kcfg.nodes:
-            if node.id in with_variable:
-                continue
-            if node.id in self.__should_be_concrete:
-                continue
-            self.__concretize_node(kcfg, node.id, allow_missing_variable=True)
+        # for node in kcfg.nodes:
+        #     if node.id in with_variable:
+        #         continue
+        #     if node.id in self.__should_be_concrete:
+        #         continue
+        #     print(f'Concretizing unexpected node: {node.id}, root={self.__variable_root}')
+        #     self.__concretize_node(kcfg, node.id, allow_missing_variable=True)
         for node_id in with_variable:
             self.__concretize_node(kcfg, node_id, allow_missing_variable=False)
         self.__variable_to_value = {}

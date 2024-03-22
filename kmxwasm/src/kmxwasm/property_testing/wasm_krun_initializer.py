@@ -20,6 +20,10 @@ from ..ast.mx import (
     set_call_args_cell_content,
     set_call_stack_cell_content,
     set_commands_cell_contents,
+    set_cur_block_timestamp_cell_content,
+    set_cur_block_nonce_cell_content,
+    set_cur_block_round_cell_content,
+    set_cur_block_epoch_cell_content,
     set_exit_code_cell_content,
     set_generated_counter_cell_content,
     set_interim_states_cell_content,
@@ -36,7 +40,8 @@ class WasmKrunInitializer:
         self.__first_wasm_cell: KInner | None = None
         self.__cache: dict[str, tuple[KInner, KInner]] = {}  # address -> (<wasm>, <contractModIdx>)
 
-    def initialize(self, kcfg: KCFG, start_node: KCFG.Node) -> None:
+    def initialize(self, kcfg: KCFG, start_node: KCFG.Node, first_node: KCFG.Node) -> None:
+        self.__first_wasm_cell = get_wasm_cell(first_node.cterm.config)
         start_cell = start_node.cterm.config
         commands_contents = commands_cell_contents(start_cell)
         assert len(commands_contents) > 0
@@ -83,6 +88,10 @@ class WasmKrunInitializer:
         krun_cell = set_big_int_heap_cell_content(krun_cell, mapIntToInt({}))
         krun_cell = set_buffer_heap_cell_content(krun_cell, mapIntToBytes({}))
         krun_cell = set_exit_code_cell_content(krun_cell, token(0))
+        krun_cell = set_cur_block_timestamp_cell_content(krun_cell, token(0))
+        krun_cell = set_cur_block_nonce_cell_content(krun_cell, token(0))
+        krun_cell = set_cur_block_round_cell_content(krun_cell, token(0))
+        krun_cell = set_cur_block_epoch_cell_content(krun_cell, token(0))
 
         krun_cell = replace_wasm_cell(krun_cell, self.__first_wasm_cell)
 

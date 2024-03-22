@@ -331,6 +331,44 @@ module INT-ARITHMETIC-NORMALIZATION-LEMMAS
   rule ((Y +Int I1 *Int X) +Int Z) +Int I2 *Int X => (Y +Int (I1 +Int I2) *Int X) +Int Z
       [simplification(200), concrete(I1, I2)]
 
+  // Distance 3:
+  rule (((X +Int Y) +Int Z) +Int T) +Int X => ((2 *Int X +Int Y) +Int Z) +Int T
+      [simplification(200)]
+  rule (((X +Int Y) +Int Z) +Int T) +Int I *Int X => (((1 +Int I) *Int X +Int Y) +Int Z) +Int T
+      [simplification(200), concrete(I)]
+  rule (((I *Int X +Int Y) +Int Z) +Int T) +Int X => (((1 +Int I) *Int X +Int Y) +Int T) +Int Z
+      [simplification(200), concrete(I)]
+  rule (((I1 *Int X +Int Y) +Int Z) +Int T) +Int I2 *Int X => (((I1 +Int I2) *Int X +Int Y) +Int T) +Int Z
+      [simplification(200), symbolic(X), concrete(I1, I2)]
+
+  rule (((Y +Int X) +Int Z) +Int T) +Int X => ((Y +Int 2 *Int X) +Int Z) +Int T
+      [simplification(200)]
+  rule (((Y +Int X) +Int Z) +Int T) +Int I *Int X => ((Y +Int (1 +Int I) *Int X) +Int Z) +Int T
+      [simplification(200), concrete(I)]
+  rule (((Y +Int I *Int X) +Int Z) +Int T) +Int X => ((Y +Int (1 +Int I) *Int X) +Int Z) +Int T
+      [simplification(200), concrete(I)]
+  rule (((Y +Int I1 *Int X) +Int Z) +Int T) +Int I2 *Int X => ((Y +Int (I1 +Int I2) *Int X) +Int Z) +Int T
+      [simplification(200), concrete(I1, I2)]
+
+  // Distance 4:
+  rule ((((X +Int Y) +Int Z) +Int T) +Int S) +Int X => (((2 *Int X +Int Y) +Int Z) +Int T) +Int S
+      [simplification(200)]
+  rule ((((X +Int Y) +Int Z) +Int T) +Int S) +Int I *Int X => ((((1 +Int I) *Int X +Int Y) +Int Z) +Int T) +Int S
+      [simplification(200), concrete(I)]
+  rule ((((I *Int X +Int Y) +Int Z) +Int T) +Int S) +Int X => ((((1 +Int I) *Int X +Int Y) +Int T) +Int S) +Int Z
+      [simplification(200), concrete(I)]
+  rule ((((I1 *Int X +Int Y) +Int Z) +Int T) +Int S) +Int I2 *Int X => ((((I1 +Int I2) *Int X +Int Y) +Int T) +Int S) +Int Z
+      [simplification(200), symbolic(X), concrete(I1, I2)]
+
+  rule ((((Y +Int X) +Int Z) +Int T) +Int S) +Int X => (((Y +Int 2 *Int X) +Int Z) +Int S) +Int T
+      [simplification(200)]
+  rule ((((Y +Int X) +Int Z) +Int T) +Int S) +Int I *Int X => (((Y +Int (1 +Int I) *Int X) +Int Z) +Int T) +Int S
+      [simplification(200), concrete(I)]
+  rule ((((Y +Int I *Int X) +Int Z) +Int T) +Int S) +Int X => (((Y +Int (1 +Int I) *Int X) +Int Z) +Int T) +Int S
+      [simplification(200), concrete(I)]
+  rule ((((Y +Int I1 *Int X) +Int Z) +Int T) +Int S) +Int I2 *Int X => (((Y +Int (I1 +Int I2) *Int X) +Int Z) +Int T) +Int S
+      [simplification(200), concrete(I1, I2)]
+
   rule (((X modIntTotal Y) +Int Z) +Int T) modIntTotal Y => (X +Int Z +Int T) modIntTotal Y
       [simplification]
   rule (((X modIntTotal Y) +Int Z) -Int T) modIntTotal Y => (X +Int Z -Int T) modIntTotal Y

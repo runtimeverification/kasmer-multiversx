@@ -32,6 +32,13 @@ CALL_STATE_PATH = NODE_CELL_PATH + ['<callState>']
 CALL_STACK_PATH = NODE_CELL_PATH + ['<callStack>']
 INTERIM_STATES_PATH = NODE_CELL_PATH + ['<interimStates>']
 ACCOUNTS_PATH = NODE_CELL_PATH + ['<accounts>']
+
+CURRENT_BLOCK_INFO_PATH = NODE_CELL_PATH + ['<currentBlockInfo>']
+CUR_BLOCK_TIMESTAMP_PATH = CURRENT_BLOCK_INFO_PATH + ['<curBlockTimestamp>']
+CUR_BLOCK_NONCE_PATH = CURRENT_BLOCK_INFO_PATH + ['<curBlockNonce>']
+CUR_BLOCK_ROUND_PATH = CURRENT_BLOCK_INFO_PATH + ['<curBlockRound>']
+CUR_BLOCK_EPOCH_PATH = CURRENT_BLOCK_INFO_PATH + ['<curBlockEpoch>']
+
 VM_OUTPUT_PATH = NODE_CELL_PATH + ['<vmOutput>']
 
 COMMANDS_CELL_PATH = NODE_CELL_PATH + [COMMANDS_CELL_NAME]
@@ -251,6 +258,7 @@ def cfg_touches_code(k: str | None, command: str | None, instr: str | None) -> b
         'createAccount',
         'pushWorldState',
         'popWorldState',
+        'determineIsSCCallAfter'
     ]:
         return True
     if not instr:
@@ -314,6 +322,22 @@ def set_logging_cell_content(root: KInner, replacement: KInner) -> KInner:
     return replace_contents_with_path(root, LOGGING_CELL_PATH, replacement)
 
 
+def set_cur_block_timestamp_cell_content(root: KInner, replacement: KInner) -> KInner:
+    return replace_contents_with_path(root, CUR_BLOCK_TIMESTAMP_PATH, replacement)
+
+
+def set_cur_block_nonce_cell_content(root: KInner, replacement: KInner) -> KInner:
+    return replace_contents_with_path(root, CUR_BLOCK_NONCE_PATH, replacement)
+
+
+def set_cur_block_round_cell_content(root: KInner, replacement: KInner) -> KInner:
+    return replace_contents_with_path(root, CUR_BLOCK_ROUND_PATH, replacement)
+
+
+def set_cur_block_epoch_cell_content(root: KInner, replacement: KInner) -> KInner:
+    return replace_contents_with_path(root, CUR_BLOCK_EPOCH_PATH, replacement)
+
+
 def set_generated_counter_cell_content(root: KInner, replacement: KInner) -> KInner:
     return set_single_argument_kapply_contents(root, '<generatedCounter>', replacement)
 
@@ -328,6 +352,10 @@ def set_big_int_heap_cell_content(root: KInner, replacement: KInner) -> KInner:
 
 def set_buffer_heap_cell_content(root: KInner, replacement: KInner) -> KInner:
     return set_single_argument_kapply_contents(root, '<bufferHeap>', replacement)
+
+
+def set_exit_code_cell_content(root: KInner, replacement: KInner) -> KInner:
+    return set_single_argument_kapply_contents(root, '<exit-code>', replacement)
 
 
 def set_exit_code_cell_content(root: KInner, replacement: KInner) -> KInner:

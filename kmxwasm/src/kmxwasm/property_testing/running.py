@@ -59,6 +59,7 @@ CODE_CUT_POINT_RULES = [
     'ELROND-CONFIG.setAccountCode',
     'ELROND-CONFIG.callContract',
     'ELROND-CONFIG.callContract-not-contract',
+    'ESDT.determineIsSCCallAfter-call',
     'MANDOS.checkAccountCodeAux-no-code',
     'MANDOS.checkAccountCodeAux-code',
     'BASEOPS.checkIsSmartContract-code',
@@ -168,6 +169,12 @@ def run_claim(
     if restart_kcfg:
         kcfg = restart_kcfg
         (final_node, target_node_id) = find_final_node(kcfg)
+        for node in kcfg.nodes:
+            if node.id != target_node_id and not kcfg.predecessors(node.id):
+                if init_node_id == -1:
+                    init_node_id = node.id
+                else:
+                    raise ValueError(f"Cannot figure out the init node {init_node_id} vs {node.id}")
     else:
         (kcfg, init_node_id, target_node_id) = KCFG.from_claim(tools.printer.definition, claim, cfg_dir=kcfg_path)
         final_node = kcfg.node(target_node_id)
@@ -191,7 +198,10 @@ def run_claim(
         last_time = time.time()
         while to_process and current_iteration < iterations:
             next_current_leaves: set[NodeIdLike] = set()
+            iteration_start_branches = len(to_process)
+            iteration_processed_branches = 0
             while to_process and current_iteration < iterations:
+                iteration_start_branches += 1
                 current_iteration += 1
                 node = to_process.pop(0)
                 processed.add(node.id)
@@ -211,7 +221,7 @@ def run_claim(
                     if command_is_new_wasm_instance(node.cterm.config):
                         print('is new wasm')
                         t = Timer('  Initialize wasm')
-                        wasm_initializer.initialize(kcfg=kcfg, start_node=node)
+                        wasm_initializer.initialize(kcfg=kcfg, start_node=node, first_node=kcfg.get_node(init_node_id))
                         t.measure()
                     elif touches_abstract_content(all_abstract_identifiers, node.cterm.config):
                         print('changes abstracted cell')
@@ -245,10 +255,14 @@ def run_claim(
                             leaves = set(new_leaves(kcfg, non_final, final_node.id))
                             leaves.add(node.id)
                             t.measure()
+                            print(f'Concretizing: {[n for n in leaves]}')
                             concretize(all_abstracters, kcfg, leaves)
                             t.measure()
                     current_leaves = new_leaves(kcfg, non_final, final_node.id)
                     print('Result: ', current_leaves)
+                    for e in kcfg.edges(source_id=node.id):
+                        print(f'Depth for {e.source.id} -> {e.target.id}: {e.depth}')
+                    print(f'Branch count: {iteration_start_branches - iteration_processed_branches + len(next_current_leaves)}')
                     for node_id in current_leaves:
                         next_current_leaves.add(node_id)
                     t = Timer('  Check final')

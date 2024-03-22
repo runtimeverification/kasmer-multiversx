@@ -1065,8 +1065,44 @@ module MX-LEMMAS  [symbolic]
   rule #bigIntSign(_) <=Int X => true requires 1 <=Int X  [simplification]
   rule #bigIntSign(_) <Int X => true requires 1 <Int X  [simplification]
 
+  // TODO: Rewrite the following two rules similar to the third.
   rule 0 <=Int #bigIntSign(X) => true requires 0 <=Int X  [simplification]
   rule #bigIntSign(X) <=Int 0 => true requires X <=Int 0  [simplification]
+  rule 0 <Int #bigIntSign(X) => 0 <Int X  [simplification]
+  rule #bigIntSign(X) <Int 0 => X <Int 0  [simplification]
+  rule #bigIntSign(X) ==Int 0 => X ==Int 0  [simplification]
+
+  // #if is parametric in the sort of the return value, and matching
+  // works on exact sort matches, so we need symplification rules
+  // for all possible combinations.
+  rule #typeMatches(T, #if _ #then A:Val #else B:Val #fi) => true
+      requires #typeMatches(T, A) andBool #typeMatches(T, B)
+      [simplification]
+  rule #typeMatches(T, #if _ #then A #else B #fi:IVal) => true
+      requires #typeMatches(T, A) andBool #typeMatches(T, B)
+      [simplification]
+  rule #typeMatches(T, #if _ #then A #else B #fi:FVal) => true
+      requires #typeMatches(T, A) andBool #typeMatches(T, B)
+      [simplification]
+  rule #typeMatches(T, #if _ #then A #else B #fi:RefVal) => true
+      requires #typeMatches(T, A) andBool #typeMatches(T, B)
+      [simplification]
+
+  // #if is parametric in the sort of the return value, and matching
+  // works on exact sort matches, so we need symplification rules
+  // for all possible combinations.
+  rule #typeMatches(T, #if _ #then A:Val #else B #fi) => false
+      requires notBool #typeMatches(T, A) andBool notBool #typeMatches(T, B)
+      [simplification]
+  rule #typeMatches(T, #if _ #then A #else B #fi:IVal) => false
+      requires notBool #typeMatches(T, A) andBool notBool #typeMatches(T, B)
+      [simplification]
+  rule #typeMatches(T, #if _ #then A #else B #fi:FVal) => false
+      requires notBool #typeMatches(T, A) andBool notBool #typeMatches(T, B)
+      [simplification]
+  rule #typeMatches(T, #if _ #then A #else B #fi:RefVal) => false
+      requires notBool #typeMatches(T, A) andBool notBool #typeMatches(T, B)
+      [simplification]
 endmodule
 
 ```

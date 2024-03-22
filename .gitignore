@@ -9,8 +9,9 @@
 .kore-repl-*
 .property
 .sessionCommands
+kbuild
 tmp
-kore-*.tar.gz
+*.tar.gz
 bug-report.tar
 
 .bash_logout

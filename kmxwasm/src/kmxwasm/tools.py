@@ -82,6 +82,7 @@ class Tools:
                         'kore-rpc-booster',
                         '--smt-timeout',
                         '1000',
+                        # '--equation-max-iterations', '1000',
                         # '--no-smt',
                         # '-l', 'Rewrite',
                         # '-l', 'SimplifySuccess',

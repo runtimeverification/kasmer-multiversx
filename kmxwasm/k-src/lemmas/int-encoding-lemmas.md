@@ -9,15 +9,16 @@ module INT-ENCODING-BASIC
 
   syntax Int ::= int64encoding(
       value: Int,
-      byte8Position: Int,
-      byte7osition: Int,
-      byte6Position: Int,
-      byte5Position: Int,
-      byte4Position: Int,
-      byte3Position: Int,
-      byte2Position: Int,
-      byte1Position: Int
-  )  [function, total]
+      b8pos: Int,
+      b7pos: Int,
+      b6pos: Int,
+      b5pos: Int,
+      b4pos: Int,
+      b3pos: Int,
+      b2pos: Int,
+      b1pos: Int
+  )  [function, total, smtlib(int64encoding)]
+  rule int64encoding(0, _, _, _, _, _, _, _, _) => 0
   rule int64encoding(_, -1, -1, -1, -1, -1, -1, -1, -1) => 0
   rule int64encoding(A, 7, 6, 5, 4, 3, 2, 1, 0) => A
       requires 0 <=Int A andBool A <Int (1 <<Int 64)
@@ -39,12 +40,41 @@ module INT-ENCODING-BASIC
   rule int64BytesAre0(A, true, true, true, true, true, true, true, true) => #bool(A ==Int 0)
       requires A <Int 2 ^Int 64
 
+  syntax Int ::= countConsecutiveZeroBits(value: Int, processed: Int)
+      [function, total, smtlib(countConsecutiveZeroBits)]
+  rule countConsecutiveZeroBits(A, N)
+      => 8 *Int N *Int int64BytesAre0(A, 0 <=Int N, 1 <=Int N, 2 <=Int N, 3 <=Int N, 4 <=Int N, 5 <=Int N, 6 <=Int N, 7 <=Int N)
+      [simplification, concrete]
+
+  syntax Int ::= countConsecutiveZeroBytes(value: Int, processed: Int)
+      [function, total, smtlib(countConsecutiveZeroBytes)]
+  rule countConsecutiveZeroBytes(A, N)
+      => N *Int int64BytesAre0(A, 0 <=Int N, 1 <=Int N, 2 <=Int N, 3 <=Int N, 4 <=Int N, 5 <=Int N, 6 <=Int N, 7 <=Int N)
+      [simplification, concrete]
+
+  // reverse encoding dropping consecutive 0 bytes starting with the highest byte.
+  syntax Int ::= optimizedInt64Encoding(value: Int, b8: Bool, b7: Bool, b6: Bool, b5: Bool, b4: Bool, b3: Bool, b2: Bool, b1: Bool)
+      [function, total, smtlib(optimizedInt64Encoding), no-evaluators]
+
   syntax Int ::= sbr(Int, Int)  [function, total]
   rule sbr(A, B) => maxInt(-1, A -Int B)
 
   syntax Int ::= sbl(Int, Int)  [function, total]
   rule sbl(-1, _) => -1
   rule sbl(A, B) => A +Int B requires A =/=Int -1
+
+  syntax Int ::= permuteEncoding(Int, Int, Int, Int, Int, Int, Int, Int, Int)  [function, total]
+  rule permuteEncoding(-1,  _,  _,  _,  _,  _,  _,  _,  _) => -1
+  rule permuteEncoding( 0,  _,  _,  _,  _,  _,  _,  _, A1) => A1
+  rule permuteEncoding( 1,  _,  _,  _,  _,  _,  _, A2,  _) => A2
+  rule permuteEncoding( 2,  _,  _,  _,  _,  _, A3,  _,  _) => A3
+  rule permuteEncoding( 3,  _,  _,  _,  _, A4,  _,  _,  _) => A4
+  rule permuteEncoding( 4,  _,  _,  _, A5,  _,  _,  _,  _) => A5
+  rule permuteEncoding( 5,  _,  _, A6,  _,  _,  _,  _,  _) => A6
+  rule permuteEncoding( 6,  _, A7,  _,  _,  _,  _,  _,  _) => A7
+  rule permuteEncoding( 7, A8,  _,  _,  _,  _,  _,  _,  _) => A8
+  rule permuteEncoding( _,  _,  _,  _,  _,  _,  _,  _,  _) => -1  [owise]
+
 endmodule
 
 module INT-ENCODING-LEMMAS  [symbolic]
@@ -132,6 +162,31 @@ module INT-ENCODING-LEMMAS  [symbolic]
   rule A >>IntTotal 56             => int64encoding(A,  0, -1, -1, -1, -1, -1, -1, -1)
       requires A <Int 2 ^Int 64
       [simplification, symbolic(A)]
+
+  rule int64encoding(A, B8, B7, B6, B5, B4, B3, B2, B1) |Int A
+      => A
+      requires ((((((((true
+        andBool ((B8 ==Int -1) orBool (B8 ==Int 7)))
+        andBool ((B7 ==Int -1) orBool (B7 ==Int 6)))
+        andBool ((B6 ==Int -1) orBool (B6 ==Int 5)))
+        andBool ((B5 ==Int -1) orBool (B5 ==Int 4)))
+        andBool ((B4 ==Int -1) orBool (B4 ==Int 3)))
+        andBool ((B3 ==Int -1) orBool (B3 ==Int 2)))
+        andBool ((B2 ==Int -1) orBool (B2 ==Int 1)))
+        andBool ((B1 ==Int -1) orBool (B1 ==Int 0)))
+      [simplification]
+  rule A |Int int64encoding(A, B8, B7, B6, B5, B4, B3, B2, B1)
+      => A
+      requires ((((((((true
+        andBool ((B8 ==Int -1) orBool (B8 ==Int 7)))
+        andBool ((B7 ==Int -1) orBool (B7 ==Int 6)))
+        andBool ((B6 ==Int -1) orBool (B6 ==Int 5)))
+        andBool ((B5 ==Int -1) orBool (B5 ==Int 4)))
+        andBool ((B4 ==Int -1) orBool (B4 ==Int 3)))
+        andBool ((B3 ==Int -1) orBool (B3 ==Int 2)))
+        andBool ((B2 ==Int -1) orBool (B2 ==Int 1)))
+        andBool ((B1 ==Int -1) orBool (B1 ==Int 0)))
+      [simplification]
 
   rule int64encoding(A, B8, B7, B6, B5, B4, B3, B2, B1) >>IntTotal X
       => int64encoding(A, sbr(B8, X >>Int 3), sbr(B7, X >>Int 3), sbr(B6, X >>Int 3), sbr(B5, X >>Int 3), sbr(B4, X >>Int 3), sbr(B3, X >>Int 3), sbr(B2, X >>Int 3), sbr(B1, X >>Int 3))
@@ -232,6 +287,118 @@ module INT-ENCODING-LEMMAS  [symbolic]
         andBool (B1 =/=Int A2))
       [simplification]
 
+  rule int64encoding(int64encoding(A, B8, B7, B6, B5, B4, B3, B2, B1), A8, A7, A6, A5, A4, A3, A2, A1)
+      => int64encoding
+          ( A
+          , permuteEncoding(B8, A8, A7, A6, A5, A4, A3, A2, A1)
+          , permuteEncoding(B7, A8, A7, A6, A5, A4, A3, A2, A1)
+          , permuteEncoding(B6, A8, A7, A6, A5, A4, A3, A2, A1)
+          , permuteEncoding(B5, A8, A7, A6, A5, A4, A3, A2, A1)
+          , permuteEncoding(B4, A8, A7, A6, A5, A4, A3, A2, A1)
+          , permuteEncoding(B3, A8, A7, A6, A5, A4, A3, A2, A1)
+          , permuteEncoding(B2, A8, A7, A6, A5, A4, A3, A2, A1)
+          , permuteEncoding(B1, A8, A7, A6, A5, A4, A3, A2, A1)
+          )
+      [simplification]
+
+  rule int64encoding(A, _, -1, -1, -1, -1, -1, -1, -1) => 0 requires A <Int 1 <<Int 56
+      [simplification]
+  rule int64encoding(A, _,  _, -1, -1, -1, -1, -1, -1) => 0 requires A <Int 1 <<Int 48
+      [simplification]
+  rule int64encoding(A, _,  _,  _, -1, -1, -1, -1, -1) => 0 requires A <Int 1 <<Int 40
+      [simplification]
+  rule int64encoding(A, _,  _,  _,  _, -1, -1, -1, -1) => 0 requires A <Int 1 <<Int 32
+      [simplification]
+  rule int64encoding(A, _,  _,  _,  _,  _, -1, -1, -1) => 0 requires A <Int 1 <<Int 24
+      [simplification]
+  rule int64encoding(A, _,  _,  _,  _,  _,  _, -1, -1) => 0 requires A <Int 1 <<Int 16
+      [simplification]
+  rule int64encoding(A, _,  _,  _,  _,  _,  _,  _, -1) => 0 requires A <Int 1 <<Int  8
+      [simplification]
+
+  rule int64encoding(A >>IntTotal B, -1, A7, A6, A5, A4, A3, A2, A1)
+        => int64encoding(A >>IntTotal (B -Int 8), A7, A6, A5, A4, A3, A2, A1, -1)
+        requires 8 <=Int B
+        [simplification]
+
+  rule int64encoding(A, A8, A7, A6, A5, A4, A3, A2, A1) &Int 18446744073709551615
+        => int64encoding(A, A8, A7, A6, A5, A4, A3, A2, A1)
+        [simplification]
+
+  rule int64encoding(_, _, _, _, _, _, _, _, _) <=Int 18446744073709551615
+        => true
+        [simplification, smt-lemma]
+
+  rule int64encoding(_, _, _, _, _, _, _, _, _) <Int 18446744073709551616
+        => true
+        [simplification]
+
+  rule int64encoding(_, A8, A7, A6, A5, A4, A3, A2, A1) <=Int 4294967295 => true
+      requires A8 <=Int 3
+        andBool ((((((A7 <=Int 3)
+        andBool (A6 <=Int 3))
+        andBool (A5 <=Int 3))
+        andBool (A4 <=Int 3))
+        andBool (A3 <=Int 3))
+        andBool (A2 <=Int 3))
+        andBool (A1 <=Int 3)
+      [simplification, smt-lemma]
+  rule int64encoding(_, A8, A7, A6, A5, A4, A3, A2, A1) <Int 4294967296 => true
+      requires A8 <=Int 3
+        andBool ((((((A7 <=Int 3)
+        andBool (A6 <=Int 3))
+        andBool (A5 <=Int 3))
+        andBool (A4 <=Int 3))
+        andBool (A3 <=Int 3))
+        andBool (A2 <=Int 3))
+        andBool (A1 <=Int 3)
+      [simplification]
+
+  rule int64encoding(_, A8, A7, A6, A5, A4, A3, A2, A1) <=Int 65535 => true
+      requires A8 <=Int 1
+        andBool ((((((A7 <=Int 1)
+        andBool (A6 <=Int 1))
+        andBool (A5 <=Int 1))
+        andBool (A4 <=Int 1))
+        andBool (A3 <=Int 1))
+        andBool (A2 <=Int 1))
+        andBool (A1 <=Int 1)
+      [simplification, smt-lemma]
+  rule int64encoding(_, A8, A7, A6, A5, A4, A3, A2, A1) <Int 65536 => true
+      requires A8 <=Int 1
+        andBool ((((((A7 <=Int 1)
+        andBool (A6 <=Int 1))
+        andBool (A5 <=Int 1))
+        andBool (A4 <=Int 1))
+        andBool (A3 <=Int 1))
+        andBool (A2 <=Int 1))
+        andBool (A1 <=Int 1)
+      [simplification]
+
+  rule int64encoding(_, A8, A7, A6, A5, A4, A3, A2, A1) <=Int 255 => true
+      requires A8 <=Int 0
+        andBool ((((((A7 <=Int 0)
+        andBool (A6 <=Int 0))
+        andBool (A5 <=Int 0))
+        andBool (A4 <=Int 0))
+        andBool (A3 <=Int 0))
+        andBool (A2 <=Int 0))
+        andBool (A1 <=Int 0)
+      [simplification, smt-lemma]
+  rule int64encoding(_, A8, A7, A6, A5, A4, A3, A2, A1) <Int 256 => true
+      requires A8 <=Int 0
+        andBool ((((((A7 <=Int 0)
+        andBool (A6 <=Int 0))
+        andBool (A5 <=Int 0))
+        andBool (A4 <=Int 0))
+        andBool (A3 <=Int 0))
+        andBool (A2 <=Int 0))
+        andBool (A1 <=Int 0)
+      [simplification]
+
+  rule 0 <=Int int64encoding(_, _, _, _, _, _, _, _, _) => true
+      [simplification, smt-lemma]
+
   rule #bool(0 ==Int int64encoding(A, A8, A7, A6, A5, A4, A3, A2, A1))
       => int64BytesAre0(A, A8 >=Int 0, A7 >=Int 0, A6 >=Int 0, A5 >=Int 0, A4 >=Int 0, A3 >=Int 0, A2 >=Int 0, A1 >=Int 0)
       [simplification, symbolic(A)]
@@ -263,13 +430,186 @@ module INT-ENCODING-LEMMAS  [symbolic]
   rule 0 <=Int int64BytesAre0(_, _, _, _, _, _, _, _, _) => true
       [simplification, smt-lemma]
 
-  rule X +Int int64BytesAre0(A, B8, B7, B6, B5, B4, B3, B2, B1) ==Int 0
-      => X ==Int 0 andBool int64BytesAre0(A, B8, B7, B6, B5, B4, B3, B2, B1) ==Int 0
+  // rule X +Int int64BytesAre0(A, B8, B7, B6, B5, B4, B3, B2, B1) ==Int 0
+  //     => X ==Int 0 andBool int64BytesAre0(A, B8, B7, B6, B5, B4, B3, B2, B1) ==Int 0
+  //     requires X >=Int 0
+  //     [simplification]
+
+  // rule int64BytesAre0(A, A8, A7, A6, A5, A4, A3, A2, A1) ==Int 0
+  //       andBool int64BytesAre0(A, B8, B7, B6, B5, B4, B3, B2, B1) ==Int 0
+  //     => int64BytesAre0(
+  //           A,
+  //           A8 orBool B8,
+  //           A7 orBool B7,
+  //           A6 orBool B6,
+  //           A5 orBool B5,
+  //           A4 orBool B4,
+  //           A3 orBool B3,
+  //           A2 orBool B2,
+  //           A1 orBool B1
+  //       ) ==Int 0
+  //     [simplification]
+
+  rule int64BytesAre0(A >>IntTotal B, _, A7, A6, A5, A4, A3, A2, A1)
+      => int64BytesAre0(A >>IntTotal (B -Int 8), A7, A6, A5, A4, A3, A2, A1, false)
+      requires 0 <=Int A andBool A <Int 1 <<Int 64 andBool 8 <=Int B
       [simplification]
 
-  rule int64BytesAre0(A, A8, A7, A6, A5, A4, A3, A2, A1) ==Int 0
-        andBool int64BytesAre0(A, B8, B7, B6, B5, B4, B3, B2, B1) ==Int 0
-      => int64BytesAre0(
+  rule 8 *Int int64BytesAre0 ( A, true, false, false, false, false, false, false, false )
+      => countConsecutiveZeroBits(A, 0)
+      [simplification]
+  rule 8 *Int int64BytesAre0 ( A, true, true, false, false, false, false, false, false )
+      +Int countConsecutiveZeroBits(A, 0)
+      => countConsecutiveZeroBits(A, 1)
+      [simplification]
+  rule countConsecutiveZeroBits(A, 1)
+      +Int 8 *Int int64BytesAre0 ( A, true, true, true, false, false, false, false, false )
+      => countConsecutiveZeroBits(A, 2)
+      [simplification]
+  rule countConsecutiveZeroBits(A, 2)
+      +Int 8 *Int int64BytesAre0 ( A, true, true, true, true, false, false, false, false )
+      => countConsecutiveZeroBits(A, 3)
+      [simplification]
+  rule countConsecutiveZeroBits(A, 3)
+      +Int 8 *Int int64BytesAre0 ( A, true, true, true, true, true, false, false, false )
+      => countConsecutiveZeroBits(A, 4)
+      [simplification]
+  rule countConsecutiveZeroBits(A, 4)
+      +Int 8 *Int int64BytesAre0 ( A, true, true, true, true, true, true, false, false )
+      => countConsecutiveZeroBits(A, 5)
+      [simplification]
+  rule countConsecutiveZeroBits(A, 5)
+      +Int 8 *Int int64BytesAre0 ( A, true, true, true, true, true, true, true, false )
+      => countConsecutiveZeroBits(A, 6)
+      [simplification]
+
+  rule ( X +Int -8 *Int int64BytesAre0 ( A, true, true, false, false, false, false, false, false ) )
+      +Int -8 *Int int64BytesAre0 ( A, true, false, false, false, false, false, false, false )
+      => X +Int -1 *Int countConsecutiveZeroBits(A, 1)
+      [simplification]
+  rule (X +Int -1 *Int countConsecutiveZeroBits(A, 1))
+      +Int -8 *Int int64BytesAre0 ( A, true, true, true, false, false, false, false, false )
+      => X +Int -1 *Int countConsecutiveZeroBits(A, 2)
+      [simplification]
+  rule (X +Int -1 *Int countConsecutiveZeroBits(A, 2))
+      +Int -8 *Int int64BytesAre0 ( A, true, true, true, true, false, false, false, false )
+      => X +Int -1 *Int countConsecutiveZeroBits(A, 3)
+      [simplification]
+  rule (X +Int -1 *Int countConsecutiveZeroBits(A, 3))
+      +Int -8 *Int int64BytesAre0 ( A, true, true, true, true, true, false, false, false )
+      => (X +Int -1 *Int countConsecutiveZeroBits(A, 4))
+      [simplification]
+  rule (X +Int -1 *Int countConsecutiveZeroBits(A, 4))
+      +Int -8 *Int int64BytesAre0 ( A, true, true, true, true, true, true, false, false )
+      => (X +Int -1 *Int countConsecutiveZeroBits(A, 5))
+      [simplification]
+  rule (X +Int -1 *Int countConsecutiveZeroBits(A, 5))
+      +Int -8 *Int int64BytesAre0 ( A, true, true, true, true, true, true, true, false )
+      => X +Int -1 *Int countConsecutiveZeroBits(A, 6)
+      [simplification]
+
+  rule 0 <=Int countConsecutiveZeroBits(_, _) => true
+      [simplification, smt-lemma]
+  rule countConsecutiveZeroBits(_, 6) <=Int 56 => true
+      [simplification, smt-lemma]
+
+  rule int64BytesAre0 ( A, true, true, false, false, false, false, false, false )
+      +Int int64BytesAre0 ( A, true, false, false, false, false, false, false, false )
+      => countConsecutiveZeroBytes(A, 1)
+      [simplification]
+  rule countConsecutiveZeroBytes(A, 1)
+      +Int int64BytesAre0 ( A, true, true, true, false, false, false, false, false )
+      => countConsecutiveZeroBytes(A, 2)
+      [simplification]
+  rule countConsecutiveZeroBytes(A, 2)
+      +Int int64BytesAre0 ( A, true, true, true, true, false, false, false, false )
+      => countConsecutiveZeroBytes(A, 3)
+      [simplification]
+  rule countConsecutiveZeroBytes(A, 3)
+      +Int int64BytesAre0 ( A, true, true, true, true, true, false, false, false )
+      => countConsecutiveZeroBytes(A, 4)
+      [simplification]
+  rule countConsecutiveZeroBytes(A, 4)
+      +Int int64BytesAre0 ( A, true, true, true, true, true, true, false, false )
+      => countConsecutiveZeroBytes(A, 5)
+      [simplification]
+  rule countConsecutiveZeroBytes(A, 5)
+      +Int int64BytesAre0 ( A, true, true, true, true, true, true, true, false )
+      => countConsecutiveZeroBytes(A, 6)
+      [simplification]
+
+  rule ( X +Int -1 *Int int64BytesAre0 ( A, true, true, false, false, false, false, false, false ) )
+      +Int -1 *Int int64BytesAre0 ( A, true, false, false, false, false, false, false, false )
+      => X +Int -1 *Int countConsecutiveZeroBytes(A, 1)
+      [simplification]
+  rule (X +Int -1 *Int countConsecutiveZeroBytes(A, 1))
+      +Int -1 *Int int64BytesAre0 ( A, true, true, true, false, false, false, false, false )
+      => X +Int -1 *Int countConsecutiveZeroBytes(A, 2)
+      [simplification]
+  rule (X +Int -1 *Int countConsecutiveZeroBytes(A, 2))
+      +Int -1 *Int int64BytesAre0 ( A, true, true, true, true, false, false, false, false )
+      => X +Int -1 *Int countConsecutiveZeroBytes(A, 3)
+      [simplification]
+  rule (X +Int -1 *Int countConsecutiveZeroBytes(A, 3))
+      +Int -1 *Int int64BytesAre0 ( A, true, true, true, true, true, false, false, false )
+      => (X +Int -1 *Int countConsecutiveZeroBytes(A, 4))
+      [simplification]
+  rule (X +Int -1 *Int countConsecutiveZeroBytes(A, 4))
+      +Int -1 *Int int64BytesAre0 ( A, true, true, true, true, true, true, false, false )
+      => (X +Int -1 *Int countConsecutiveZeroBytes(A, 5))
+      [simplification]
+  rule (X +Int -1 *Int countConsecutiveZeroBytes(A, 5))
+      +Int -1 *Int int64BytesAre0 ( A, true, true, true, true, true, true, true, false )
+      => X +Int -1 *Int countConsecutiveZeroBytes(A, 6)
+      [simplification]
+
+  rule 0 <=Int countConsecutiveZeroBytes(_, _) => true
+      [simplification, smt-lemma]
+  rule countConsecutiveZeroBytes(_, 6) <=Int 7 => true
+      [simplification, smt-lemma]
+  rule countConsecutiveZeroBytes(_, 6) <Int N => true
+      requires 7 <Int N
+      [simplification, smt-lemma]
+  rule countConsecutiveZeroBytes(_, 6) <=Int N => true
+      requires 7 <=Int N
+      [simplification, smt-lemma]
+
+  rule int64encoding( A, -1, -1, -1, -1, -1, -1, -1,  7 )
+      >>IntTotal countConsecutiveZeroBits(A, 6)
+      => optimizedInt64Encoding(A, false, false, false, false, false, false, false, true)
+      [simplification]
+  rule int64encoding( A, -1, -1, -1, -1, -1, -1,  6, -1 )
+      >>IntTotal countConsecutiveZeroBits(A, 6)
+      => optimizedInt64Encoding(A, false, false, false, false, false, false, true, false)
+      [simplification]
+  rule int64encoding( A, -1, -1, -1, -1, -1,  5, -1, -1 )
+      >>IntTotal countConsecutiveZeroBits(A, 6)
+      => optimizedInt64Encoding(A, false, false, false, false, false, true, false, false)
+      [simplification]
+  rule int64encoding( A, -1, -1, -1, -1,  4, -1, -1, -1 )
+      >>IntTotal countConsecutiveZeroBits(A, 6)
+      => optimizedInt64Encoding(A, false, false, false, false, true, false, false, false)
+      [simplification]
+  rule int64encoding( A, -1, -1, -1,  3, -1, -1, -1, -1 )
+      >>IntTotal countConsecutiveZeroBits(A, 6)
+      => optimizedInt64Encoding(A, false, false, false, true, false, false, false, false)
+      [simplification]
+  rule int64encoding( A, -1, -1,  2, -1, -1, -1, -1, -1 )
+      >>IntTotal countConsecutiveZeroBits(A, 6)
+      => optimizedInt64Encoding(A, false, false, true, false, false, false, false, false)
+      [simplification]
+  rule int64encoding( A, -1,  1, -1, -1, -1, -1, -1, -1 )
+      >>IntTotal countConsecutiveZeroBits(A, 6)
+      => optimizedInt64Encoding(A, false, true, false, false, false, false, false, false)
+      [simplification]
+  rule int64encoding( A,  0, -1, -1, -1, -1, -1, -1, -1 )
+      >>IntTotal countConsecutiveZeroBits(A, 6)
+      => optimizedInt64Encoding(A, true, false, false, false, false, false, false, false)
+      [simplification]
+
+  rule optimizedInt64Encoding(A, A8, A7, A6, A5, A4, A3, A2, A1)
+        |Int optimizedInt64Encoding(A, B8, B7, B6, B5, B4, B3, B2, B1)
+      => optimizedInt64Encoding(
             A,
             A8 orBool B8,
             A7 orBool B7,
@@ -279,7 +619,51 @@ module INT-ENCODING-LEMMAS  [symbolic]
             A3 orBool B3,
             A2 orBool B2,
             A1 orBool B1
-        ) ==Int 0
+        )
       [simplification]
+
+  rule 0 <=Int optimizedInt64Encoding(_, _, _, _, _, _, _, _, _) => true
+      [simplification, smt-lemma]
+  rule optimizedInt64Encoding(_, _, _, _, _, _, _, _, _) <=Int 18446744073709551615 => true
+      [simplification, smt-lemma]
+  rule optimizedInt64Encoding(_, _, _, _, _, _, _, _, _) <Int 18446744073709551616 => true
+      [simplification]
+
+  rule Bytes2Int(B:Bytes, _:Endianness, Unsigned) <Int N => true
+      requires 1 <<Int (8 *Int lengthBytes(B)) <=Int N
+      [simplification]
+
+  rule int64encoding
+        ( int64encoding(A, 0, 1, 2, 3, 4, 5, 6, 7)
+          >>IntTotal countConsecutiveZeroBits(A, 6)
+        , -1, -1, -1, -1, -1, -1, -1, 0
+        )
+      => int64encoding(A, 0, -1, -1, -1, -1, -1, -1, -1)
+      [simplification]
+
+  // Let a0, a1, a2, a3, a4, a5, a6, a7 be A's bytes. Let's assume that
+  // a4=/=0, a5==0, a6==0, a7==0. Then we have:
+  // A == a7 a6 a5 a4 a3 a2 a1 a0 == 0 0 0 a4 a3 a2 a1 a0.
+  // countConsecutiveZeroBytes ( A, 6 ) == 3
+  // int64encoding ( A, 0, 1, 2, 3, 4, 5, 6, 7 ) = a0 a1 a2 a3 a4 a5 a6 a7
+  // int64encoding ( A, 0, 1, 2, 3, 4, 5, 6, 7 ))
+  //    >>IntTotal ((8) *Int (countConsecutiveZeroBytes ( A, 6 ))
+  //    == a0 a1 a2 a3 a4
+  // Int2Bytes(..., LE) == a4 a3 a2 a1 a0
+  // Bytes2Int(..., BE) == a4 a3 a2 a1 a0 == 0 0 0 a4 a3 a2 a1 a0 == A
+  rule Bytes2Int
+        ( Int2Bytes
+          ( ((-1) *Int (countConsecutiveZeroBytes ( A, 6 ))) +Int (8)
+          , (int64encoding ( A, 0, 1, 2, 3, 4, 5, 6, 7 ))
+            >>IntTotal ((8) *Int (countConsecutiveZeroBytes ( A, 6 )))
+          , LE
+          )
+        , BE
+        , Unsigned
+        )
+      => A
+      requires 0 <=Int A andBool A <Int 1 <<Int 64
+      [simplification]
+
 endmodule
 ```

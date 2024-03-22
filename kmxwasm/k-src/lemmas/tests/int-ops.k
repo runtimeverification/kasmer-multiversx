@@ -101,4 +101,13 @@ module INT-OPS
       <instrs> .K </instrs>
       requires 100 <=Int ARG_0
 
+    claim
+      <k>
+        A &Int 4294967295
+        => A
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+      requires 0 <=Int A andBool A <=Int 4294967295
+
 endmodule
