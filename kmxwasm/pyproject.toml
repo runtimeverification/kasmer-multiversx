@@ -12,7 +12,7 @@ authors = [
 
 [tool.poetry.dependencies]
 python = "^3.10"
-kmultiversx = { git = "https://github.com/runtimeverification/mx-semantics.git", tag = "v0.1.19", subdirectory = "kmultiversx" }
+kmultiversx = { git = "https://github.com/runtimeverification/mx-semantics.git", tag = "v0.1.20", subdirectory = "kmultiversx" }
 
 [tool.poetry.plugins.pytest11]
 pytest-kmxwasm = "kmxwasm.testing.fixtures"
