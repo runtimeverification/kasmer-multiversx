@@ -545,7 +545,7 @@ colors = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "kmultiversx"
-version = "0.1.20"
+version = "0.1.21"
 description = "Python tools for Elrond semantics"
 optional = false
 python-versions = "^3.10"
@@ -555,13 +555,13 @@ develop = false
 [package.dependencies]
 hypothesis = "^6.82.6"
 pycryptodomex = "^3.18.0"
-pykwasm = {git = "https://github.com/runtimeverification/wasm-semantics.git", tag = "v0.1.18", subdirectory = "pykwasm"}
+pykwasm = {git = "https://github.com/runtimeverification/wasm-semantics.git", tag = "v0.1.19", subdirectory = "pykwasm"}
 
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/mx-semantics.git"
-reference = "v0.1.20"
-resolved_reference = "0c3a36fc125ad92dbdf8a46731b622050264edd6"
+reference = "v0.1.21"
+resolved_reference = "e4fb596e2120c4c134740a6437664f3132b2a895"
 subdirectory = "kmultiversx"
 
 [[package]]
@@ -966,7 +966,7 @@ windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "pyk"
-version = "0.1.742"
+version = "0.1.745"
 description = ""
 optional = false
 python-versions = "^3.10"
@@ -987,12 +987,12 @@ xdg-base-dirs = "^6.0.1"
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/pyk.git"
-reference = "v0.1.742"
-resolved_reference = "e7a09fb5ca8b2df63cfa3bb64e1dac439f81816e"
+reference = "v0.1.745"
+resolved_reference = "06be94c83d8ddcd79bbec908a65a63a760f2fd0b"
 
 [[package]]
 name = "pykwasm"
-version = "0.1.18"
+version = "0.1.19"
 description = ""
 optional = false
 python-versions = "^3.10"
@@ -1003,13 +1003,13 @@ develop = false
 cytoolz = "^0.12.1"
 numpy = "^1.24.2"
 py-wasm = {url = "https://github.com/runtimeverification/py-wasm/archive/refs/tags/0.2.0.tar.gz"}
-pyk = {git = "https://github.com/runtimeverification/pyk.git", tag = "v0.1.742"}
+pyk = {git = "https://github.com/runtimeverification/pyk.git", tag = "v0.1.745"}
 
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/wasm-semantics.git"
-reference = "v0.1.18"
-resolved_reference = "2fb52bcfe2c020a2faac436b6c263cb78882a961"
+reference = "v0.1.19"
+resolved_reference = "072a99ade49b17aa1f00b990a737a7bb2cc39be1"
 subdirectory = "pykwasm"
 
 [[package]]
@@ -1262,4 +1262,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "de712bd777ce20c1b2e29c734eb0c4ad138fc0210a97c6899bab4532a5c216b1"
+content-hash = "61eb276f47cb1750e70d7b2649354f3cf00372fa546ad108d23629165fa462d7"
