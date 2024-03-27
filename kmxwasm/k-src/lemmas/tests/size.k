@@ -41,6 +41,17 @@ module SIZE
       <k>
         runSimplification(
             size (
+                SBChunk ( #bytes ( Int2Bytes ( 4 , _ARG_0:Int , LE ) ) )
+            )
+        ) => doneSimplification(4)
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+
+    claim
+      <k>
+        runSimplification(
+            size (
               SBChunk
               ( #bytes
                 ( replaceAtBytesTotal

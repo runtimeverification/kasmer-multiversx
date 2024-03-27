@@ -23,7 +23,7 @@ from .ast.mx import (
     set_interim_states_cell_content,
 )
 from .build import HASKELL, Kompiled, kbuild_semantics
-from .json import load_json_kclaim
+from .json import load_json_kclaim, load_kcfg_node
 from .property_testing.paths import KBUILD_DIR, KBUILD_ML_PATH, ROOT
 from .property_testing.printers import print_node
 from .property_testing.running import RunException, Stuck, Success, profile_step, run_claim, split_edge
@@ -69,7 +69,7 @@ class RunClaim(Action):
 
     def run(self) -> None:
         with self.make_tools() as tools:
-            t = Timer('Loading the claim')
+            t = Timer('Loading the claim:')
             if self.is_k:
                 claims = tools.kprove.get_claims(self.claim_path)
                 if len(claims) != 1:
@@ -85,7 +85,7 @@ class RunClaim(Action):
 
             kcfg: KCFG | None = None
             if self.restart:
-                t = Timer('Loading kcfg')
+                t = Timer('Loading the kcfg:')
                 kcfg = KCFG.read_cfg_data(self.kcfg_path, id='random_id')
                 to_remove = self.remove
                 while to_remove:
@@ -500,11 +500,14 @@ class ShowNode(Action):
             booster=self.booster,
             bug_report=None,
         ) as tools:
-            t = Timer('Loading kcfg')
-            kcfg = KCFG.read_cfg_data(self.kcfg_path, id='random_id')
+            # t = Timer('Loading kcfg')
+            # kcfg = KCFG.read_cfg_data(self.kcfg_path, id='random_id')
+            # node = kcfg.get_node(self.node_id)
+            # t.measure()
+            t = Timer('Loading node')
+            node = load_kcfg_node(self.kcfg_path, self.node_id)
             t.measure()
             print('Printing: ', self.node_id)
-            node = kcfg.get_node(self.node_id)
             if node:
                 print_node(tools.printer, node)
             else:

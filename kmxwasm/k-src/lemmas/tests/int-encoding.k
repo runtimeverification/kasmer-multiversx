@@ -416,7 +416,7 @@ module INT-ENCODING
     claim
       <k>
         runSimplification(
-          int64encoding( _, -1 , -1 , -1 , -1 , -1 , -1 , 2 , -1 ) <=Int 4294967295
+          int64encoding( _, -1, -1, -1, -1, -1, -1, 2 , -1 ) <=Int 4294967295
         ) => doneSimplification( true )
       </k>
       <commands> .K </commands>
@@ -425,9 +425,9 @@ module INT-ENCODING
     claim
       <k>
         runSimplification(
-          int64encoding( A, -1 , -1 , -1 , -1 , -1 , -1 , 2 , -1 )
+          int64encoding( A, -1, -1, -1, -1, -1, -1, 2 , -1 )
           &Int 4294967295
-        ) => doneSimplification( int64encoding( A, -1 , -1 , -1 , -1 , -1 , -1 , 2 , -1 ) )
+        ) => doneSimplification( int64encoding( A, -1, -1, -1, -1, -1, -1, 2 , -1 ) )
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
@@ -436,8 +436,8 @@ module INT-ENCODING
       <k>
         runSimplification(
           int64encoding
-          ( int64encoding ( _, -1 , -1 , -1 , -1 , -1 , -1 , 2 , -1)
-          , -1 , -1 , -1 , -1 , -1 , -1 , -1 , 3
+          ( int64encoding ( _, -1, -1, -1, -1, -1, -1, 2 , -1)
+          , -1, -1, -1, -1, -1, -1, -1, 3
           )
         ) => doneSimplification( 0 )
       </k>
@@ -448,10 +448,10 @@ module INT-ENCODING
       <k>
         runSimplification(
           int64encoding
-          ( int64encoding ( A, -1 , -1 , -1 , -1 , -1 , -1 , 2 , -1)
-          , -1 , -1 , -1 , -1 , -1 , 0 , -1 , -1
+          ( int64encoding ( A, -1, -1, -1, -1, -1, -1, 2 , -1)
+          , -1, -1, -1, -1, -1, 0 , -1, -1
           )
-        ) => doneSimplification( int64encoding ( A, -1 , -1 , -1 , -1 , -1 , -1 , 0 , -1) )
+        ) => doneSimplification( int64encoding ( A, -1, -1, -1, -1, -1, -1, 0 , -1) )
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
@@ -459,7 +459,7 @@ module INT-ENCODING
     claim
       <k>
         runSimplification(
-          int64encoding ( 0, -1 , -1 , -1 , -1 , -1 , -1 , -1 , -1)
+          int64encoding ( 0, -1, -1, -1, -1, -1, -1, -1, -1)
         ) => doneSimplification( 0 )
       </k>
       <commands> .K </commands>
@@ -468,7 +468,7 @@ module INT-ENCODING
     claim
       <k>
         runSimplification(
-          int64encoding ( _ modInt 8, -1 , -1 , -1 , -1 , -1 , -1 , 1 , -1)
+          int64encoding ( _ modInt 8, -1, -1, -1, -1, -1, -1, 1, -1)
         ) => doneSimplification( 0 )
       </k>
       <commands> .K </commands>
@@ -477,8 +477,35 @@ module INT-ENCODING
     claim
       <k>
         runSimplification(
-          int64encoding ( A, -1 , -1 , -1 , -1 , -1 , -1 , 1 , -1) |Int A
+          int64encoding ( A, -1, -1, -1, -1, -1, -1, 1, -1) |Int A
         ) => doneSimplification( A )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+
+    claim
+      <k>
+        runSimplification(
+          B
+          +Bytes Int2Bytes
+            ( 1, int64encoding( A, 0, -1, -1, -1, -1, -1, -1, -1 ), LE )
+          +Bytes Int2Bytes
+            ( 1, int64encoding( A, -1, 0, -1, -1, -1, -1, -1, -1 ), LE )
+          +Bytes Int2Bytes
+            ( 1, int64encoding( A, -1, -1, 0, -1, -1, -1, -1, -1 ), LE )
+          +Bytes Int2Bytes
+            ( 1, int64encoding( A, -1, -1, -1, 0, -1, -1, -1, -1 ), LE )
+          +Bytes Int2Bytes
+            ( 1, int64encoding( A, -1, -1, -1, -1, 0, -1, -1, -1 ), LE )
+          +Bytes Int2Bytes
+            ( 1, int64encoding( A, -1, -1, -1, -1, -1, 0, -1, -1 ), LE )
+          +Bytes Int2Bytes
+            ( 1, int64encoding( A, -1, -1, -1, -1, -1, -1, 0, -1 ), LE )
+          +Bytes Int2Bytes
+            ( 1, int64encoding( A, -1, -1, -1, -1, -1, -1, -1, 0 ), LE )
+        ) => doneSimplification(
+          B +Bytes Int2Bytes(8, int64encoding( A, 0, 1, 2, 3, 4, 5, 6, 7 ), LE)
+        )
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>

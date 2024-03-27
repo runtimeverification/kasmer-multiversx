@@ -36,4 +36,46 @@ module SUBSTR-BYTES
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
+
+    claim
+      <k>
+        runSimplification(
+            substrBytesTotal(
+                Int2Bytes ( 8 , _ , LE )
+                    +Bytes b"\x00",
+                0:Int,
+                0:Int
+            )
+        ) => doneSimplification(b"")
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+
+    claim
+      <k>
+        runSimplification(
+            definedSubstrBytes
+              ( Int2Bytes ( 8 , _ , LE )
+                +Bytes b"\x00"
+              , 9
+              , 9
+              )
+        ) => doneSimplification( true )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+
+    claim
+      <k>
+        runSimplification(
+            definedSubstrBytes
+              ( Int2Bytes ( 8 , _ , LE )
+                +Bytes b"\x00"
+              , 10
+              , 10
+              )
+        ) => doneSimplification( false )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
 endmodule

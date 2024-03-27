@@ -1,7 +1,9 @@
 ```k
 requires "ceils.k"
+requires "lemmas/bytes-normalization-lemmas.md"
 requires "lemmas/int-encoding-lemmas.md"
 requires "lemmas/int-inequalities-lemmas.md"
+requires "lemmas/int-length-lemmas.md"
 requires "lemmas/int-normalization-lemmas.md"
 
 module MX-LEMMAS-BASIC
@@ -29,10 +31,12 @@ module MX-LEMMAS-BASIC
 endmodule
 
 module MX-LEMMAS  [symbolic]
+  imports private BYTES-NORMALIZATION-LEMMAS
   imports private CEILS
   imports private ELROND
   imports INT-ENCODING-LEMMAS
   imports private INT-INEQUALITIES-LEMMAS
+  imports INT-LENGTH-LEMMAS
   imports private INT-KORE
   imports private INT-NORMALIZATION-LEMMAS
   imports public MX-LEMMAS-BASIC
@@ -83,20 +87,6 @@ module MX-LEMMAS  [symbolic]
   rule { (< _:IValType > _:Int) #Equals undefined } => #Bottom  [simplification]
   rule { (< _:FValType > _:Float) #Equals undefined } => #Bottom  [simplification]
   rule { (< _:RefValType > _:Int) #Equals undefined } => #Bottom  [simplification]
-
-  rule padRightBytesTotal (B:Bytes, Length:Int, Value:Int) => B
-      requires Length <=Int lengthBytes(B)
-          andBool definedPadRightBytes(B, Length, Value)
-  // rule padRightBytesTotal(replaceAtBytesTotal(Dest:Bytes, Pos:Int, Source:Bytes), Length:Int, Value:Int)
-  //     => replaceAtBytesTotal(padRightBytesTotal(Dest, Length, Value), Pos, Source)
-  //     requires definedReplaceAtBytes(Dest, Pos, Source)
-  //         andBool definedPadRightBytes(Dest, Length, Value)
-  //     [simplification]
-  rule padRightBytesTotal(padRightBytesTotal(B:Bytes, Length1:Int, Value:Int), Length2:Int, Value:Int)
-      => padRightBytesTotal(B, maxInt (Length1, Length2), Value:Int)
-      requires definedPadRightBytes(B, Length1, Value)
-          andBool definedPadRightBytes(padRightBytesTotal(B:Bytes, Length1:Int, Value:Int), Length2, Value)
-      [simplification]
 
   rule #getRange(
           replaceAt(Dest, Index, Src),
@@ -830,6 +820,9 @@ module MX-LEMMAS  [symbolic]
           andBool size(A) <Int End
       [simplification]
 
+  rule substrBytesTotal(_, Start:Int, Start:Int)
+      => b""
+      [simplification(40)]
   rule substrBytesTotal(Int2Bytes(Size:Int, Value:Int, LE), Start:Int, End:Int)
       => Int2Bytes(
           End -Int Start,
@@ -837,29 +830,6 @@ module MX-LEMMAS  [symbolic]
           LE
       )
       requires 0 <=Int Start andBool Start <=Int End andBool End <=Int Size
-      [simplification]
-  rule substrBytesTotal(A:Bytes +Bytes _B:Bytes, Start:Int, End:Int)
-      => substrBytesTotal(A, Start, End)
-      requires End <=Int lengthBytes(A)
-      [simplification]
-  rule substrBytesTotal(A:Bytes +Bytes B:Bytes, Start:Int, End:Int)
-      => substrBytesTotal(B, Start -Int lengthBytes(A), End -Int lengthBytes(A))
-      requires lengthBytes(A) <=Int Start
-      [simplification]
-  rule substrBytesTotal(A:Bytes +Bytes B:Bytes, Start:Int, End:Int)
-      => substrBytesTotal(A, Start, lengthBytes(A)) +Bytes substrBytesTotal(B, 0, End -Int lengthBytes(A))
-      requires Start <Int lengthBytes(A) andBool lengthBytes(A) <Int End
-      [simplification]
-  rule substrBytesTotal(B:Bytes, 0:Int, Len:Int) => B
-      requires true
-        andBool Len ==Int lengthBytes(B)
-      [simplification]
-
-  rule replaceAtBytesTotal(Dest:Bytes, Start:Int, Src:Bytes)
-      => substrBytes(Dest, 0, Start)
-        +Bytes Src
-        +Bytes substrBytes(Dest, Start +Int lengthBytes(Src), lengthBytes(Dest))
-      requires 0 <=Int Start andBool Start +Int lengthBytes(Src) <=Int lengthBytes(Dest)
       [simplification]
 
   rule disjontRanges
@@ -990,21 +960,6 @@ module MX-LEMMAS  [symbolic]
 
 
   rule lengthBytes(Int2Bytes(Len:Int, _:Int, _:Endianness)) => Len  [simplification]
-  rule lengthBytes(substrBytesTotal(B:Bytes, Start:Int, End:Int)) => End -Int Start
-      requires definedSubstrBytes(B, Start, End)
-      [simplification]
-  rule lengthBytes(padRightBytesTotal(B:Bytes, Length:Int, Value:Int))
-      => maxInt(lengthBytes(B:Bytes), Length:Int)
-      requires definedPadRightBytes(B, Length, Value)
-      [simplification]
-  rule lengthBytes(A +Bytes B) => lengthBytes(A) +Int lengthBytes(B)
-      [simplification]
-  rule 0 <=Int lengthBytes(_:Bytes) => true
-      [simplification]
-  rule lengthBytes(replaceAtBytesTotal(Dest:Bytes, Index:Int, Src:Bytes))
-      => lengthBytes(Dest)
-      requires 0 <=Int Index andBool Index +Int lengthBytes(Src) <=Int lengthBytes(Dest)
-      [simplification]
 
   rule size(replaceAt(Dest:SparseBytes, Index:Int, Src:Bytes))
       => maxInt(size(Dest), Index +Int lengthBytes(Src))

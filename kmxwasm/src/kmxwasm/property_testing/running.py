@@ -201,7 +201,7 @@ def run_claim(
             iteration_start_branches = len(to_process)
             iteration_processed_branches = 0
             while to_process and current_iteration < iterations:
-                iteration_start_branches += 1
+                iteration_processed_branches += 1
                 current_iteration += 1
                 node = to_process.pop(0)
                 processed.add(node.id)
@@ -262,9 +262,9 @@ def run_claim(
                     print('Result: ', current_leaves)
                     for e in kcfg.edges(source_id=node.id):
                         print(f'Depth for {e.source.id} -> {e.target.id}: {e.depth}')
-                    print(f'Branch count: {iteration_start_branches - iteration_processed_branches + len(next_current_leaves)}')
                     for node_id in current_leaves:
                         next_current_leaves.add(node_id)
+                    print(f'Branch count: {iteration_start_branches - iteration_processed_branches + len(next_current_leaves)}')
                     t = Timer('  Check final')
                     for node_id in current_leaves:
                         non_final.add(node_id)

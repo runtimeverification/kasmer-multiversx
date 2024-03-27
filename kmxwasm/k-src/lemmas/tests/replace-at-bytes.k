@@ -14,4 +14,23 @@ module REPLACE-AT-BYTES
       <commands> .K </commands>
       <instrs> .K </instrs>
       requires 0 <=Int ARG_0
+
+    claim
+      <k>
+        runSimplification(
+            replaceAtBytesTotal
+              ( Int2Bytes ( 8 , A , LE )
+                +Bytes b"\x00"
+              , 0
+              , Int2Bytes ( 8 , A , LE )
+                +Bytes b"\x00"
+              )
+        ) => doneSimplification(
+            Int2Bytes ( 8 , A , LE )
+            +Bytes b"\x00"          
+        )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+
 endmodule

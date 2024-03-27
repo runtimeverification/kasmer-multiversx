@@ -7,6 +7,20 @@ module INT-ENCODING-BASIC
   imports BOOL
   imports WASM-DATA-COMMON
 
+```
+int64encoding
+-------------
+
+`int64encoding(A, B8, B7, B6, B5, B4, B3, B2, B1)` returns the int composed
+of the bytes corresponding to `B<N>` values that are `>= 0`, placed on the
+`B<N>` position, starting with `0`. Examples:
+
+* `int64encoding(A, -1, -1, -1, -1, -1, -1, -1, 1)` means byte `0` of `A`
+  on position `1`, i.e. `(A &Int 255) <<Int 8`
+* `int64encoding(A, -1, -1, -1, -1, -1, -1, 0, -1)` means byte `1` of `A`
+  on position `0`, i.e. `(A &Int (255 <<Int 8)) >>Int 8`
+
+```k
   syntax Int ::= int64encoding(
       value: Int,
       b8pos: Int,
@@ -24,62 +38,6 @@ module INT-ENCODING-BASIC
       requires 0 <=Int A andBool A <Int (1 <<Int 64)
   rule int64encoding(A, -1, -1, -1, -1, 3, 2, 1, 0) => A
       requires 0 <=Int A andBool A <Int (1 <<Int 32)
-
-  syntax Int ::= int64BytesAre0(
-      value: Int,
-      b8Is0:Bool,
-      b7Is0:Bool,
-      b6Is0:Bool,
-      b5Is0:Bool,
-      b4Is0:Bool,
-      b3Is0:Bool,
-      b2Is0:Bool,
-      b1Is0:Bool
-  )  [function, total, smtlib(int64BytesAre0)]
-  rule int64BytesAre0(_, false, false, false, false, false, false, false, false) => 1
-  rule int64BytesAre0(A, true, true, true, true, true, true, true, true) => #bool(A ==Int 0)
-      requires A <Int 2 ^Int 64
-
-  syntax Int ::= countConsecutiveZeroBits(value: Int, processed: Int)
-      [function, total, smtlib(countConsecutiveZeroBits)]
-  rule countConsecutiveZeroBits(A, N)
-      => 8 *Int N *Int int64BytesAre0(A, 0 <=Int N, 1 <=Int N, 2 <=Int N, 3 <=Int N, 4 <=Int N, 5 <=Int N, 6 <=Int N, 7 <=Int N)
-      [simplification, concrete]
-
-  syntax Int ::= countConsecutiveZeroBytes(value: Int, processed: Int)
-      [function, total, smtlib(countConsecutiveZeroBytes)]
-  rule countConsecutiveZeroBytes(A, N)
-      => N *Int int64BytesAre0(A, 0 <=Int N, 1 <=Int N, 2 <=Int N, 3 <=Int N, 4 <=Int N, 5 <=Int N, 6 <=Int N, 7 <=Int N)
-      [simplification, concrete]
-
-  // reverse encoding dropping consecutive 0 bytes starting with the highest byte.
-  syntax Int ::= optimizedInt64Encoding(value: Int, b8: Bool, b7: Bool, b6: Bool, b5: Bool, b4: Bool, b3: Bool, b2: Bool, b1: Bool)
-      [function, total, smtlib(optimizedInt64Encoding), no-evaluators]
-
-  syntax Int ::= sbr(Int, Int)  [function, total]
-  rule sbr(A, B) => maxInt(-1, A -Int B)
-
-  syntax Int ::= sbl(Int, Int)  [function, total]
-  rule sbl(-1, _) => -1
-  rule sbl(A, B) => A +Int B requires A =/=Int -1
-
-  syntax Int ::= permuteEncoding(Int, Int, Int, Int, Int, Int, Int, Int, Int)  [function, total]
-  rule permuteEncoding(-1,  _,  _,  _,  _,  _,  _,  _,  _) => -1
-  rule permuteEncoding( 0,  _,  _,  _,  _,  _,  _,  _, A1) => A1
-  rule permuteEncoding( 1,  _,  _,  _,  _,  _,  _, A2,  _) => A2
-  rule permuteEncoding( 2,  _,  _,  _,  _,  _, A3,  _,  _) => A3
-  rule permuteEncoding( 3,  _,  _,  _,  _, A4,  _,  _,  _) => A4
-  rule permuteEncoding( 4,  _,  _,  _, A5,  _,  _,  _,  _) => A5
-  rule permuteEncoding( 5,  _,  _, A6,  _,  _,  _,  _,  _) => A6
-  rule permuteEncoding( 6,  _, A7,  _,  _,  _,  _,  _,  _) => A7
-  rule permuteEncoding( 7, A8,  _,  _,  _,  _,  _,  _,  _) => A8
-  rule permuteEncoding( _,  _,  _,  _,  _,  _,  _,  _,  _) => -1  [owise]
-
-endmodule
-
-module INT-ENCODING-LEMMAS  [symbolic]
-  imports CEILS-SYNTAX
-  imports INT-ENCODING-BASIC
 
   rule int64encoding(A, B8, B7, B6, B5, B4, B3, B2, B1)
       => (((A &Int (255 <<Int 56)) >>Int 56) <<Int (B7 *Int 8)) |Int int64encoding(A, -1, B7, B6, B5, B4, B3, B2, B1)
@@ -106,13 +64,42 @@ module INT-ENCODING-LEMMAS  [symbolic]
       requires 0 <=Int B3 andBool B3 <=Int 7
       [simplification, concrete]
   rule int64encoding(A, -1, -1, -1, -1, -1, -1, B2, B1)
-      => (((A &Int (255 <<Int 8)) >>Int 8) <<Int (B2 *Int 8)) |Int int64encoding(A, -1, -1, -1, -1, -1, -1, -1, B1)
+      => (((A &Int (255 <<Int  8)) >>Int  8) <<Int (B2 *Int 8)) |Int int64encoding(A, -1, -1, -1, -1, -1, -1, -1, B1)
       requires 0 <=Int B2 andBool B2 <=Int 7
       [simplification, concrete]
   rule int64encoding(A, -1, -1, -1, -1, -1, -1, -1, B1)
-      => (((A &Int (255 <<Int 0)) >>Int 0) <<Int (B1 *Int 8))
+      => (((A &Int (255 <<Int  0)) >>Int  0) <<Int (B1 *Int 8))
       requires 0 <=Int B1 andBool B1 <=Int 7
       [simplification, concrete]
+
+```
+int64BytesAre0
+--------------
+
+`int64BytesAre0(A, B8, B7, B6, B5, B4, B3, B2, B1)` returns `1` if the selected
+bytes, i.e. the ones corresponding to `B<n> == true` values, are `0`. The
+function returns 0 otherwise.
+
+Examples:
+
+* `int64BytesAre0(65535, true, true, true, true, true, true, false, false)` is `1`
+* `int64BytesAre0(65535, true, true, true, true, true, true,  true, false)` is `0`
+
+```k
+  syntax Int ::= int64BytesAre0(
+      value: Int,
+      b8Is0:Bool,
+      b7Is0:Bool,
+      b6Is0:Bool,
+      b5Is0:Bool,
+      b4Is0:Bool,
+      b3Is0:Bool,
+      b2Is0:Bool,
+      b1Is0:Bool
+  )  [function, total, smtlib(int64BytesAre0)]
+  rule int64BytesAre0(_, false, false, false, false, false, false, false, false) => 1
+  rule int64BytesAre0(A, true, true, true, true, true, true, true, true) => #bool(A ==Int 0)
+      requires A <Int 2 ^Int 64
 
   rule int64BytesAre0(A, true, B7, B6, B5, B4, B3, B2, B1)
       => #bool(0 ==Int int64encoding(A,  0, -1, -1, -1, -1, -1, -1, -1))
@@ -146,6 +133,54 @@ module INT-ENCODING-LEMMAS  [symbolic]
       => #bool(0 ==Int int64encoding(A, -1, -1, -1, -1, -1, -1, -1,  0))
         &Int int64BytesAre0(A, false, false, false, false, false, false, false, false)
       [simplification, concrete]
+
+```
+countConsecutiveZeroBits
+------------------------
+```k
+
+  syntax Int ::= countConsecutiveZeroBits(value: Int, processed: Int)
+      [function, total, smtlib(countConsecutiveZeroBits)]
+  rule countConsecutiveZeroBits(A, N)
+      => 8 *Int int64BytesAre0(A, 0 <=Int N, 1 <=Int N, 2 <=Int N, 3 <=Int N, 4 <=Int N, 5 <=Int N, 6 <=Int N, 7 <=Int N)
+        +Int countConsecutiveZeroBits(A, N -Int 1)
+      [simplification, concrete]
+
+  syntax Int ::= countConsecutiveZeroBytes(value: Int, processed: Int)
+      [function, total, smtlib(countConsecutiveZeroBytes)]
+  rule countConsecutiveZeroBytes(A, N)
+      => int64BytesAre0(A, 0 <=Int N, 1 <=Int N, 2 <=Int N, 3 <=Int N, 4 <=Int N, 5 <=Int N, 6 <=Int N, 7 <=Int N)
+        +Int countConsecutiveZeroBytes(A, N -Int 1)
+      [simplification, concrete]
+
+  // reverse encoding dropping consecutive 0 bytes starting with the highest byte.
+  syntax Int ::= optimizedInt64Encoding(value: Int, b8: Bool, b7: Bool, b6: Bool, b5: Bool, b4: Bool, b3: Bool, b2: Bool, b1: Bool)
+      [function, total, smtlib(optimizedInt64Encoding), no-evaluators]
+
+  syntax Int ::= sbr(Int, Int)  [function, total]
+  rule sbr(A, B) => maxInt(-1, A -Int B)
+
+  syntax Int ::= sbl(Int, Int)  [function, total]
+  rule sbl(-1, _) => -1
+  rule sbl(A, B) => A +Int B requires A =/=Int -1
+
+  syntax Int ::= permuteEncoding(Int, Int, Int, Int, Int, Int, Int, Int, Int)  [function, total]
+  rule permuteEncoding(-1,  _,  _,  _,  _,  _,  _,  _,  _) => -1
+  rule permuteEncoding( 0,  _,  _,  _,  _,  _,  _,  _, A1) => A1
+  rule permuteEncoding( 1,  _,  _,  _,  _,  _,  _, A2,  _) => A2
+  rule permuteEncoding( 2,  _,  _,  _,  _,  _, A3,  _,  _) => A3
+  rule permuteEncoding( 3,  _,  _,  _,  _, A4,  _,  _,  _) => A4
+  rule permuteEncoding( 4,  _,  _,  _, A5,  _,  _,  _,  _) => A5
+  rule permuteEncoding( 5,  _,  _, A6,  _,  _,  _,  _,  _) => A6
+  rule permuteEncoding( 6,  _, A7,  _,  _,  _,  _,  _,  _) => A7
+  rule permuteEncoding( 7, A8,  _,  _,  _,  _,  _,  _,  _) => A8
+  rule permuteEncoding( _,  _,  _,  _,  _,  _,  _,  _,  _) => -1  [owise]
+
+endmodule
+
+module INT-ENCODING-LEMMAS  [symbolic]
+  imports CEILS-SYNTAX
+  imports INT-ENCODING-BASIC
 
   rule A &Int 255                  => int64encoding(A, -1, -1, -1, -1, -1, -1, -1,  0)  [simplification]
   rule A &Int 65280                => int64encoding(A, -1, -1, -1, -1, -1, -1,  1, -1)  [simplification]
@@ -633,14 +668,6 @@ module INT-ENCODING-LEMMAS  [symbolic]
       requires 1 <<Int (8 *Int lengthBytes(B)) <=Int N
       [simplification]
 
-  rule int64encoding
-        ( int64encoding(A, 0, 1, 2, 3, 4, 5, 6, 7)
-          >>IntTotal countConsecutiveZeroBits(A, 6)
-        , -1, -1, -1, -1, -1, -1, -1, 0
-        )
-      => int64encoding(A, 0, -1, -1, -1, -1, -1, -1, -1)
-      [simplification]
-
   // Let a0, a1, a2, a3, a4, a5, a6, a7 be A's bytes. Let's assume that
   // a4=/=0, a5==0, a6==0, a7==0. Then we have:
   // A == a7 a6 a5 a4 a3 a2 a1 a0 == 0 0 0 a4 a3 a2 a1 a0.
@@ -663,6 +690,26 @@ module INT-ENCODING-LEMMAS  [symbolic]
         )
       => A
       requires 0 <=Int A andBool A <Int 1 <<Int 64
+      [simplification]
+
+  rule (((((((B
+      +Bytes Int2Bytes
+        ( 1, int64encoding( A, 0, -1, -1, -1, -1, -1, -1, -1 ), LE ))
+      +Bytes Int2Bytes
+        ( 1, int64encoding( A, -1, 0, -1, -1, -1, -1, -1, -1 ), LE ))
+      +Bytes Int2Bytes
+        ( 1, int64encoding( A, -1, -1, 0, -1, -1, -1, -1, -1 ), LE ))
+      +Bytes Int2Bytes
+        ( 1, int64encoding( A, -1, -1, -1, 0, -1, -1, -1, -1 ), LE ))
+      +Bytes Int2Bytes
+        ( 1, int64encoding( A, -1, -1, -1, -1, 0, -1, -1, -1 ), LE ))
+      +Bytes Int2Bytes
+        ( 1, int64encoding( A, -1, -1, -1, -1, -1, 0, -1, -1 ), LE ))
+      +Bytes Int2Bytes
+        ( 1, int64encoding( A, -1, -1, -1, -1, -1, -1, 0, -1 ), LE ))
+      +Bytes Int2Bytes
+        ( 1, int64encoding( A, -1, -1, -1, -1, -1, -1, -1, 0 ), LE )
+      => B +Bytes Int2Bytes( 8, int64encoding( A, 0, 1, 2, 3, 4, 5, 6, 7 ), LE )
       [simplification]
 
 endmodule

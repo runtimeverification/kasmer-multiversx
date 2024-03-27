@@ -4,15 +4,15 @@ module INT-OPS
     claim
       <k>
         runSimplification(
-            ( ( ( ( ( ( ((((ARG_0:Int) >>IntTotal (24)) <<IntTotal (8)) &Int (72057594037927935))
+            ( ( ( ( ( ( ((((ARG_0:Int) >>IntTotal (24)) <<IntTotal 8) &Int (72057594037927935))
                       |Int (((ARG_0:Int) >>IntTotal (16)) &Int (255))
                       )
-                    <<IntTotal (8)
+                    <<IntTotal 8
                     ) &Int (72057594037927935)
                   )
-                |Int (((ARG_0:Int) >>IntTotal (8)) &Int (255))
+                |Int (((ARG_0:Int) >>IntTotal 8) &Int (255))
                 )
-              <<IntTotal (8)
+              <<IntTotal 8
               )
             |Int 
               ((ARG_0:Int) &Int (255))
@@ -103,8 +103,8 @@ module INT-OPS
 
     claim
       <k>
-        A &Int 4294967295
-        => A
+        runSimplification(A &Int 4294967295)
+        => doneSimplification(A)
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
