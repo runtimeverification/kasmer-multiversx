@@ -216,6 +216,38 @@ module INT-INEQUALITIES-LEMMAS
   // rule A <Int B -Int C => C <Int B -Int A
   //     [simplification, concrete(A, B)]
 
+  rule A *Int B <=Int C => B <=Int C /Int A
+      requires 0 <Int A
+      [simplification, concrete(A, C)]
+  rule A *Int B <Int C => B <=Int (C -Int 1) /Int A
+      requires 0 <Int A
+      [simplification, concrete(A, C)]
+  rule A <=Int B *Int C => A /Int B <=Int C
+      requires 0 <Int B andBool A modInt B ==Int 0
+      [simplification, concrete(A, B)]
+  rule A <=Int B *Int C => A /Int B +Int 1 <=Int C
+      requires 0 <Int B andBool A modInt B =/=Int 0
+      [simplification, concrete(A, B)]
+  rule A <Int B *Int C => A /Int B <Int C
+      requires 0 <Int B andBool A modInt B ==Int 0
+      [simplification, concrete(A, B)]
+  rule A <Int B *Int C => A /Int B +Int 1 <Int C
+      requires 0 <Int B andBool A modInt B =/=Int 0
+      [simplification, concrete(A, B)]
+
+  rule A *Int B <=Int C => (0 -Int C) <=Int (0 -Int A) *Int B
+      requires A <Int 0
+      [simplification, concrete(A, C)]
+  rule A *Int B <Int C => (0 -Int C) <Int (0 -Int A) *Int B
+      requires A <Int 0
+      [simplification, concrete(A, C)]
+  rule A <=Int B *Int C => (0 -Int B) *Int C <=Int (0 -Int A)
+      requires B <Int 0
+      [simplification, concrete(A, B)]
+  rule A <Int B *Int C => (0 -Int B) *Int C <Int (0 -Int A)
+      requires B <Int 0
+      [simplification, concrete(A, B)]
+
   // if A %Int B == 0 then A /Int B == A / B
   // Has tests
   rule A <=Int B *Int X => A /Int B <=Int X

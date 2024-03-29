@@ -1,6 +1,7 @@
 ```k
-module INT-LENGTH-LEMMAS  [symbolic]
-  imports BOOL
+requires "../ceils-syntax.k"
+
+module INT-LENGTH-LEMMAS-BASIC
   imports INT
 
   syntax Int ::= lenghtInBytes(Int)  [function]
@@ -19,41 +20,115 @@ module INT-LENGTH-LEMMAS  [symbolic]
   //
   // This means that X is 2 ^ (A * 8 - 1 + 1) - 1, i.e.,
   // X = 2 ^ (A * 8) - 1
-  rule maxForLength(A) => 2 ^Int (A *Int 8) - 1 requires 0 <Int A
+  rule maxForLength(A) => 2 ^Int (A *Int 8) -Int 1 requires 0 <Int A
+endmodule
 
+module INT-LENGTH-LEMMAS  [symbolic]
+  imports BINARY-SEARCH
+  imports BOOL
+  imports CEILS-SYNTAX
+  imports INT
+  imports INT-LENGTH-LEMMAS-BASIC
 
-  syntax Bool ::= aLessThanLenBinSearchUp(a:Int, b:Int, low:Int, high:Int)  [function, total]
+  syntax BinSearchBeforeLambda ::= ValueLessMFL(Int)
+  rule evaluate(ValueLessMFL(B), X) => B <=Int maxForLength(X)
 
-  // Expected input data:
-  //    * 0 <= A, X
-  //    * 0 <Int B, Y
-  //    * X <Int Y
-  //    * Concrete X, Y
-  // Invariant (preserved, not enforced): maxForLength(X) <Int B
-  // Exit condition: B <=Int maxForLength(Y)
-  rule aLessThanLenBinSearchUp(A, B, X, Y)
-      => aLessThanLenBinSearchUp(A, B, Y, 2 *Int Y)
-      requires maxForLength(Y) <Int B andBool Y <Int 10000 andBool 0 <Int Y
-  rule aLessThanLenBinSearchUp(A, B, X, Y)
-      => aLessThanLenBinSearchMid(A, B, X, Y)
-      requires B <=Int maxForLength(Y)
-
-  syntax Bool ::= aLessThanLenBinSearchMid(a:Int, b:Int, low:Int, high:Int)  [function, total]
-  rule aLessThanLenBinSearchMid(A, B, X, Y) => true
-      requires A <=Int maxForLength(X)
-  rule aLessThanLenBinSearchMid(A, B, X, Y) => false
-      requires maxForLength(Y) <Int A
-  rule aLessThanLenBinSearchMid(A, B, X, Y) => aLessThanLenBinSearchMid(A, B, X, (X +Int Y) /Int 2)
-      requires X <Int Y -Int 1 andBool B <=Int maxForLength((X +Int Y) /Int 2)
-  rule aLessThanLenBinSearchMid(A, B, X, Y) => aLessThanLenBinSearchMid(A, B, (X +Int Y) /Int 2, Y)
-      requires X <Int Y -Int 1 andBool maxForLength((X +Int Y) /Int 2) <Int B
-
+  syntax BinSearchResultLambda ::=  GeqThan(Int)
+                                  | GtThan(Int)
+                                  | LeqThan(Int)
+                                  | LtThan(Int)
+  rule evaluate(GeqThan(A), _:Int, Max:Int) => true
+      requires A <=Int Max
+  rule evaluate(GtThan(A), _:Int, Max:Int) => true
+      requires A <Int Max
+  rule evaluate(LtThan(A), _:Int, Max:Int) => true
+      requires Max <Int A
+  rule evaluate(LeqThan(A), _:Int, Max:Int) => true
+      requires Max <Int A
 
   rule A <Int (log2IntTotal(B) +Int 8) divIntTotal 8 => false
-      requires aLessThanLenBinSearchUp(A, B, 1, 2)
+      requires findLowerUnknown(ValueLessMFL(B), LeqThan(A), 1, 10000)
+        andBool 0 <Int B
+      [simplification]
+  rule A <=Int (log2IntTotal(B) +Int 8) divIntTotal 8 => false
+      requires findLowerUnknown(ValueLessMFL(B), LtThan(A), 1, 10000)
         andBool 0 <Int B
       [simplification]
 
+  rule (log2IntTotal(B) +Int 8) divIntTotal 8 <Int A => true
+      requires findLowerUnknown(ValueLessMFL(B), LtThan(A), 1, 10000)
+        andBool 0 <Int B
+      [simplification]
+  rule (log2IntTotal(B) +Int 8) divIntTotal 8 <=Int A => true
+      requires findLowerUnknown(ValueLessMFL(B), LeqThan(A), 1, 10000)
+        andBool 0 <Int B
+      [simplification]
+
+  rule A +Int ((log2IntTotal(B) +Int 8) divIntTotal 8) <=Int C => true
+      requires findLowerUnknown(ValueLessMFL(B), LeqThan(C -Int A), 1, 10000)
+        andBool 0 <Int B
+      [simplification]
+  rule A +Int ((log2IntTotal(B) +Int 8) divIntTotal 8) <Int C => true
+      requires findLowerUnknown(ValueLessMFL(B), LtThan(C -Int A), 1, 10000)
+        andBool 0 <Int B
+      [simplification]
+
+  rule C <Int A +Int ((log2IntTotal(B) +Int 8) divIntTotal 8) => false
+      requires findLowerUnknown(ValueLessMFL(B), LeqThan(C -Int A), 1, 10000)
+        andBool 0 <Int B
+      [simplification]
+  rule C <=Int A +Int ((log2IntTotal(B) +Int 8) divIntTotal 8) => false
+      requires findLowerUnknown(ValueLessMFL(B), LtThan(C -Int A), 1, 10000)
+        andBool 0 <Int B
+      [simplification]
+
+  // The four rules below, when multiplied by -1, are the same as the four above.
+  rule A +Int -1 *Int ((log2IntTotal(B) +Int 8) divIntTotal 8) <=Int C => false
+      requires findLowerUnknown(ValueLessMFL(B), LtThan(A -Int C), 1, 10000)
+        andBool 0 <Int B
+      [simplification]
+  rule A +Int -1 *Int ((log2IntTotal(B) +Int 8) divIntTotal 8) <Int C => false
+      requires findLowerUnknown(ValueLessMFL(B), LeqThan(A -Int C), 1, 10000)
+        andBool 0 <Int B
+      [simplification]
+
+  rule C <Int A +Int -1 *Int ((log2IntTotal(B) +Int 8) divIntTotal 8) => true
+      requires findLowerUnknown(ValueLessMFL(B), LtThan(A -Int C), 1, 10000)
+        andBool 0 <Int B
+      [simplification]
+  rule C <=Int A +Int -1 *Int ((log2IntTotal(B) +Int 8) divIntTotal 8) => true
+      requires findLowerUnknown(ValueLessMFL(B), LeqThan(A -Int C), 1, 10000)
+        andBool 0 <Int B
+      [simplification]
 
 endmodule
+
+module BINARY-SEARCH
+  imports BOOL
+  imports INT
+
+  syntax BinSearchResultLambda
+  syntax Bool ::= evaluate(BinSearchResultLambda, min:Int, max:Int)  [function, total]
+
+  syntax BinSearchBeforeLambda
+  syntax Bool ::= evaluate(BinSearchBeforeLambda, Int)  [function, total]
+
+  syntax Bool ::= findLowerUnknown(BinSearchBeforeLambda, BinSearchResultLambda, min:Int, max:Int)
+      [function, total]
+
+  rule findLowerUnknown(_:BinSearchBeforeLambda, R:BinSearchResultLambda, Min, Max)
+      => evaluate(R, Min, Max)
+      requires Max <=Int Min +Int 1
+
+  rule findLowerUnknown(B:BinSearchBeforeLambda, R:BinSearchResultLambda, Min, Max)
+      => findLowerUnknown(B, R, Min, (Min +Int Max) /Int 2)
+      requires Min <Int Max -Int 1
+        andBool evaluate(B, (Min +Int Max) /Int 2)
+      [simplification(50)]
+  rule findLowerUnknown(B:BinSearchBeforeLambda, R:BinSearchResultLambda, Min, Max)
+      => findLowerUnknown(B, R, (Min +Int Max) /Int 2, Max)
+      requires Min <Int Max -Int 1
+      [simplification(51)]
+endmodule
+
 ```

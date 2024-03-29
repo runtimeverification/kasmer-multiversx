@@ -28,6 +28,21 @@ Arithmetic expressions
 
 The normal form of an arithmetic expression is less well defined.
 
+* there are no '-' operations, `A +Int -1 *Int B` is used instead of
+  `A -Int B
+* Addition is grouped to the left, i.e.,
+  `((..((A +Int B) +Int C) +Int ...) +Int Z)`
+* Only the last element of an addition is concrete, i.e. `(A +Int B) +Int 7`
+  is normal, `(A +Int 7) +Int 8` and `(A +Int 7) +Int C` are not.
+* Multiplication is grouped to the right, i.e.,
+  `(Z *Int (... *Int (C *Int (A *Int B)) ...))`
+* Only the fist element of an addition is concrete, i.e., `7 *Int (A *Int B)`
+  is normal, `8 *Int (7 *Int A)` and `C *Int (7*Int B)` are not.
+* Multiplication with constants is always distributed, i.e.,
+  `7 *Int A +Int 7 *Int B` is normal, `7 *Int (A +Int B)` is not.
+* (Not fully enforced): Constants multiplied with the same symbolic term, then
+  added, are merged, i.e., `(7 *Int A +Int B) +Int 8 *Int A` is not normal and
+  will be transformed to `15 *Int A +Int B`
 ```k
 requires "../ceils-syntax.k"
 
@@ -400,6 +415,13 @@ module INT-ARITHMETIC-NORMALIZATION-LEMMAS
   rule {0 #Equals A ^IntTotal B} => {0 #Equals A}
       requires B =/=Int 0
       [simplification(50)]
+
+  rule {0 #Equals A divIntTotal B} => {true #Equals A <Int B}
+      requires 0 <=Int A andBool 0 <Int B
+      [simplification]
+  rule {A divIntTotal B #Equals 0} => {true #Equals A <Int B}
+      requires 0 <=Int A andBool 0 <Int B
+      [simplification]
 
   // log2IntTotal(X) is the index of the highest bit. This means that
   // X < 2^(log2IntTotal(X) + 1) since the highest bit of the right term

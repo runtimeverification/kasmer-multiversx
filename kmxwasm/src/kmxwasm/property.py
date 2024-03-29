@@ -496,7 +496,7 @@ class ShowNode(Action):
             output_dir=KBUILD_DIR,
             config_file=KBUILD_ML_PATH,
             target=HASKELL,
-            llvm=True,
+            llvm=False,
             booster=self.booster,
             bug_report=None,
         ) as tools:

@@ -10,6 +10,7 @@ module MX-LEMMAS-BASIC
   imports BOOL
   imports INT
   imports INT-ENCODING-BASIC
+  imports INT-LENGTH-LEMMAS-BASIC
   imports INT-NORMALIZATION-LEMMAS-BASIC
 
   syntax Bool ::= #setRangeActuallySets(addr:Int, val:Int, width:Int)  [function, total]
@@ -34,9 +35,9 @@ module MX-LEMMAS  [symbolic]
   imports private BYTES-NORMALIZATION-LEMMAS
   imports private CEILS
   imports private ELROND
-  imports INT-ENCODING-LEMMAS
+  imports private INT-ENCODING-LEMMAS
   imports private INT-INEQUALITIES-LEMMAS
-  imports INT-LENGTH-LEMMAS
+  imports private INT-LENGTH-LEMMAS
   imports private INT-KORE
   imports private INT-NORMALIZATION-LEMMAS
   imports public MX-LEMMAS-BASIC
@@ -116,6 +117,15 @@ module MX-LEMMAS  [symbolic]
       => #splitGetRange(SBChunk(A) B, Start, size(SBChunk(A)) -Int Start, Start +Int Width -Int size(SBChunk(A)))
     requires Start <Int size(SBChunk(A)) andBool size(SBChunk(A)) <Int Start +Int Width
     [simplification]
+
+  rule #getRange(M:SparseBytes SBChunk(_), Start:Int, Width:Int)
+      => #getRange(M, Start, Width)
+      requires Start +Int Width <=Int size(M)
+      [simplification, concrete(Width)]
+  rule #getRange(M:SparseBytes SBChunk(A), Start:Int, Width:Int)
+      => #getRange(SBChunk(A), Start -Int size(M), Width)
+      requires 0 <Int size(M) andBool size(M) <=Int Start
+      [simplification, concrete(Width)]
 
   // For some random reason, this does not work with the Haskell backend.
   // My guess is that the
@@ -209,7 +219,7 @@ module MX-LEMMAS  [symbolic]
         )
       requires 0 <Int Addr
         andBool Addr <Int size(SBChunk(A))
-      [simplification, concrete(Width, Addr)]
+      [simplification, concrete(Width)]
   rule #setRange(M:SparseBytes, 0, Value:Int, Width:Int)
       => SBChunk(#bytes(Int2Bytes(Width, Value, LE)))
         substrSparseBytes(M, Width, size(M))
@@ -218,6 +228,19 @@ module MX-LEMMAS  [symbolic]
   rule #setRange(M:SparseBytes, 0, Value:Int, Width:Int)
       => SBChunk(#bytes(Int2Bytes(Width, Value, LE)))
       requires size(M) <=Int Width
+      [simplification, concrete(Width)]
+  rule #setRange(M:SparseBytes SBChunk(A), Addr:Int, Value:Int, Width:Int)
+      => #setRange(M, Addr, Value, Width) SBChunk(A)
+      requires Addr +Int Width <=Int size(M)
+      [simplification, concrete(Width)]
+  rule #setRange(M:SparseBytes SBChunk(A), Addr:Int, Value:Int, Width:Int)
+      => M
+        #setRange(
+          SBChunk(A),
+          Addr -Int size(M),
+          Value, Width
+        )
+      requires 0 <Int size(M) andBool size(M) <=Int Addr
       [simplification, concrete(Width)]
 
   syntax SparseBytes ::= #splitSetRange(SparseBytes, addr:Int, value:Int, width:Int, additionalwidth:Int)  [function]
@@ -555,6 +578,17 @@ module MX-LEMMAS  [symbolic]
         )
       requires lengthBytes(Val2) <Int lengthBytes(Val1)
       [simplification]
+
+  // ----------------------------------------
+
+  // TODO: Consider moving this either in the definition for replaceAtB
+  // or in the definition for replaceAt
+  rule replaceAtB(Current:Bytes, Rest:SparseBytes SBChunk(Last), Start:Int, Value:Bytes)
+      => replaceAtB(Current, Rest, Start, Value) SBChunk(Last)
+      requires 0 <=Int Start
+        andBool Start +Int lengthBytes(Value)
+              <=Int lengthBytes(Current) +Int size(Rest)
+      [simplification(50)]
 
   // ----------------------------------------
 
@@ -961,6 +995,11 @@ module MX-LEMMAS  [symbolic]
 
   rule lengthBytes(Int2Bytes(Len:Int, _:Int, _:Endianness)) => Len  [simplification]
 
+  rule size(replaceAtB(Current:Bytes, Rest:SparseBytes, Start:Int, Value:Bytes))
+      => lengthBytes(Current) +Int size(Rest)
+      requires Start +Int lengthBytes(Value) <=Int lengthBytes(Current) +Int size(Rest)
+      [simplification]
+
   rule size(replaceAt(Dest:SparseBytes, Index:Int, Src:Bytes))
       => maxInt(size(Dest), Index +Int lengthBytes(Src))
       requires 0 <=Int Index
@@ -970,6 +1009,8 @@ module MX-LEMMAS  [symbolic]
       requires 0 <=Int Start andBool Start <=Int End andBool End <=Int size(B)
       [simplification]
   rule size(A:SparseBytes B:SparseBytes) => size(A) +Int size(B)
+      [simplification]
+  rule size(A:SparseBytes SBChunk(B)) => size(A) +Int size(B)
       [simplification]
   rule 0 <=Int size(_:SparseBytes) => true
       [simplification]
