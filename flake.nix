@@ -2,8 +2,8 @@
   description = "MX backend";
 
   inputs = {
-    nixpkgs.follows = "pyk/nixpkgs";
     k-framework.url = "github:runtimeverification/k/v6.3.68";
+    nixpkgs.follows = "k-framework/nixpkgs";
     flake-utils.follows = "k-framework/flake-utils";
   };
   outputs = { self, nixpkgs, flake-utils, k-framework, ... }@inputs:
