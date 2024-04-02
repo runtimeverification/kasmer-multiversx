@@ -47,7 +47,8 @@ jobs:
           git add kmxwasm/pyproject.toml kmxwasm/poetry.lock && git commit -m 'kmxwasm/{pyproject.toml,poetry.lock}: sync Poetry files' || true
       - name: 'Update Nix flake inputs'
         run: |
-          cd kmxwasm
+          K_VERSION=$(cat ./deps/k_release)
+          sed -i 's!    k-framework.url = "github:runtimeverification/k/[v0-9\.]*"!    k-framework.url = "github:runtimeverification/k/v'"${K_VERSION}"'"!' flake.nix
           nix --extra-experimental-features 'nix-command flakes' --show-trace flake update
           git add flake.nix flake.lock && git commit -m 'kmxwasm/flake.{nix,lock}: update Nix derivations' || true
       - name: 'Push updates'
