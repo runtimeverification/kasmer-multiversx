@@ -426,7 +426,7 @@ def execute_function(
     function_state_path = function_state_path / f'{function_addr}.json'
 
     if function_state_path.exists():
-        kcfg = KCFG.read_cfg_data(function_state_path, 'random_id')
+        kcfg = KCFG.read_cfg_data(function_state_path)
     else:
         # TODO: This is WRONG, should find a better way to solve the speed issue.
         # We should replace the removed functions with a variable, or something

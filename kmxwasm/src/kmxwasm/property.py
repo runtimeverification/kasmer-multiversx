@@ -100,7 +100,7 @@ class RunClaim(Action):
             kcfg: KCFG | None = None
             if self.restart:
                 t = Timer('Loading kcfg')
-                kcfg = KCFG.read_cfg_data(self.kcfg_path, id='random_id')
+                kcfg = KCFG.read_cfg_data(self.kcfg_path)
                 to_remove = self.remove
                 while to_remove:
                     current_id = to_remove.pop()
@@ -191,7 +191,7 @@ class SimplifyBefore(Action):
 
     def run(self) -> None:
         t = Timer('Loading kcfg')
-        kcfg = KCFG.read_cfg_data(self.kcfg_path, id='random_id')
+        kcfg = KCFG.read_cfg_data(self.kcfg_path)
         node_ids = [n.id for n in kcfg.nodes if n.id < self.before_node_id]
         for node_id in node_ids:
             if len(list(kcfg.covers(source_id=node_id))) != 0:
@@ -245,7 +245,7 @@ class BisectAfter(Action):
             bug_report=self.bug_report,
         ) as tools:
             t = Timer('Loading kcfg')
-            kcfg = KCFG.read_cfg_data(self.kcfg_path, id='random_id')
+            kcfg = KCFG.read_cfg_data(self.kcfg_path)
             t.measure()
 
             result = split_edge(tools, kcfg, start_node_id=self.node_id)
@@ -408,7 +408,7 @@ class Profile(Action):
             bug_report=self.bug_report,
         ) as tools:
             t = Timer('Loading kcfg')
-            kcfg = KCFG.read_cfg_data(self.kcfg_path, id='random_id')
+            kcfg = KCFG.read_cfg_data(self.kcfg_path)
             t.measure()
 
             t = Timer('Removing nodes')
@@ -430,7 +430,7 @@ class Profile(Action):
             new_config = set_interim_states_cell_content(new_config, KVariable('InterimStatesVar'))
             new_config = set_all_code_cell_content(new_config, lambda x: KVariable(f'AccountsVar{x}'))
             # new_config = set_accounts_cell_content(new_config, KVariable('AccountsVar'))
-            kcfg.replace_node(node.id, cterm=CTerm(new_config, node.cterm.constraints))
+            kcfg.replace_node(KCFG.Node(node.id, cterm=CTerm(new_config, node.cterm.constraints)))
             t.measure()
 
             existing = {node.id for node in kcfg.nodes}
@@ -515,7 +515,7 @@ class ShowNode(Action):
             bug_report=None,
         ) as tools:
             t = Timer('Loading kcfg')
-            kcfg = KCFG.read_cfg_data(self.kcfg_path, id='random_id')
+            kcfg = KCFG.read_cfg_data(self.kcfg_path)
             t.measure()
             print('Printing: ', self.node_id)
             node = kcfg.get_node(self.node_id)
@@ -540,7 +540,7 @@ class Tree(Action):
             bug_report=None,
         ) as tools:
             t = Timer('Loading kcfg')
-            kcfg = KCFG.read_cfg_data(self.kcfg_path, id='random_id')
+            kcfg = KCFG.read_cfg_data(self.kcfg_path)
             t.measure()
             show = KCFGShow(tools.printer, tools.node_printer)
             for line in show.pretty(kcfg):
