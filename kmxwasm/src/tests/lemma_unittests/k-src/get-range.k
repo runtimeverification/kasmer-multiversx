@@ -201,7 +201,9 @@ module GET-RANGE
             , 4
             )
         ) => doneSimplification(
-          0
+          ( ( log2IntTotal ( ARG_0 ) +Int 8 ) divIntTotal 8 )
+          +Int ( ( log2IntTotal ( ( ARG_0 *Int ARG_3 ) divIntTotal ( ARG_3 +Int ARG_4 ) ) +Int 8 ) divIntTotal 8 )
+          +Int 96
         )
       </k>
       <commands> .K </commands>
@@ -221,5 +223,48 @@ module GET-RANGE
         andBool ARG_5 <=Int 4294967295
         andBool 0 =/=Int ARG_3 +Int ARG_4
         andBool 0 =/=Int (ARG_0 *Int ARG_3) divIntTotal (ARG_3 +Int ARG_4)
+
+    claim
+      <k>
+        runSimplification(
+          #getRange
+            ( substrSparseBytes
+              ( SBChunk
+                  ( #bytes
+                    ( Int2Bytes
+                      ( ((log2IntTotal ( (ARG_0:Int) +Int (-1000) )) +Int (8)) divIntTotal (8)
+                      , (ARG_0:Int) +Int (-1000)
+                      , BE
+                      )
+                    )
+                  )
+                SBChunk
+                  ( #empty
+                    ( ( (-1)
+                      *Int
+                        (((log2IntTotal ( (ARG_0:Int) +Int (-1000) )) +Int (8)) divIntTotal (8))
+                      )
+                    +Int (9974)
+                    )
+                  )
+              , 2
+              , 9974
+              )
+              SBChunk ( #bytes ( b"\x1c\x00\x00\x00" ) )
+              SBChunk ( #bytes ( b"\x01" ) )
+            , 9972
+            , 4
+            )
+        ) => doneSimplification(
+          28
+        )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+    requires true
+        andBool 1000 <Int ARG_0
+        andBool 1000 <Int ARG_1
+        andBool 2 <Int ARG_2
+        andBool ARG_1:Int <Int ARG_0:Int
 
 endmodule

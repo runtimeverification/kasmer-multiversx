@@ -1,0 +1,44 @@
+kore-exec: [9515378] Debug (DebugTransition): before begin proof step
+kore-exec: [9515480] Debug (DebugTransition): after  begin proof step
+kore-exec: [9516433] Debug (DebugTransition): before simplify the claim
+kore-exec: [9541045] Debug (DebugTransition): after  simplify the claim
+kore-exec: [9542467] Debug (DebugTransition): before check implication
+kore-exec: [9566529] Debug (DebugTransition): after  check implication
+kore-exec: [9568294] Debug (DebugTransition): before apply axioms
+kore-exec: [9649764] Debug (DebugTransition): after  apply axioms: /tmp/kbuild-kmxwasm-semantics-j2b217oj/kmxwasm-semantics/include/kmxwasm-semantics/lemmas/semantics/mx-wasm-lemma-tests.md:14:8-14:59
+kore-exec: [9651856] Debug (DebugTransition): before simplify the claim
+kore-exec: [9676315] Debug (DebugTransition): after  simplify the claim
+kore-exec: [9677958] Debug (DebugTransition): before begin proof step
+kore-exec: [9677995] Debug (DebugTransition): after  begin proof step
+kore-exec: [9679105] Debug (DebugTransition): before simplify the claim
+kore-exec: [9699523] Debug (DebugTransition): after  simplify the claim
+kore-exec: [9702336] Debug (DebugTransition): before check implication
+kore-exec: [9703688] Debug (DebugTransition): after  check implication
+kore-exec: [9703775] Debug (DebugTransition): before apply claims
+kore-exec: [9703808] Debug (DebugTransition): after  apply claims
+kore-exec: [9703834] Debug (DebugTransition): before apply axioms
+kore-exec: [9703858] Debug (DebugTransition): after  apply axioms
+kore-exec: [9703894] Debug (DebugTransition): before simplify the claim
+kore-exec: [9703928] Debug (DebugTransition): after  simplify the claim
+kore-exec: [9708345] Debug (DebugTransition): before begin proof step
+kore-exec: [9708427] Debug (DebugTransition): after  begin proof step
+kore-exec: [9710474] Debug (DebugTransition): before simplify the claim
+kore-exec: [9722849] Debug (DebugTransition): after  simplify the claim
+kore-exec: [9724958] Debug (DebugTransition): before check implication
+kore-exec: [9725591] Debug (DebugTransition): after  check implication
+kore-exec: [9727217] Debug (DebugTransition): before apply axioms
+kore-exec: [9777315] Debug (DebugTransition): after  apply axioms: /tmp/kbuild-kmxwasm-semantics-j2b217oj/kmxwasm-semantics/include/kmxwasm-semantics/lemmas/semantics/mx-wasm-lemma-tests.md:14:8-14:59
+kore-exec: [9779406] Debug (DebugTransition): before simplify the claim
+kore-exec: [9780198] Debug (DebugTransition): after  simplify the claim
+kore-exec: [9781329] Debug (DebugTransition): before begin proof step
+kore-exec: [9781356] Debug (DebugTransition): after  begin proof step
+kore-exec: [9782369] Debug (DebugTransition): before simplify the claim
+kore-exec: [9782707] Debug (DebugTransition): after  simplify the claim
+kore-exec: [9783764] Debug (DebugTransition): before check implication
+kore-exec: [9784579] Debug (DebugTransition): after  check implication
+kore-exec: [9784620] Debug (DebugTransition): before apply claims
+kore-exec: [9784640] Debug (DebugTransition): after  apply claims
+kore-exec: [9784657] Debug (DebugTransition): before apply axioms
+kore-exec: [9784673] Debug (DebugTransition): after  apply axioms
+kore-exec: [9784688] Debug (DebugTransition): before simplify the claim
+kore-exec: [9784703] Debug (DebugTransition): after  simplify the claim

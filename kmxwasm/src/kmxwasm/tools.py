@@ -82,12 +82,13 @@ class Tools:
                         'kore-rpc-booster',
                         '--smt-timeout',
                         '1000',
-                        # '--equation-max-iterations', '1000',
+                        '--equation-max-iterations', '1000',
                         # '--no-smt',
                         # '-l', 'Rewrite',
                         # '-l', 'SimplifySuccess',
                         # '-l', 'Simplify',
                         # '-l', 'SimplifyKore',
+                        # '-l', 'ErrorDetails'
                         # '-l', 'SMT',
                         # '--solver-transcript', 'log.z3',
                         # '--no-post-exec-simplify',
@@ -105,7 +106,7 @@ class Tools:
                         '--smt-timeout',
                         '1000',
                         # '--solver-transcript', 'log.z3',
-                        # '--log-entries', 'DebugSolverSend,DebugSolverRecv,DebugAttemptEquation',
+                        '--log-entries', 'DebugApplyEquation', # 'DebugAttemptEquation', #DebugSolverSend,DebugSolverRecv,
                         # '--debug-equation', 'xyzzy2'
                     ),
                     # port=39425,
