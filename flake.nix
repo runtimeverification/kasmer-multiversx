@@ -22,7 +22,8 @@
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [ 
             k-framework.packages.${pkgs.system}.k
-            poetry 
+            poetry
+            wabt
           ];
         };
       });
