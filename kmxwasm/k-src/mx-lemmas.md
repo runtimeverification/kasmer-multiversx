@@ -202,6 +202,20 @@ module MX-LEMMAS  [symbolic]
 
   // ----------------------------------------
 
+    rule #setRange(B:SparseBytes, Start:Int, Value:Int, Width:Int)
+      => narrow(#setRange(B, Start, Value, Width), B)
+      requires isNarrowable(#setRange(B, Start, Value, Width), B)
+      [simplification]
+  rule limit(#setRange(B:SparseBytes, Start:Int, Value:Int, Width:Int))
+      => limitsResult(#setRange(B, Start, Value, Width), limits(Start, Width))
+      [simplification]
+  rule replaceArgument(... expression: #setRange(B:SparseBytes, Start:Int, Value:Int, Width:Int), argument: Argument)
+      => argumentReplaced(... expression: #setRange(B, Start, Value, Width), replaced: #setRange(Argument, Start, Value, Width), argument: Argument)
+      [simplification]
+  rule setLimits(#setRange(B:SparseBytes, Start:Int, Value:Int, Width:Int), limits(LStart, LSize))
+      => limitsSet(... expression: #setRange(B, Start, Value, Width), replaced: #setRange(B, LStart, Value, LSize), limits: limits(LStart, LSize))
+      [simplification]
+
   rule #setRange(.SparseBytes, 0, Value:Int, Width:Int)
       => SBChunk(#bytes(Int2Bytes(Width, Value, LE)))
       [simplification, concrete(Width)]
@@ -210,15 +224,13 @@ module MX-LEMMAS  [symbolic]
       requires 0 <Int Addr
       [simplification, concrete(Width, Addr)]
   rule #setRange(SBChunk(A) M:SparseBytes, Addr:Int, Value:Int, Width:Int)
-      => SBChunk(A) #setRange(M, Addr -Int size(SBChunk(A)), Value, Width)
-      requires size(SBChunk(A)) <=Int Addr
-      [simplification, concrete(Width)]
-  rule #setRange(SBChunk(A) M:SparseBytes, Addr:Int, Value:Int, Width:Int)
-      => substrSparseBytes(SBChunk(A), 0, Addr)
-        #setRange(
-          substrSparseBytes(SBChunk(A) M, Addr, size(SBChunk(A) M)),
-          0, Value, Width
-        )
+      => concat
+          ( substrSparseBytes(SBChunk(A), 0, Addr)
+          , #setRange(
+              substrSparseBytes(SBChunk(A) M, Addr, size(SBChunk(A) M)),
+              0, Value, Width
+            )
+          )
       requires 0 <Int Addr
         andBool Addr <Int size(SBChunk(A))
       [simplification, concrete(Width)]
@@ -230,19 +242,6 @@ module MX-LEMMAS  [symbolic]
   rule #setRange(M:SparseBytes, 0, Value:Int, Width:Int)
       => SBChunk(#bytes(Int2Bytes(Width, Value, LE)))
       requires size(M) <=Int Width
-      [simplification, concrete(Width)]
-  rule #setRange(M:SparseBytes SBChunk(A), Addr:Int, Value:Int, Width:Int)
-      => #setRange(M, Addr, Value, Width) SBChunk(A)
-      requires Addr +Int Width <=Int size(M)
-      [simplification, concrete(Width)]
-  rule #setRange(M:SparseBytes SBChunk(A), Addr:Int, Value:Int, Width:Int)
-      => M
-        #setRange(
-          SBChunk(A),
-          Addr -Int size(M),
-          Value, Width
-        )
-      requires 0 <Int size(M) andBool size(M) <=Int Addr
       [simplification, concrete(Width)]
 
   syntax SparseBytes ::= #splitSetRange(SparseBytes, addr:Int, value:Int, width:Int, additionalwidth:Int)  [function]
@@ -583,54 +582,20 @@ module MX-LEMMAS  [symbolic]
 
   // ----------------------------------------
 
-  syntax SparseBytes ::= replaceAtBLast(current:Bytes, rest:SparseBytes, start:Int, replacement:Bytes)  [function, total]
-  syntax SparseBytes ::= findLast(replacementEnd:Int, processedSize:Int, reversedProcessed:SparseBytes, unprocessed:SparseBytes)  [function, total]
-  syntax Bool ::= replaceAtBLastIsBetter(replacementEnd:Int, processedSize:Int, unprocessed:SparseBytes)  [function, total]
-  syntax SparseBytes ::= reverseLast(reversed:SparseBytes, unprocessed:SparseBytes)  [function, total]
-  syntax SparseBytes ::= rconcat(reversed:SparseBytes, unprocessed:SparseBytes)  [function, total]
-
   rule replaceAtB(Current:Bytes, Rest:SparseBytes, Start:Int, Value:Bytes)
-      => replaceAtBLast(Current, findLast(Start +Int lengthBytes(Value), lengthBytes(Current), .SparseBytes, Rest), Start, Value)
-      requires 0 <=Int Start
-        andBool replaceAtBLastIsBetter(Start +Int lengthBytes(Value), lengthBytes(Current), Rest)
-        // andBool Start +Int lengthBytes(Value)
-        //       <=Int lengthBytes(Current) +Int size(removeLast(Rest))
+      => narrow(replaceAtB(Current:Bytes, Rest:SparseBytes, Start:Int, Value:Bytes), Rest)
+      requires isNarrowable(replaceAtB(Current:Bytes, Rest:SparseBytes, Start:Int, Value:Bytes), Rest)
       [simplification]
-
-  rule replaceAtBLast(Current, findLast(ReplaceEnd, ProcessedSize, S:SparseBytes, SBIC:SBItemChunk), Start, Value)
-      => concat(replaceAtBLast(Current, reverseLast(.SparseBytes, S), Start, Value), SBIC)
-      requires ReplaceEnd <=Int ProcessedSize
-      [simplification(50)]
-  rule replaceAtBLast(Current, findLast(ReplaceEnd, ProcessedSize, S:SparseBytes, SBIC:SBItemChunk S2:SparseBytes), Start, Value)
-      => replaceAtBLast(Current, findLast(ReplaceEnd, ProcessedSize +Int size(SBIC), rconcat(SBIC, S), S2), Start, Value)
-      requires 0 <Int size(S2)
-      [simplification(51)]
-  rule replaceAtBLast(Current, findLast(ReplaceEnd, ProcessedSize, S:SparseBytes, concat(S1:SparseBytes, S2:SparseBytes)), Start, Value)
-      => replaceAtBLast(Current, findLast(ReplaceEnd, ProcessedSize +Int size(S1), rconcat(S1, S), S2), Start, Value)
-      [simplification(51)]
-  rule replaceAtBLast(Current, findLast(ReplaceEnd, ProcessedSize, S:SparseBytes, S2:SparseBytes), Start, Value)
-      => concat(replaceAtBLast(Current, reverseLast(.SparseBytes, S), Start, Value), S2)
-      requires ReplaceEnd <=Int ProcessedSize
-      [simplification(52)]
-
-  rule reverseLast(A, rconcat(B, C)) => reverseLast(concat(B, A), C)
-      [simplification(50)]
-  rule reverseLast(A, B) => concat(B, A)
-      [simplification(51)]
-
-  rule replaceAtBLastIsBetter(ReplaceEnd, ProcessedSize, SBIC:SBItemChunk) => true
-      requires ReplaceEnd <=Int ProcessedSize
-      [simplification(50)]
-  rule replaceAtBLastIsBetter(ReplaceEnd, ProcessedSize, SBIC:SBItemChunk A)
-      => replaceAtBLastIsBetter(ReplaceEnd, ProcessedSize +Int size(SBIC), A)
-      requires 0 <Int size(A)
-      [simplification(51)]
-  rule replaceAtBLastIsBetter(ReplaceEnd, ProcessedSize, concat(A, B))
-      => replaceAtBLastIsBetter(ReplaceEnd, ProcessedSize +Int size(A), B)
-      [simplification(51)]
-  rule replaceAtBLastIsBetter(ReplaceEnd, ProcessedSize, A) => true
-      requires ReplaceEnd <=Int ProcessedSize
-      [simplification(52)]
+  rule limit(replaceAtB(Current:Bytes, Rest:SparseBytes, Start:Int, Value:Bytes))
+      => limitsResult(replaceAtB(Current, Rest, Start, Value), limits(Start -Int lengthBytes(Current), lengthBytes(Value)))
+      [simplification]
+  rule replaceArgument(... expression:replaceAtB(Current:Bytes, Rest:SparseBytes, Start:Int, Value:Bytes), argument:Argument)
+      => argumentReplaced(... expression:replaceAtB(Current, Rest, Start, Value), replaced:replaceAtB(Current, Argument, Start, Value), argument:Argument)
+      [simplification]
+  rule setLimits(replaceAtB(Current:Bytes, Rest:SparseBytes, Start:Int, Value:Bytes), limits(LStart, LSize))
+      => limitsSet(... expression: replaceAtB(Current, Rest, Start, Value), replaced: replaceAtB(Current, Rest, LStart, Value), limits: limits(LStart, LSize))
+      requires LSize ==Int lengthBytes(Value)
+      [simplification]
 
   // ----------------------------------------
 
