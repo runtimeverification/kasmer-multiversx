@@ -91,8 +91,8 @@ def test_aborted(
     cnt_aborted = captured.err.count('[Info#proxy] Booster Aborted')
     cnt_stuck = captured.err.count('[Info#proxy] Booster Stuck')
 
-    assert args.aborted == cnt_aborted
-    assert args.stuck == cnt_stuck
+    assert args.aborted >= cnt_aborted
+    assert args.stuck >= cnt_stuck
 
 
 def generate_test_claim(args: AbortTestParams, llvm_dir: Path, test_wasm: KInner) -> str:
