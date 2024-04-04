@@ -5,6 +5,7 @@ requires "lemmas/int-encoding-lemmas.md"
 requires "lemmas/int-inequalities-lemmas.md"
 requires "lemmas/int-length-lemmas.md"
 requires "lemmas/int-normalization-lemmas.md"
+requires "lemmas/sparse-bytes-lemmas.md"
 
 module MX-LEMMAS-BASIC
   imports BOOL
@@ -41,6 +42,7 @@ module MX-LEMMAS  [symbolic]
   imports private INT-KORE
   imports private INT-NORMALIZATION-LEMMAS
   imports public MX-LEMMAS-BASIC
+  imports private SPARSE-BYTES-LEMMAS
   imports private SET
   imports private WASM-TEXT
 
@@ -581,14 +583,54 @@ module MX-LEMMAS  [symbolic]
 
   // ----------------------------------------
 
-  // TODO: Consider moving this either in the definition for replaceAtB
-  // or in the definition for replaceAt
-  rule replaceAtB(Current:Bytes, Rest:SparseBytes SBChunk(Last), Start:Int, Value:Bytes)
-      => replaceAtB(Current, Rest, Start, Value) SBChunk(Last)
+  syntax SparseBytes ::= replaceAtBLast(current:Bytes, rest:SparseBytes, start:Int, replacement:Bytes)  [function, total]
+  syntax SparseBytes ::= findLast(replacementEnd:Int, processedSize:Int, reversedProcessed:SparseBytes, unprocessed:SparseBytes)  [function, total]
+  syntax Bool ::= replaceAtBLastIsBetter(replacementEnd:Int, processedSize:Int, unprocessed:SparseBytes)  [function, total]
+  syntax SparseBytes ::= reverseLast(reversed:SparseBytes, unprocessed:SparseBytes)  [function, total]
+  syntax SparseBytes ::= rconcat(reversed:SparseBytes, unprocessed:SparseBytes)  [function, total]
+
+  rule replaceAtB(Current:Bytes, Rest:SparseBytes, Start:Int, Value:Bytes)
+      => replaceAtBLast(Current, findLast(Start +Int lengthBytes(Value), lengthBytes(Current), .SparseBytes, Rest), Start, Value)
       requires 0 <=Int Start
-        andBool Start +Int lengthBytes(Value)
-              <=Int lengthBytes(Current) +Int size(Rest)
+        andBool replaceAtBLastIsBetter(Start +Int lengthBytes(Value), lengthBytes(Current), Rest)
+        // andBool Start +Int lengthBytes(Value)
+        //       <=Int lengthBytes(Current) +Int size(removeLast(Rest))
+      [simplification]
+
+  rule replaceAtBLast(Current, findLast(ReplaceEnd, ProcessedSize, S:SparseBytes, SBIC:SBItemChunk), Start, Value)
+      => concat(replaceAtBLast(Current, reverseLast(.SparseBytes, S), Start, Value), SBIC)
+      requires ReplaceEnd <=Int ProcessedSize
       [simplification(50)]
+  rule replaceAtBLast(Current, findLast(ReplaceEnd, ProcessedSize, S:SparseBytes, SBIC:SBItemChunk S2:SparseBytes), Start, Value)
+      => replaceAtBLast(Current, findLast(ReplaceEnd, ProcessedSize +Int size(SBIC), rconcat(SBIC, S), S2), Start, Value)
+      requires 0 <Int size(S2)
+      [simplification(51)]
+  rule replaceAtBLast(Current, findLast(ReplaceEnd, ProcessedSize, S:SparseBytes, concat(S1:SparseBytes, S2:SparseBytes)), Start, Value)
+      => replaceAtBLast(Current, findLast(ReplaceEnd, ProcessedSize +Int size(S1), rconcat(S1, S), S2), Start, Value)
+      [simplification(51)]
+  rule replaceAtBLast(Current, findLast(ReplaceEnd, ProcessedSize, S:SparseBytes, S2:SparseBytes), Start, Value)
+      => concat(replaceAtBLast(Current, reverseLast(.SparseBytes, S), Start, Value), S2)
+      requires ReplaceEnd <=Int ProcessedSize
+      [simplification(52)]
+
+  rule reverseLast(A, rconcat(B, C)) => reverseLast(concat(B, A), C)
+      [simplification(50)]
+  rule reverseLast(A, B) => concat(B, A)
+      [simplification(51)]
+
+  rule replaceAtBLastIsBetter(ReplaceEnd, ProcessedSize, SBIC:SBItemChunk) => true
+      requires ReplaceEnd <=Int ProcessedSize
+      [simplification(50)]
+  rule replaceAtBLastIsBetter(ReplaceEnd, ProcessedSize, SBIC:SBItemChunk A)
+      => replaceAtBLastIsBetter(ReplaceEnd, ProcessedSize +Int size(SBIC), A)
+      requires 0 <Int size(A)
+      [simplification(51)]
+  rule replaceAtBLastIsBetter(ReplaceEnd, ProcessedSize, concat(A, B))
+      => replaceAtBLastIsBetter(ReplaceEnd, ProcessedSize +Int size(A), B)
+      [simplification(51)]
+  rule replaceAtBLastIsBetter(ReplaceEnd, ProcessedSize, A) => true
+      requires ReplaceEnd <=Int ProcessedSize
+      [simplification(52)]
 
   // ----------------------------------------
 
@@ -695,7 +737,7 @@ module MX-LEMMAS  [symbolic]
 
   syntax SparseBytes ::= splitSubstrSparseBytes(SparseBytes, start:Int, middle: Int, end:Int)  [function]
   rule splitSubstrSparseBytes(M:SparseBytes, Start:Int, Middle:Int, End:Int)
-      => substrSparseBytes(M, Start, Middle) substrSparseBytes(M, Middle, End)
+      => concat(substrSparseBytes(M, Start, Middle), substrSparseBytes(M, Middle, End))
     requires 0 <=Int Start
       andBool Start <=Int Middle
       andBool Middle <=Int End
@@ -839,17 +881,19 @@ module MX-LEMMAS  [symbolic]
       requires 0 <Int End andBool End <Int Size
       [simplification]
 
-  rule substrSparseBytes(A:SparseBytes B:SparseBytes, Start:Int, End:Int)
+  rule substrSparseBytes(concat(A:SparseBytes, B:SparseBytes), Start:Int, End:Int)
       => substrSparseBytes(B, Start -Int size(A), End -Int size(A))
       requires size(A) <=Int Start
       [simplification]
-  rule substrSparseBytes(A:SparseBytes _:SparseBytes, Start:Int, End:Int)
+  rule substrSparseBytes(concat(A:SparseBytes, _:SparseBytes), Start:Int, End:Int)
       => substrSparseBytes(A, Start, End)
       requires End <=Int size(A)
       [simplification]
-  rule substrSparseBytes(A:SparseBytes B:SparseBytes, Start:Int, End:Int)
-      => substrSparseBytes(A, Start, size(A))
+  rule substrSparseBytes(concat(A:SparseBytes, B:SparseBytes), Start:Int, End:Int)
+      => concat(
+        substrSparseBytes(A, Start, size(A)),
         substrSparseBytes(B, 0, End -Int size(A))
+      )
       requires Start <Int size(A)
           andBool size(A) <Int End
       [simplification]
@@ -1008,9 +1052,7 @@ module MX-LEMMAS  [symbolic]
       => End -Int Start
       requires 0 <=Int Start andBool Start <=Int End andBool End <=Int size(B)
       [simplification]
-  rule size(A:SparseBytes B:SparseBytes) => size(A) +Int size(B)
-      [simplification]
-  rule size(A:SparseBytes SBChunk(B)) => size(A) +Int size(B)
+  rule size(concat(A:SparseBytes, B:SparseBytes)) => size(A) +Int size(B)
       [simplification]
   rule 0 <=Int size(_:SparseBytes) => true
       [simplification]
