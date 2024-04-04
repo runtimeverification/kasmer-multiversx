@@ -1,20 +1,27 @@
 import pytest
 from filelock import FileLock
-from pytest import TempPathFactory
+from pytest import FixtureRequest, Parser, TempPathFactory
 
 from ..build import HASKELL, LEMMA_PROOFS, LEMMA_TESTS, Kompiled, kbuild_semantics
-from ..property_testing.paths import KBUILD_ML_PATH
+from ..property_testing.paths import KBUILD_DIR, KBUILD_ML_PATH
 from ..tools import Tools
 
 
-@pytest.fixture(scope='session')
-def kompiled(tmp_path_factory: TempPathFactory, worker_id: str) -> Kompiled:
-    if worker_id == 'master':
-        root_tmp_dir = tmp_path_factory.getbasetemp()
-    else:
-        root_tmp_dir = tmp_path_factory.getbasetemp().parent
+def pytest_addoption(parser: Parser) -> None:
+    parser.addoption('--use-kbuild-dir', action='store_true', default=False)
 
-    build_path = root_tmp_dir / 'kbuild'
+
+@pytest.fixture(scope='session')
+def kompiled(request: FixtureRequest, tmp_path_factory: TempPathFactory, worker_id: str) -> Kompiled:
+    if request.config.getoption('--use-kbuild-dir'):
+        build_path = KBUILD_DIR
+    else:
+        if worker_id == 'master':
+            root_tmp_dir = tmp_path_factory.getbasetemp()
+        else:
+            root_tmp_dir = tmp_path_factory.getbasetemp().parent
+        build_path = root_tmp_dir / 'kbuild'
+
     with FileLock(str(build_path) + '.lock'):
         return Kompiled(output_dir=build_path, config_file=KBUILD_ML_PATH, target=HASKELL, llvm=True, booster=True)
 
