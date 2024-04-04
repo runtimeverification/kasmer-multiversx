@@ -54,6 +54,20 @@ class Action:
 
 
 @dataclass(frozen=True)
+class Kompile(Action):
+    booster: bool
+
+    def run(self) -> None:
+        Kompiled(
+            output_dir=KBUILD_DIR,
+            config_file=KBUILD_ML_PATH,
+            target=HASKELL,
+            llvm=True,
+            booster=self.booster,
+        )
+
+
+@dataclass(frozen=True)
 class RunClaim(Action):
     claim_path: Path
     is_k: bool
@@ -536,6 +550,12 @@ class Tree(Action):
 def read_flags() -> Action:
     parser = argparse.ArgumentParser(description='Symbolic testing for MultiversX contracts')
     parser.add_argument(
+        '--kompile',
+        dest='kompile',
+        action='store_true',
+        help='Compile the semantics for future use',
+    )
+    parser.add_argument(
         '--restart',
         dest='restart',
         action='store_true',
@@ -645,6 +665,8 @@ def read_flags() -> Action:
         help='Generate bug report with given name',
     )
     args = parser.parse_args()
+    if args.kompile:
+        return Kompile(booster=args.booster)
     if args.show_node is not None:
         return ShowNode(args.show_node, Path(args.kcfg), booster=args.booster)
     if args.tree:
