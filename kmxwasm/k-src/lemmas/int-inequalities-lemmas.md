@@ -232,10 +232,7 @@ module INT-INEQUALITIES-LEMMAS
       requires 0 <Int B andBool A modInt B =/=Int 0
       [simplification, concrete(A, B)]
   rule A <Int B *Int C => A /Int B <Int C
-      requires 0 <Int B andBool A modInt B ==Int 0
-      [simplification, concrete(A, B)]
-  rule A <Int B *Int C => A /Int B +Int 1 <Int C
-      requires 0 <Int B andBool A modInt B =/=Int 0
+      requires 0 <Int B
       [simplification, concrete(A, B)]
 
   rule A *Int B <=Int C => (0 -Int C) <=Int (0 -Int A) *Int B
