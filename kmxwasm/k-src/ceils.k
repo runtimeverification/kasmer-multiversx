@@ -8,7 +8,6 @@ module CEILS
 
     rule definedSubstrBytes(B:Bytes, StartIndex:Int, EndIndex:Int)
         => (0 <=Int StartIndex) andBool (0 <=Int EndIndex)
-            andBool (StartIndex <Int lengthBytes(B))
             andBool (EndIndex <=Int lengthBytes(B))
             andBool (StartIndex <=Int EndIndex)
 
