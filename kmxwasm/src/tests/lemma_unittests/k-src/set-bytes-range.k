@@ -14,10 +14,12 @@ module SET-BYTES-RANGE
                 +Bytes b"\x00"
               )
         ) => doneSimplification(
-            SBChunk ( #bytes (
+            ( SBChunk ( #bytes (
                 Int2Bytes ( 8 , A , LE )
                 +Bytes b"\x00"
-            ) ):SparseBytes
+              ) )
+              .SparseBytes
+            ):SparseBytes
         )
       </k>
       <commands> .K </commands>
