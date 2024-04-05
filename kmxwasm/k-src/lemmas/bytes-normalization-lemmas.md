@@ -50,6 +50,9 @@ module BYTES-NORMALIZATION-LEMMAS  [symbolic]
         requires true
           andBool Len ==Int lengthBytes(B)
         [simplification]
+    rule substrBytesTotal(_, Start:Int, Start:Int)
+        => b""
+        [simplification(40)]
 
     rule substrBytesTotal(Int2Bytes(Size:Int, Value:Int, LE), Start:Int, End:Int)
         => Int2Bytes(
