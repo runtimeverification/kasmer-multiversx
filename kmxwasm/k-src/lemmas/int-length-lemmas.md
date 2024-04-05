@@ -55,12 +55,52 @@ module INT-LENGTH-LEMMAS  [symbolic]
         andBool 0 <Int B
       [simplification]
 
+  rule A <Int -1 *Int ((log2IntTotal(B) +Int 8) divIntTotal 8) => true
+      // ((log2IntTotal(B) +Int 8) divIntTotal 8) <Int -A
+      requires findLowerUnknown(ValueLessMFL(B), LtThan((-1) *Int A), 1, 10000)
+        andBool 0 <Int B
+      [simplification]
+  rule A <=Int -1 *Int ((log2IntTotal(B) +Int 8) divIntTotal 8) => true
+      // ((log2IntTotal(B) +Int 8) divIntTotal 8) <=Int -A
+      requires findLowerUnknown(ValueLessMFL(B), LeqThan((-1) *Int A), 1, 10000)
+        andBool 0 <Int B
+      [simplification]
+
+  rule A <Int -1 *Int (((log2IntTotal(B) +Int 8) divIntTotal 8)) => false
+      requires 0 <=Int A
+        andBool 0 <Int B
+      [simplification]
+  rule A <=Int -1 *Int (((log2IntTotal(B) +Int 8) divIntTotal 8)) => false
+      requires 0 <Int A
+        andBool 0 <Int B
+      [simplification]
+
   rule (log2IntTotal(B) +Int 8) divIntTotal 8 <Int A => true
       requires findLowerUnknown(ValueLessMFL(B), LtThan(A), 1, 10000)
         andBool 0 <Int B
       [simplification]
   rule (log2IntTotal(B) +Int 8) divIntTotal 8 <=Int A => true
       requires findLowerUnknown(ValueLessMFL(B), LeqThan(A), 1, 10000)
+        andBool 0 <Int B
+      [simplification]
+
+  rule -1 *Int ((log2IntTotal(B) +Int 8) divIntTotal 8) <Int A => false
+      // -A <Int (log2IntTotal(B) +Int 8) divIntTotal 8
+      requires findLowerUnknown(ValueLessMFL(B), LeqThan(-1 *Int A), 1, 10000)
+        andBool 0 <Int B
+      [simplification]
+  rule -1 *Int ((log2IntTotal(B) +Int 8) divIntTotal 8) <=Int A => false
+      // -A <=Int (log2IntTotal(B) +Int 8) divIntTotal 8
+      requires findLowerUnknown(ValueLessMFL(B), LtThan(-1 *Int A), 1, 10000)
+        andBool 0 <Int B
+      [simplification]
+
+  rule -1 *Int ((log2IntTotal(B) +Int 8) divIntTotal 8) <Int A => true
+      requires 0 <=Int A
+        andBool 0 <Int B
+      [simplification]
+  rule -1 *Int ((log2IntTotal(B) +Int 8) divIntTotal 8) <=Int A => true
+      requires 0 <Int A
         andBool 0 <Int B
       [simplification]
 
@@ -101,6 +141,8 @@ module INT-LENGTH-LEMMAS  [symbolic]
         andBool 0 <Int B
       [simplification]
 
+  rule 0 <Int ((log2IntTotal(B) +Int 8) divIntTotal 8) => true requires 0 <Int B
+      [simplification, smt-lemma]
 endmodule
 
 module BINARY-SEARCH

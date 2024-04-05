@@ -13,6 +13,7 @@ module MX-LEMMAS-BASIC
   imports INT-ENCODING-BASIC
   imports INT-LENGTH-LEMMAS-BASIC
   imports INT-NORMALIZATION-LEMMAS-BASIC
+  imports SPARSE-BYTES-LEMMAS-SYNTAX
 
   syntax Bool ::= #setRangeActuallySets(addr:Int, val:Int, width:Int)  [function, total]
   rule #setRangeActuallySets(Addr:Int, Val:Int, Width:Int)
@@ -91,6 +92,30 @@ module MX-LEMMAS  [symbolic]
   rule { (< _:FValType > _:Float) #Equals undefined } => #Bottom  [simplification]
   rule { (< _:RefValType > _:Int) #Equals undefined } => #Bottom  [simplification]
 
+  // -------------------------------
+
+  syntax Expression ::= #getRangeExpression(SparseBytes, Int, Int)
+  rule #getRange(B:SparseBytes, Start:Int, Width:Int)
+      => narrowInt(#getRangeExpression(B, Start, Width), B)
+      requires isNarrowable(#getRangeExpression(B, Start, Width), B)
+      [simplification]
+  rule extractLimit(#getRangeExpression(B:SparseBytes, Start:Int, Width:Int))
+      => limitExtracted(#getRangeExpression(B, Start, Width), limits(Start, Width))
+      [simplification]
+  rule replaceArgument(... expression: #getRangeExpression(B:SparseBytes, Start:Int, Width:Int), argument: Argument)
+      => argumentReplaced(... expression: #getRangeExpression(B, Start, Width), replaced: #getRangeExpression(Argument, Start, Width), argument: Argument)
+      [simplification]
+  rule setLimits(#getRangeExpression(B:SparseBytes, Start:Int, Width:Int), limits(LStart, LSize))
+      => limitsSet
+          ( ... expression: #getRangeExpression(B, Start, Width)
+          , replaced: #getRangeExpression(B, LStart, LSize)
+          , limits: limits(LStart, LSize)
+          )
+      [simplification]
+  rule intFromExpression(#getRangeExpression(B, Start, Width)) => #getRange(B, Start, Width)
+
+  // -------------------------------
+
   rule #getRange(
           replaceAt(Dest, Index, Src),
           RangeStart,
@@ -108,26 +133,9 @@ module MX-LEMMAS  [symbolic]
     [simplification]
 
   rule #getRange(SBChunk(A:SBItem) B:SparseBytes, Start, Width)
-      => #getRange(B, Start -Int size(SBChunk(A)), Width)
-    requires size(SBChunk(A)) <=Int Start
-    [simplification]
-  rule #getRange(SBChunk(A:SBItem) _B:SparseBytes, Start, Width)
-      => #getRange(SBChunk(A), Start, Width)
-    requires Start <Int size(SBChunk(A)) andBool Start +Int Width <=Int size(SBChunk(A))
-    [simplification]
-  rule #getRange(SBChunk(A:SBItem) B:SparseBytes, Start, Width)
       => #splitGetRange(SBChunk(A) B, Start, size(SBChunk(A)) -Int Start, Start +Int Width -Int size(SBChunk(A)))
     requires Start <Int size(SBChunk(A)) andBool size(SBChunk(A)) <Int Start +Int Width
     [simplification]
-
-  rule #getRange(M:SparseBytes SBChunk(_), Start:Int, Width:Int)
-      => #getRange(M, Start, Width)
-      requires Start +Int Width <=Int size(M)
-      [simplification, concrete(Width)]
-  rule #getRange(M:SparseBytes SBChunk(A), Start:Int, Width:Int)
-      => #getRange(SBChunk(A), Start -Int size(M), Width)
-      requires 0 <Int size(M) andBool size(M) <=Int Start
-      [simplification, concrete(Width)]
 
   // For some random reason, this does not work with the Haskell backend.
   // My guess is that the
@@ -202,19 +210,27 @@ module MX-LEMMAS  [symbolic]
 
   // ----------------------------------------
 
-    rule #setRange(B:SparseBytes, Start:Int, Value:Int, Width:Int)
-      => narrow(#setRange(B, Start, Value, Width), B)
-      requires isNarrowable(#setRange(B, Start, Value, Width), B)
+  syntax Expression ::= #setRangeExpression(SparseBytes, Int, Int, Int)
+
+  rule #setRange(B:SparseBytes, Start:Int, Value:Int, Width:Int)
+      => narrowSparseBytes(#setRangeExpression(B, Start, Value, Width), B)
+      requires isNarrowable(#setRangeExpression(B, Start, Value, Width), B)
       [simplification]
-  rule limit(#setRange(B:SparseBytes, Start:Int, Value:Int, Width:Int))
-      => limitsResult(#setRange(B, Start, Value, Width), limits(Start, Width))
+  rule extractLimit(#setRangeExpression(B:SparseBytes, Start:Int, Value:Int, Width:Int))
+      => limitExtracted(#setRangeExpression(B, Start, Value, Width), limits(Start, Width))
       [simplification]
-  rule replaceArgument(... expression: #setRange(B:SparseBytes, Start:Int, Value:Int, Width:Int), argument: Argument)
-      => argumentReplaced(... expression: #setRange(B, Start, Value, Width), replaced: #setRange(Argument, Start, Value, Width), argument: Argument)
+  rule replaceArgument(... expression: #setRangeExpression(B:SparseBytes, Start:Int, Value:Int, Width:Int), argument: Argument)
+      => argumentReplaced(... expression: #setRangeExpression(B, Start, Value, Width), replaced: #setRangeExpression(Argument, Start, Value, Width), argument: Argument)
       [simplification]
-  rule setLimits(#setRange(B:SparseBytes, Start:Int, Value:Int, Width:Int), limits(LStart, LSize))
-      => limitsSet(... expression: #setRange(B, Start, Value, Width), replaced: #setRange(B, LStart, Value, LSize), limits: limits(LStart, LSize))
+  rule setLimits(#setRangeExpression(B:SparseBytes, Start:Int, Value:Int, Width:Int), limits(LStart, LSize))
+      => limitsSet
+          ( ... expression: #setRangeExpression(B, Start, Value, Width)
+          , replaced: #setRangeExpression(B, LStart, Value, LSize)
+          , limits: limits(LStart, LSize)
+          )
       [simplification]
+  rule sparseBytesFromExpression(#setRangeExpression(B:SparseBytes, Start:Int, Value:Int, Width:Int))
+      => #setRange(B, Start, Value, Width)
 
   rule #setRange(.SparseBytes, 0, Value:Int, Width:Int)
       => SBChunk(#bytes(Int2Bytes(Width, Value, LE)))
@@ -582,20 +598,38 @@ module MX-LEMMAS  [symbolic]
 
   // ----------------------------------------
 
+  syntax Expression ::= replaceAtBExpression(Bytes, SparseBytes, Int, Bytes)
+
   rule replaceAtB(Current:Bytes, Rest:SparseBytes, Start:Int, Value:Bytes)
-      => narrow(replaceAtB(Current:Bytes, Rest:SparseBytes, Start:Int, Value:Bytes), Rest)
-      requires isNarrowable(replaceAtB(Current:Bytes, Rest:SparseBytes, Start:Int, Value:Bytes), Rest)
+      => narrowSparseBytes(replaceAtBExpression(Current, Rest, Start, Value), Rest)
+      requires isNarrowable(replaceAtBExpression(Current, Rest, Start, Value), Rest)
       [simplification]
-  rule limit(replaceAtB(Current:Bytes, Rest:SparseBytes, Start:Int, Value:Bytes))
-      => limitsResult(replaceAtB(Current, Rest, Start, Value), limits(Start -Int lengthBytes(Current), lengthBytes(Value)))
+  rule extractLimit(replaceAtBExpression(Current:Bytes, Rest:SparseBytes, Start:Int, Value:Bytes))
+      => limitExtracted
+          ( replaceAtBExpression(Current, Rest, Start, Value)
+          , limits(Start -Int lengthBytes(Current), lengthBytes(Value))
+          )
       [simplification]
-  rule replaceArgument(... expression:replaceAtB(Current:Bytes, Rest:SparseBytes, Start:Int, Value:Bytes), argument:Argument)
-      => argumentReplaced(... expression:replaceAtB(Current, Rest, Start, Value), replaced:replaceAtB(Current, Argument, Start, Value), argument:Argument)
-      [simplification]
-  rule setLimits(replaceAtB(Current:Bytes, Rest:SparseBytes, Start:Int, Value:Bytes), limits(LStart, LSize))
-      => limitsSet(... expression: replaceAtB(Current, Rest, Start, Value), replaced: replaceAtB(Current, Rest, LStart, Value), limits: limits(LStart, LSize))
+  rule setLimits(replaceAtBExpression(Current:Bytes, Rest:SparseBytes, Start:Int, Value:Bytes), limits(LStart, LSize))
+      => limitsSet
+          ( ... expression: replaceAtBExpression(Current, Rest, Start, Value)
+          , replaced: replaceAtBExpression(Current, Rest, LStart +Int lengthBytes(Current), Value)
+          , limits: limits(LStart, LSize)
+          )
       requires LSize ==Int lengthBytes(Value)
       [simplification]
+  rule replaceArgument
+          ( ... expression: replaceAtBExpression(Current:Bytes, Rest:SparseBytes, Start:Int, Value:Bytes)
+          , argument:Argument
+          )
+      => argumentReplaced
+          ( ... expression: replaceAtBExpression(Current, Rest, Start, Value)
+          , replaced: replaceAtBExpression(Current, Argument, Start, Value)
+          , argument:Argument
+          )
+      [simplification]
+  rule sparseBytesFromExpression(replaceAtBExpression(Current:Bytes, Rest:SparseBytes, Start:Int, Value:Bytes))
+      => replaceAtB(Current, Rest, Start, Value)
 
   // ----------------------------------------
 

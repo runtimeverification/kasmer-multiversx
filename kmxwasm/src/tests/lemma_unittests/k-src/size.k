@@ -114,7 +114,8 @@ module SIZE
       <k>
         runSimplification(
             size (
-                replaceAtB
+              concat
+                ( replaceAtB
                   ( b"\x01"
                     +Bytes Int2Bytes ( 8 , int64encoding ( ARG_1 +Int ARG_2 , 0 , 1 , 2 , 3 , 4 , 5 , 6 , 7 ) , LE )
                     +Bytes Int2Bytes ( 8 , int64encoding ( ARG_1 +Int ARG_2 +Int ARG_3 +Int ARG_4 , 0 , 1 , 2 , 3 , 4 , 5 , 6 , 7 ) , LE )
@@ -127,17 +128,18 @@ module SIZE
                     , BE
                     )
                   )
-                SBChunk
-                  ( #bytes
-                    ( Int2Bytes
-                      ( 4
-                      , ( ( log2IntTotal ( ARG_0 ) +Int 8 ) divIntTotal 8 )
-                        +Int ( ( log2IntTotal ( ( ARG_0 *Int ARG_3 ) divIntTotal ( ARG_3 +Int ARG_4 ) ) +Int 8 ) divIntTotal 8 )
-                        +Int 96
-                      , LE
+                , SBChunk
+                    ( #bytes
+                      ( Int2Bytes
+                        ( 4
+                        , ( ( log2IntTotal ( ARG_0 ) +Int 8 ) divIntTotal 8 )
+                          +Int ( ( log2IntTotal ( ( ARG_0 *Int ARG_3 ) divIntTotal ( ARG_3 +Int ARG_4 ) ) +Int 8 ) divIntTotal 8 )
+                          +Int 96
+                        , LE
+                        )
                       )
                     )
-                  )
+                )
             )
         ) => doneSimplification(
           -1 *Int ( ( log2IntTotal ( ARG_0 ) +Int 8 ) divIntTotal 8 ) +Int 9908

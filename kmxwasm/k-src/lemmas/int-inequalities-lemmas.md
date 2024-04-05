@@ -198,6 +198,9 @@ module INT-INEQUALITIES-LEMMAS
   // rule A <Int B +Int C => A -Int C <Int B
   //     [simplification, concrete(A, C)]
 
+  rule A +Int B <=Int C +Int D => A +Int (B -Int D) <=Int C
+      [simplification, concrete(B, D)]
+
   // Moved to proven-mx-lemmas.md
   // rule A -Int B <=Int C => A <=Int C +Int B
   //     [simplification, concrete(B, C)]

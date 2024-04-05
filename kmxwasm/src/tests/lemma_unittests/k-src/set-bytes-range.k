@@ -17,7 +17,7 @@ module SET-BYTES-RANGE
             SBChunk ( #bytes (
                 Int2Bytes ( 8 , A , LE )
                 +Bytes b"\x00"
-            ) )
+            ) ):SparseBytes
         )
       </k>
       <commands> .K </commands>

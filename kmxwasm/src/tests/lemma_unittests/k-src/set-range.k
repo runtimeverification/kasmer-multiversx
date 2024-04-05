@@ -92,24 +92,30 @@ module SET-RANGE
               SBChunk ( #bytes ( Int2Bytes ( 4 , (((log2IntTotal ( ARG_0:Int )) +Int (8)) divIntTotal (8)) +Int (96) , LE ) ) )
               SBChunk ( #bytes ( b"\x01" ) )
             , 0
-            , Int2Bytes ( ((log2IntTotal ( ((ARG_0:Int) *Int (ARG_3:Int)) divIntTotal ((ARG_3:Int) +Int (ARG_4:Int)) )) +Int (8)) divIntTotal (8) , ((ARG_0:Int) *Int (ARG_3:Int)) divIntTotal ((ARG_3:Int) +Int (ARG_4:Int)) , BE )
+            , Int2Bytes
+              ( ((log2IntTotal ( ((ARG_0:Int) *Int (ARG_3:Int)) divIntTotal ((ARG_3:Int) +Int (ARG_4:Int)) )) +Int (8)) divIntTotal (8)
+              , ((ARG_0:Int) *Int (ARG_3:Int)) divIntTotal ((ARG_3:Int) +Int (ARG_4:Int))
+              , BE
+              )
             )
           , ((-1) *Int (((log2IntTotal ( ARG_0:Int )) +Int (8)) divIntTotal (8))) +Int (9904)
           , ((((log2IntTotal ( ARG_0:Int )) +Int (8)) divIntTotal (8)) +Int (((log2IntTotal ( ((ARG_0:Int) *Int (ARG_3:Int)) divIntTotal ((ARG_3:Int) +Int (ARG_4:Int)) )) +Int (8)) divIntTotal (8))) +Int (96)
           , 4
           )
       ) => doneSimplification(
-          ( replaceAtB
-              ( b"\x01"
-                +Bytes Int2Bytes ( 8 , int64encoding ( ARG_1 +Int ARG_2 , 0 , 1 , 2 , 3 , 4 , 5 , 6 , 7 ) , LE )
-                +Bytes Int2Bytes ( 8 , int64encoding ( ARG_1 +Int ARG_2 +Int ARG_3 +Int ARG_4 , 0 , 1 , 2 , 3 , 4 , 5 , 6 , 7 ) , LE )
-                +Bytes b"\x00"
-              , SBChunk ( #empty ( -1 *Int ( ( log2IntTotal ( ARG_0 ) +Int 8 ) divIntTotal 8 ) +Int 9886 ) )
-              , 0
-              , Int2Bytes ( ( log2IntTotal ( ( ARG_0 *Int ARG_3 ) divIntTotal ( ARG_3 +Int ARG_4 ) ) +Int 8 ) divIntTotal 8 , ( ARG_0 *Int ARG_3 ) divIntTotal ( ARG_3 +Int ARG_4 ) , BE )
-              )
-            SBChunk ( #bytes ( Int2Bytes ( 4 , ( ( log2IntTotal ( ARG_0 ) +Int 8 ) divIntTotal 8 ) +Int ( ( log2IntTotal ( ( ARG_0 *Int ARG_3 ) divIntTotal ( ARG_3 +Int ARG_4 ) ) +Int 8 ) divIntTotal 8 ) +Int 96 , LE ) ) )
-            SBChunk ( #bytes ( b"\x01" ) )
+          ( concat
+            ( replaceAtB
+                ( b"\x01"
+                  +Bytes Int2Bytes ( 8 , int64encoding ( ARG_1 +Int ARG_2 , 0 , 1 , 2 , 3 , 4 , 5 , 6 , 7 ) , LE )
+                  +Bytes Int2Bytes ( 8 , int64encoding ( ARG_1 +Int ARG_2 +Int ARG_3 +Int ARG_4 , 0 , 1 , 2 , 3 , 4 , 5 , 6 , 7 ) , LE )
+                  +Bytes b"\x00"
+                , SBChunk ( #empty ( -1 *Int ( ( log2IntTotal ( ARG_0 ) +Int 8 ) divIntTotal 8 ) +Int 9886 ) )
+                , 0
+                , Int2Bytes ( ( log2IntTotal ( ( ARG_0 *Int ARG_3 ) divIntTotal ( ARG_3 +Int ARG_4 ) ) +Int 8 ) divIntTotal 8 , ( ARG_0 *Int ARG_3 ) divIntTotal ( ARG_3 +Int ARG_4 ) , BE )
+                )
+            , SBChunk ( #bytes ( Int2Bytes ( 4 , ( ( log2IntTotal ( ARG_0 ) +Int 8 ) divIntTotal 8 ) +Int ( ( log2IntTotal ( ( ARG_0 *Int ARG_3 ) divIntTotal ( ARG_3 +Int ARG_4 ) ) +Int 8 ) divIntTotal 8 ) +Int 96 , LE ) ) )
+              SBChunk ( #bytes ( b"\x01" ) )
+            )
           ):SparseBytes:KItem
         )
       </k>
