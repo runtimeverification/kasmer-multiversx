@@ -341,7 +341,7 @@ module INT-LENGTH
             -1 *Int ( ( log2IntTotal ( ARG_0 ) +Int 8 ) divIntTotal 8 ) +Int 9891
           )
         ) => doneSimplification(
-          0
+          true
         )
       </k>
       <commands> .K </commands>

@@ -466,78 +466,13 @@ module INT-INEQUALITIES-LEMMAS
   rule 0 ==Int A divIntTotal B => A <Int B
       requires 0 <=Int A andBool 0 <Int B
       [simplification]
-/*
-  rule A +Int (_ &Int #bool(_)) <Int B => true
-      requires A <Int B -Int 1
-      [simplification]
-  rule A +Int (_ &Int #bool(_)) <=Int B => true
-      requires A <=Int B -Int 1
-      [simplification]
 
-  rule A +Int #bool(_) <Int B => true
-      requires A <Int B -Int 1
+  rule A divIntTotal B =/=Int 0 => B <=Int A
+      requires 0 <=Int A andBool 0 <Int B
       [simplification]
-  rule A +Int #bool(_) <=Int B => true
-      requires A <=Int B -Int 1
-      [simplification]
+  rule A divIntTotal B ==Int 0 => A <Int B
+    requires 0 <=Int A andBool 0 <Int B
+    [simplification]
 
-  rule B <Int A +Int (_ &Int #bool(_)) => true
-      requires B <Int A
-      [simplification]
-  rule B <=Int A +Int (_ &Int #bool(_)) => true
-      requires B <=Int A
-      [simplification]
-
-  rule B <Int A +Int #bool(_) => true
-      requires B <Int A
-      [simplification]
-  rule B <=Int A +Int #bool(_) => true
-      requires B <=Int A
-      [simplification]
-
-  rule A +Int (B &Int #bool(C)) ==Int 0 => A ==Int 0 andBool (B &Int #bool(C) ==Int 0)
-      requires 0 <=Int A
-      [simplification]
-  rule A +Int #bool(B) ==Int 0 => A ==Int 0 andBool #bool(B) ==Int 0
-      requires 0 <=Int A
-      [simplification]
-
-  rule A &Int #bool(B) ==Int 0 => (A ==Int 0) orBool (#bool(B) ==Int 0)
-      requires 0 <=Int A andBool A <=Int 1
-      [simplification]
-
-  rule A orBool (B orBool C) => (A orBool B) orBool C  [simplification]
-  rule A andBool (B andBool C) => (A andBool B) andBool C  [simplification]
-
-  rule (_ orBool A) andBool A => A [simplification]
-  rule (A orBool _) andBool A => A [simplification]
-  rule ((_ orBool A) orBool _) andBool A => A [simplification]
-  rule ((A orBool _) orBool _) andBool A => A [simplification]
-  rule (((_ orBool A) orBool _) orBool _) andBool A => A [simplification]
-  rule (((A orBool _) orBool _) orBool _) andBool A => A [simplification]
-  rule ((((_ orBool A) orBool _) orBool _) orBool _) andBool A => A [simplification]
-  rule ((((A orBool _) orBool _) orBool _) orBool _) andBool A => A [simplification]
-  rule (((((_ orBool A) orBool _) orBool _) orBool _) orBool _) andBool A => A [simplification]
-  rule (((((A orBool _) orBool _) orBool _) orBool _) orBool _) andBool A => A [simplification]
-  rule ((((((_ orBool A) orBool _) orBool _) orBool _) orBool _) orBool _) andBool A => A [simplification]
-  rule ((((((A orBool _) orBool _) orBool _) orBool _) orBool _) orBool _) andBool A => A [simplification]
-  rule (((((((_ orBool A) orBool _) orBool _) orBool _) orBool _) orBool _) orBool _) andBool A => A [simplification]
-  rule (((((((A orBool _) orBool _) orBool _) orBool _) orBool _) orBool _) orBool _) andBool A => A [simplification]
-
-  rule A andBool (_ orBool A) => A [simplification]
-  rule A andBool (A orBool _) => A [simplification]
-  rule A andBool ((_ orBool A) orBool _) => A [simplification]
-  rule A andBool ((A orBool _) orBool _) => A [simplification]
-  rule A andBool (((_ orBool A) orBool _) orBool _) => A [simplification]
-  rule A andBool (((A orBool _) orBool _) orBool _) => A [simplification]
-  rule A andBool ((((_ orBool A) orBool _) orBool _) orBool _) => A [simplification]
-  rule A andBool ((((A orBool _) orBool _) orBool _) orBool _) => A [simplification]
-  rule A andBool (((((_ orBool A) orBool _) orBool _) orBool _) orBool _) => A [simplification]
-  rule A andBool (((((A orBool _) orBool _) orBool _) orBool _) orBool _) => A [simplification]
-  rule A andBool ((((((_ orBool A) orBool _) orBool _) orBool _) orBool _) orBool _) => A [simplification]
-  rule A andBool ((((((A orBool _) orBool _) orBool _) orBool _) orBool _) orBool _) => A [simplification]
-  rule A andBool (((((((_ orBool A) orBool _) orBool _) orBool _) orBool _) orBool _) orBool _) => A [simplification]
-  rule A andBool (((((((A orBool _) orBool _) orBool _) orBool _) orBool _) orBool _) orBool _) => A [simplification]
-*/
 endmodule
 ```

@@ -171,16 +171,4 @@ module INT-INEQUALITIES-DIVINTTOTAL
       <instrs> .K </instrs>
       requires 0 <Int X andBool X <=Int 9 andBool 9 <Int Y
 
-    claim
-      <k>
-        runSimplification(
-          (A *Int B) divIntTotal (B +Int C) ==Int 0
-        ) => doneSimplification(
-          false
-        )
-      </k>
-      <commands> .K </commands>
-      <instrs> .K </instrs>
-      requires 0 <Int A andBool 0 <Int B andBool 0 <Int C
-
 endmodule

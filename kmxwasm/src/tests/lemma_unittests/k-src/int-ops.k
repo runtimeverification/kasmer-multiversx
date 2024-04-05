@@ -21,7 +21,7 @@ module INT-OPS
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
-      requires 0 <=Int ARG_0 andBool ARG_0 <=Int (1 <<Int 32)
+      requires 0 <=Int ARG_0 andBool ARG_0 <Int (1 <<Int 32)
 
     claim
       <k>

@@ -388,7 +388,14 @@ module INT-ENCODING
               )
             )
           )
-        ) => doneSimplification( #signedWidthTotal ( 1, int64encoding ( A, 0, -1, -1, -1, -1, -1, -1, -1 ) ) )
+        ) => doneSimplification (
+          ( #signedWidthTotal
+            ( 1
+            , optimizedInt64Encoding(A, true, true, true, true, true, true, true, true)
+              modIntTotal 256
+            )
+          )
+        )
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>

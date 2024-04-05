@@ -641,6 +641,10 @@ module INT-ENCODING-LEMMAS  [symbolic]
       >>IntTotal countConsecutiveZeroBits(A, 6)
       => optimizedInt64Encoding(A, true, false, false, false, false, false, false, false)
       [simplification]
+  rule int64encoding( A,  0,  1,  2,  3,  4,  5,  6,  7 )
+      >>IntTotal countConsecutiveZeroBits(A, 6)
+      => optimizedInt64Encoding(A, true, true, true, true, true, true, true, true)
+      [simplification]
 
   rule optimizedInt64Encoding(A, A8, A7, A6, A5, A4, A3, A2, A1)
         |Int optimizedInt64Encoding(A, B8, B7, B6, B5, B4, B3, B2, B1)
