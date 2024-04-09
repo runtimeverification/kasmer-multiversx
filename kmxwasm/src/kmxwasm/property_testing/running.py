@@ -212,10 +212,10 @@ def run_claim(
                 last_processed_node = node.id
                 last_time = current_time
 
-                assert len(list(kcfg.edges(source_id=node.id))) == 0
-                assert len(list(kcfg.covers(source_id=node.id))) == 0
-                assert len(list(kcfg.splits(source_id=node.id))) == 0
-                assert len(list(kcfg.successors(node.id))) == 0
+                assert len(list(kcfg.edges(source_id=node.id))) == 0, [node.id, [t.id for n in kcfg.edges(source_id=node.id) for t in n.targets]]
+                assert len(list(kcfg.covers(source_id=node.id))) == 0, [node.id, [t.id for n in kcfg.covers(source_id=node.id) for t in n.targets]]
+                assert len(list(kcfg.splits(source_id=node.id))) == 0, [node.id, [t.id for n in kcfg.splits(source_id=node.id) for t in n.targets]]
+                assert len(list(kcfg.successors(node.id))) == 0, [node.id, [t.id for n in kcfg.successors(node.id) for t in n.targets]]
 
                 try:
                     if command_is_new_wasm_instance(node.cterm.config):
@@ -273,6 +273,7 @@ def run_claim(
                             implies_result = tools.explorer.cterm_symbolic.implies(node.cterm, final_node.cterm)
                             if implies_result.csubst:
                                 kcfg.create_cover(node.id, final_node.id, implies_result.csubst)
+                                next_current_leaves.remove(node.id)
                     t.measure()
                 except ValueError:
                     if not kcfg.stuck:

@@ -6,6 +6,7 @@ requires "lemmas/int-inequalities-lemmas.md"
 requires "lemmas/int-length-lemmas.md"
 requires "lemmas/int-normalization-lemmas.md"
 requires "lemmas/sparse-bytes-lemmas.md"
+requires "lemmas/pair-specific-lemmas.md"
 
 module MX-LEMMAS-BASIC
   imports BOOL
@@ -44,6 +45,7 @@ module MX-LEMMAS  [symbolic]
   imports private INT-NORMALIZATION-LEMMAS
   imports public MX-LEMMAS-BASIC
   imports private SPARSE-BYTES-LEMMAS
+  imports private PAIR-SPECIFIC-LEMMAS
   imports private SET
   imports private WASM-TEXT
 
@@ -51,38 +53,6 @@ module MX-LEMMAS  [symbolic]
         => true
       requires 2 ^Int (8 *Int N) <=Int M
       [simplification]
-  rule N <=Int Bytes2Int(_:Bytes, _:Endianness, Unsigned)
-        => true
-      requires N <=Int 0
-      [simplification]
-
-  rule Bytes2Int(Int2Bytes(Length:Int, Value:Int, E), E:Endianness, Unsigned)
-      => Value modInt (2 ^Int (Length *Int 8))
-      requires 0 <=Int Value
-      [simplification]
-  rule Bytes2Int(Int2Bytes(Value:Int, E, S), E:Endianness, S:Signedness)
-      => Value
-      [simplification]
-  rule Bytes2Int(Int2Bytes(Value:Int, E, Signed), E:Endianness, Unsigned)
-      => Value
-      requires 0 <=Int Value
-      [simplification]
-
-  rule { b"" #Equals Int2Bytes(Len:Int, _Value:Int, _E:Endianness) }:Bool
-      => {0 #Equals Len}
-      [simplification]
-  rule { b"" #Equals Int2Bytes(Value:Int, _E:Endianness, _S:Signedness) }:Bool
-      => {0 #Equals Value}
-      [simplification]
-  rule { b"" #Equals substrBytesTotal(B:Bytes, Start:Int, End:Int) }
-      => {0 #Equals End -Int Start}
-      requires definedSubstrBytes(B, Start, End)
-      [simplification]
-  rule { b"" #Equals A }
-      => #Bottom
-      requires lengthBytes(A) >Int 0
-      [simplification(100)]
-  // rule { b"" #Equals B:Bytes } => {0 #Equals lengthBytes(B)}
 
   rule {false #Equals B:Bool} => #Not ({true #Equals B:Bool})
       [simplification]
@@ -724,6 +694,11 @@ module MX-LEMMAS  [symbolic]
   //     , Addr1, Val1, Width1
   //     )
   //     [simplification]
+  // rule padRightBytesTotal(replaceAtBytesTotal(Dest:Bytes, Pos:Int, Source:Bytes), Length:Int, Value:Int)
+  //     => replaceAtBytesTotal(padRightBytesTotal(Dest, Length, Value), Pos, Source)
+  //     requires definedReplaceAtBytes(Dest, Pos, Source)
+  //         andBool definedPadRightBytes(Dest, Length, Value)
+  //     [simplification]
 
   rule size(#setRange(M:SparseBytes, Addr:Int, Val:Int, Width:Int))
     => maxInt(Addr +Int Width, size(M))
@@ -897,18 +872,6 @@ module MX-LEMMAS  [symbolic]
           andBool size(A) <Int End
       [simplification]
 
-  rule substrBytesTotal(_, Start:Int, Start:Int)
-      => b""
-      [simplification(40)]
-  rule substrBytesTotal(Int2Bytes(Size:Int, Value:Int, LE), Start:Int, End:Int)
-      => Int2Bytes(
-          End -Int Start,
-          (Value >>Int (8 *Int Start)),
-          LE
-      )
-      requires 0 <=Int Start andBool Start <=Int End andBool End <=Int Size
-      [simplification]
-
   rule disjontRanges
         ( (A1:Int modIntTotal M1:Int) +Int B1:Int, Len1:Int
         , (A2:Int modIntTotal M2:Int) +Int B2:Int, Len2:Int
@@ -1035,9 +998,6 @@ module MX-LEMMAS  [symbolic]
       )
     [simplification]
 
-
-  rule lengthBytes(Int2Bytes(Len:Int, _:Int, _:Endianness)) => Len  [simplification]
-
   rule size(replaceAtB(Current:Bytes, Rest:SparseBytes, Start:Int, Value:Bytes))
       => lengthBytes(Current) +Int size(Rest)
       requires Start +Int lengthBytes(Value) <=Int lengthBytes(Current) +Int size(Rest)
@@ -1082,14 +1042,6 @@ module MX-LEMMAS  [symbolic]
 
   rule (A +String B) +String C => A +String (B +String C)
       [simplification, concrete(B,C)]
-
-  rule b"" +Bytes B => B
-  rule B +Bytes b"" => B
-      [simplification]
-  rule (A +Bytes B) +Bytes C => A +Bytes (B +Bytes C)
-      [simplification, concrete(B, C), symbolic(A)]
-  rule A +Bytes (B +Bytes C) => (A +Bytes B) +Bytes C
-      [simplification, concrete(A, B), symbolic(C)]
 
   rule notBool notBool B => B
       [simplification]

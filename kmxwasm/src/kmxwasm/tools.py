@@ -83,6 +83,7 @@ class Tools:
                         '--smt-timeout',
                         '1000',
                         '--equation-max-iterations', '1000',
+                        '--equation-max-recursion', '100'
                         # '--no-smt',
                         # '-l', 'Rewrite',
                         # '-l', 'SimplifySuccess',

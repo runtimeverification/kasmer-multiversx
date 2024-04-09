@@ -59,7 +59,7 @@ module SPARSE-BYTES-LEMMAS
       => structureReverse(A, SB2, Size +Int size(SB1), rconcat(SB1, RSB))
       [simplification(50)]
   rule structureReverse(A, SB:SparseBytes, Size:Int, RSB:ReversedSparseBytes)
-      => structureReverseDone(A, Size, rconcat(SB, RSB))
+      => structureReverseDone(A, Size +Int size(SB), rconcat(SB, RSB))
       [simplification(51)]
 
   syntax Bool ::= #isNarrowable(Expression)  [function, total]
