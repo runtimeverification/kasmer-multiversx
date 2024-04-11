@@ -22,6 +22,11 @@ backend='haskell'
 main-file = 'lemmas/semantics/mx-wasm-lemma-tests.md'
 backend='haskell'
 
+[targets.lemma-tests-booster]
+main-file = 'lemmas/semantics/mx-wasm-lemma-tests.md'
+llvm-kompile-type='c'
+backend='llvm'
+
 [targets.llvm-library]
 llvm-kompile-type='c'
 main-file = 'mx-wasm.md'

@@ -2,10 +2,11 @@
 requires "../ceils-syntax.k"
 
 module INT-LENGTH-LEMMAS-BASIC
+  imports BINARY-SEARCH-SYNTAX
   imports INT
 
-  syntax Int ::= lenghtInBytes(Int)  [function]
-  rule lenghtInBytes(A) => (log2Int(A) +Int 8) divInt 8
+  syntax Int ::= lengthInBytes(Int)  [function]
+  rule lengthInBytes(A) => (log2Int(A) +Int 8) divInt 8
 
   syntax Int ::= maxForLength(Int)  [function]
   // We want the largest X for which
@@ -21,6 +22,9 @@ module INT-LENGTH-LEMMAS-BASIC
   // This means that X is 2 ^ (A * 8 - 1 + 1) - 1, i.e.,
   // X = 2 ^ (A * 8) - 1
   rule maxForLength(A) => 2 ^Int (A *Int 8) -Int 1 requires 0 <Int A
+
+  syntax BinSearchBeforeLambda ::= ValueLessMFL(Int)
+  rule evaluate(ValueLessMFL(B), X) => B <=Int maxForLength(X)
 endmodule
 
 module INT-LENGTH-LEMMAS  [symbolic]
@@ -30,21 +34,9 @@ module INT-LENGTH-LEMMAS  [symbolic]
   imports INT
   imports INT-LENGTH-LEMMAS-BASIC
 
-  syntax BinSearchBeforeLambda ::= ValueLessMFL(Int)
-  rule evaluate(ValueLessMFL(B), X) => B <=Int maxForLength(X)
-
-  syntax BinSearchResultLambda ::=  GeqThan(Int)
-                                  | GtThan(Int)
-                                  | LeqThan(Int)
-                                  | LtThan(Int)
-  rule evaluate(GeqThan(A), _:Int, Max:Int) => true
-      requires A <=Int Max
-  rule evaluate(GtThan(A), _:Int, Max:Int) => true
-      requires A <Int Max
-  rule evaluate(LtThan(A), _:Int, Max:Int) => true
-      requires Max <Int A
-  rule evaluate(LeqThan(A), _:Int, Max:Int) => true
-      requires Max <Int A
+  rule lengthBytes(Int2Bytes(A:Int, BE, Unsigned)) => lengthInBytes(A)
+      requires 0 <Int A
+      [simplification]
 
   rule A <Int (log2IntTotal(B) +Int 8) divIntTotal 8 => false
       requires findLowerUnknown(ValueLessMFL(B), LeqThan(A), 1, 10000)
@@ -145,11 +137,10 @@ module INT-LENGTH-LEMMAS  [symbolic]
       [simplification, smt-lemma]
 endmodule
 
-module BINARY-SEARCH
+module BINARY-SEARCH-SYNTAX
   imports BOOL
   imports INT
 
-  syntax BinSearchResultLambda
   syntax Bool ::= evaluate(BinSearchResultLambda, min:Int, max:Int)  [function, total]
 
   syntax BinSearchBeforeLambda
@@ -157,6 +148,15 @@ module BINARY-SEARCH
 
   syntax Bool ::= findLowerUnknown(BinSearchBeforeLambda, BinSearchResultLambda, min:Int, max:Int)
       [function, total]
+
+  syntax BinSearchResultLambda ::=  GeqThan(Int)
+                                  | GtThan(Int)
+                                  | LeqThan(Int)
+                                  | LtThan(Int)
+endmodule
+
+module BINARY-SEARCH [symbolic]
+  imports BINARY-SEARCH-SYNTAX
 
   rule findLowerUnknown(_:BinSearchBeforeLambda, R:BinSearchResultLambda, Min, Max)
       => evaluate(R, Min, Max)
@@ -171,6 +171,15 @@ module BINARY-SEARCH
       => findLowerUnknown(B, R, (Min +Int Max) /Int 2, Max)
       requires Min <Int Max -Int 1
       [simplification(51)]
+
+  rule evaluate(GeqThan(A), _:Int, Max:Int) => true
+      requires A <=Int Max
+  rule evaluate(GtThan(A), _:Int, Max:Int) => true
+      requires A <Int Max
+  rule evaluate(LtThan(A), _:Int, Max:Int) => true
+      requires Max <Int A
+  rule evaluate(LeqThan(A), _:Int, Max:Int) => true
+      requires Max <Int A
 endmodule
 
 ```
