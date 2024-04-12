@@ -4,8 +4,6 @@ module SPARSE-BYTES-LEMMAS-SYNTAX
 
   syntax Expression
 
-  syntax SparseBytes ::= concat(SparseBytes, SparseBytes)  [function, total]
-
   syntax SparseBytes ::= narrowSparseBytes(initialFormula: Expression, toNarrow: SparseBytes)  [function, total]
   syntax Int ::= narrowInt(initialFormula: Expression, toNarrow: SparseBytes)  [function, total]
 
@@ -28,15 +26,8 @@ module SPARSE-BYTES-LEMMAS-SYNTAX
 endmodule
 
 module SPARSE-BYTES-LEMMAS
+  imports private SPARSE-BYTES-LEMMAS-BASIC
   imports SPARSE-BYTES-LEMMAS-SYNTAX
-
-  rule concat(.SparseBytes, A:SparseBytes) => A
-  rule concat(A:SBItemChunk B:SparseBytes, C:SparseBytes) => A concat(B, C)
-
-  rule concat(A, .SparseBytes) => A
-      [simplification]
-  rule concat(concat(A:SparseBytes, B:SparseBytes), C:SparseBytes) => concat(A, concat(B, C))
-      [simplification]
 
   // Narrowing
 

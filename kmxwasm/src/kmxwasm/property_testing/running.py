@@ -3,6 +3,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
+from pyk.cterm.symbolic import CTermImplies
 from pyk.kast.inner import KInner
 from pyk.kast.outer import KClaim
 from pyk.kcfg import KCFG
@@ -174,10 +175,13 @@ def run_claim(
                 if init_node_id == -1:
                     init_node_id = node.id
                 else:
-                    raise ValueError(f"Cannot figure out the init node {init_node_id} vs {node.id}")
+                    raise ValueError(f'Cannot figure out the init node {init_node_id} vs {node.id}')
     else:
         (kcfg, init_node_id, target_node_id) = KCFG.from_claim(tools.printer.definition, claim, cfg_dir=kcfg_path)
         final_node = kcfg.node(target_node_id)
+
+    init_node = kcfg.get_node(init_node_id)
+    assert init_node
 
     a = abstracters(target_node_id)
     all_abstracters = [abstracter for abstracter, _, _ in a]
@@ -212,16 +216,28 @@ def run_claim(
                 last_processed_node = node.id
                 last_time = current_time
 
-                assert len(list(kcfg.edges(source_id=node.id))) == 0, [node.id, [t.id for n in kcfg.edges(source_id=node.id) for t in n.targets]]
-                assert len(list(kcfg.covers(source_id=node.id))) == 0, [node.id, [t.id for n in kcfg.covers(source_id=node.id) for t in n.targets]]
-                assert len(list(kcfg.splits(source_id=node.id))) == 0, [node.id, [t.id for n in kcfg.splits(source_id=node.id) for t in n.targets]]
-                assert len(list(kcfg.successors(node.id))) == 0, [node.id, [t.id for n in kcfg.successors(node.id) for t in n.targets]]
+                assert len(list(kcfg.edges(source_id=node.id))) == 0, [
+                    node.id,
+                    [t.id for n in kcfg.edges(source_id=node.id) for t in n.targets],
+                ]
+                assert len(list(kcfg.covers(source_id=node.id))) == 0, [
+                    node.id,
+                    [t.id for n in kcfg.covers(source_id=node.id) for t in n.targets],
+                ]
+                assert len(list(kcfg.splits(source_id=node.id))) == 0, [
+                    node.id,
+                    [t.id for n in kcfg.splits(source_id=node.id) for t in n.targets],
+                ]
+                assert len(list(kcfg.successors(node.id))) == 0, [
+                    node.id,
+                    [t.id for n in kcfg.successors(node.id) for t in n.targets],
+                ]
 
                 try:
                     if command_is_new_wasm_instance(node.cterm.config):
                         print('is new wasm')
                         t = Timer('  Initialize wasm')
-                        wasm_initializer.initialize(kcfg=kcfg, start_node=node, first_node=kcfg.get_node(init_node_id))
+                        wasm_initializer.initialize(kcfg=kcfg, start_node=node, first_node=init_node)
                         t.measure()
                     elif touches_abstract_content(all_abstract_identifiers, node.cterm.config):
                         print('changes abstracted cell')
@@ -255,7 +271,7 @@ def run_claim(
                             leaves = set(new_leaves(kcfg, non_final, final_node.id))
                             leaves.add(node.id)
                             t.measure()
-                            print(f'Concretizing: {[n for n in leaves]}')
+                            print(f'Concretizing: {list(leaves)}')
                             concretize(all_abstracters, kcfg, leaves)
                             t.measure()
                     current_leaves = new_leaves(kcfg, non_final, final_node.id)
@@ -264,7 +280,9 @@ def run_claim(
                         print(f'Depth for {e.source.id} -> {e.target.id}: {e.depth}')
                     for node_id in current_leaves:
                         next_current_leaves.add(node_id)
-                    print(f'Branch count: {iteration_start_branches - iteration_processed_branches + len(next_current_leaves)}')
+                    print(
+                        f'Branch count: {iteration_start_branches - iteration_processed_branches + len(next_current_leaves)}'
+                    )
                     t = Timer('  Check final')
                     for node_id in current_leaves:
                         non_final.add(node_id)
@@ -335,8 +353,8 @@ def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int) -> RunClaim
             assert not middle_node
             middle_node = node
 
-            csubst = tools.explorer.cterm_symbolic.implies(node.cterm, final_node.cterm)
-            assert not csubst, [csubst, node.id, final_node.id, to_ignore]
+            implies_result: CTermImplies = tools.explorer.cterm_symbolic.implies(node.cterm, final_node.cterm)
+            assert not implies_result.csubst, [implies_result, node.id, final_node.id, to_ignore]
         assert middle_node
 
         middle_time = time.time()

@@ -41,6 +41,7 @@ def write_json(term_dict: dict[str, Any], output_file: Path) -> None:
 def write_kinner_json(term: KInner, output_file: Path) -> None:
     write_json(term.to_dict(), output_file)
 
+
 def load_kcfg_node(kcfg_path: Path, node_id: int) -> KCFG.Node:
     nodes_dir = kcfg_path / 'nodes'
     node_json = nodes_dir / (str(node_id) + '.json')

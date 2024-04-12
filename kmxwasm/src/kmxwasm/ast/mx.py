@@ -258,7 +258,7 @@ def cfg_touches_code(k: str | None, command: str | None, instr: str | None) -> b
         'createAccount',
         'pushWorldState',
         'popWorldState',
-        'determineIsSCCallAfter'
+        'determineIsSCCallAfter',
     ]:
         return True
     if not instr:
@@ -352,10 +352,6 @@ def set_big_int_heap_cell_content(root: KInner, replacement: KInner) -> KInner:
 
 def set_buffer_heap_cell_content(root: KInner, replacement: KInner) -> KInner:
     return set_single_argument_kapply_contents(root, '<bufferHeap>', replacement)
-
-
-def set_exit_code_cell_content(root: KInner, replacement: KInner) -> KInner:
-    return set_single_argument_kapply_contents(root, '<exit-code>', replacement)
 
 
 def set_exit_code_cell_content(root: KInner, replacement: KInner) -> KInner:
