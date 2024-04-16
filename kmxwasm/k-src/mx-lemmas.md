@@ -12,13 +12,19 @@ requires "lemmas/sparse-bytes/sparse-bytes-lemmas.md"
 
 module MX-LEMMAS-BASIC
   imports BOOL
+  imports GET-BYTES-RANGE-LEMMAS-BASIC
+  imports GET-RANGE-LEMMAS-BASIC
   imports HANDLE-SPARSE-BYTES-LEMMAS-SYNTAX
   imports INT
   imports INT-ENCODING-BASIC
   imports INT-LENGTH-LEMMAS-BASIC
   imports INT-NORMALIZATION-LEMMAS-BASIC
+  imports REPLACE-AT-B-LEMMAS-BASIC
+  imports REPLACE-AT-LEMMAS-BASIC
+  imports SET-RANGE-LEMMAS-BASIC
   imports SPARSE-BYTES-LEMMAS-BASIC
   imports SPARSE-BYTES-LEMMAS-SYNTAX
+  imports SUBSTR-SPARSE-BYTES-LEMMAS-BASIC
 endmodule
 
 module MX-LEMMAS  [symbolic]

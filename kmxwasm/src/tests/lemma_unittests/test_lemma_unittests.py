@@ -7,7 +7,6 @@ from pyk.prelude.ml import mlOr
 from kmxwasm.testing.fixtures import Tools
 
 CURRENT_DIR = Path(__file__).parent
-K_SRC_DIR = CURRENT_DIR.parent.parent.parent / 'k-src'
 LEMMA_PROOFS_DIR = CURRENT_DIR / 'k-src'
 PROVE_FILES = tuple(LEMMA_PROOFS_DIR.rglob('*.k'))
 PROVE_TEST_DATA = tuple(((str(input_path.relative_to(CURRENT_DIR)), input_path)) for input_path in PROVE_FILES)

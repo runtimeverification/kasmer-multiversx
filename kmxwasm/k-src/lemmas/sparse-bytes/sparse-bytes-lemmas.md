@@ -1,7 +1,7 @@
 ```k
 requires "get-bytes-range-lemmas.md"
 requires "get-range-lemmas.md"
-requires "handle-sparse-bytes.md"
+requires "handle-sparse-bytes-lemmas.md"
 requires "replace-at-b-lemmas.md"
 requires "replace-at-lemmas.md"
 requires "set-range-lemmas.md"

@@ -380,7 +380,7 @@ module GET-RANGE
       <commands> .K </commands>
       <instrs> .K </instrs>
 
-    claim
+    claim  // 5 min
       <k>
         runSimplification(
             #getRange
@@ -496,4 +496,30 @@ module GET-RANGE
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
+
+    claim
+      <k>
+        runSimplification(
+            #getRange
+              ( SBChunk
+                ( #bytes
+                  ( Int2Bytes
+                    ( 4
+                    , ((log2IntTotal ( (ARG_0:Int) +Int (-1000) )) +Int (8)) divIntTotal (8)
+                    , LE
+                    )
+                  )
+                )
+                .SparseBytes
+              , 0
+              , 4
+              )
+        ) => doneSimplification(((log2IntTotal ( (ARG_0:Int) +Int (-1000) )) +Int (8)) divIntTotal (8))
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+    requires true
+        andBool 1000 <Int ARG_0
+        andBool ARG_0 <Int (1 <<Int 100)
+
 endmodule
