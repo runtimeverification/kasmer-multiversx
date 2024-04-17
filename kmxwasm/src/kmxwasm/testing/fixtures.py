@@ -1,5 +1,6 @@
 import pytest
 from filelock import FileLock
+from pyk.utils import BugReport
 from pytest import FixtureRequest, Parser, TempPathFactory
 
 from ..build import HASKELL, LEMMA_PROOFS, LEMMA_TESTS, Kompiled, kbuild_semantics
@@ -26,9 +27,9 @@ def kompiled(request: FixtureRequest, tmp_path_factory: TempPathFactory, worker_
         return Kompiled(output_dir=build_path, config_file=KBUILD_ML_PATH, target=HASKELL, llvm=True, booster=True)
 
 
-@pytest.fixture(scope='session')
-def tools(kompiled: Kompiled) -> Tools:
-    return kompiled.make_tools(bug_report=None)
+@pytest.fixture
+def tools(kompiled: Kompiled, bug_report: BugReport) -> Tools:
+    return kompiled.make_tools(bug_report)
 
 
 @pytest.fixture(scope='session')
