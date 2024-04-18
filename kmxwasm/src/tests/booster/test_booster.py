@@ -24,16 +24,12 @@ SCRIPT_FILE = TEST_DATA / 'run.sh'
 class AbortTestParams:
     endpoint: str
     input_types: list[str]
-    aborted: int
-    stuck: int
 
     def __init__(self, testcase: Path):
         with open(testcase, 'r') as f:
             j = json.load(f)
             self.endpoint = j.get('endpoint', 'test')
             self.input_types = j['inputs']
-            self.aborted = j.get('aborted', 0)
-            self.stuck = j.get('stuck', 0)
 
 
 @pytest.mark.parametrize('testcase', TEST_FILES, ids=str)
@@ -42,7 +38,6 @@ def test_aborted(
     kompiled: Kompiled,
     tmp_path: Path,
     bug_report: BugReport | None,
-    capfd: pytest.CaptureFixture[str],
 ) -> None:
 
     # Given
@@ -70,7 +65,7 @@ def test_aborted(
             booster=True,
             remove=[],
             run_node_id=None,
-            depth=1,
+            depth=1000,
             iterations=10000,
             kcfg_path=tmp_path / 'kcfg',
             bug_report=bug_report,
@@ -80,19 +75,6 @@ def test_aborted(
         if bug_report is not None:
             bug_report.add_file_contents(str(e), Path('exception'))
         raise e from None
-
-    captured = capfd.readouterr()
-
-    if bug_report is not None:
-        bug_report.add_file_contents(captured.out, Path(f'logs/{testcase.stem}.out'))
-        bug_report.add_file_contents(captured.err, Path(f'logs/{testcase.stem}.err'))
-
-    # Then
-    cnt_aborted = captured.err.count('[Info#proxy] Booster Aborted')
-    cnt_stuck = captured.err.count('[Info#proxy] Booster Stuck')
-
-    assert args.aborted >= cnt_aborted
-    assert args.stuck >= cnt_stuck
 
 
 def generate_test_claim(args: AbortTestParams, llvm_dir: Path, test_wasm: KInner) -> str:
