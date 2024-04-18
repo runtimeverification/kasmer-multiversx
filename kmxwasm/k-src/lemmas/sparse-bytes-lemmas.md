@@ -49,6 +49,9 @@ module SPARSE-BYTES-LEMMAS
   rule structureReverse(A, concat(SB1:SparseBytes, SB2:SparseBytes), Size:Int, RSB:ReversedSparseBytes)
       => structureReverse(A, SB2, Size +Int size(SB1), rconcat(SB1, RSB))
       [simplification(50)]
+  rule structureReverse(A, merge(SB1:SBItemChunk, SB2:SparseBytes), Size:Int, RSB:ReversedSparseBytes)
+      => structureReverse(A, SB2, Size +Int size(SB1), rconcat(SB1, RSB))
+      [simplification(50)]
   rule structureReverse(A, SB:SparseBytes, Size:Int, RSB:ReversedSparseBytes)
       => structureReverseDone(A, Size +Int size(SB), rconcat(SB, RSB))
       [simplification(51)]
@@ -110,6 +113,10 @@ module SPARSE-BYTES-LEMMAS
       requires size(A) <=Int Start
       [simplification(50)]
   rule narrowPrefix(... initialFormula: Initial:Expression, prefix: Prefix, limits: limits(Start, Size), toNarrow: concat(A:SparseBytes, ToNarrow:SparseBytes))
+      => narrowPrefix(... initialFormula: Initial, prefix: rconcat(A, Prefix), limits: limits(Start -Int size(A), Size), toNarrow: ToNarrow)
+      requires size(A) <=Int Start
+      [simplification(50)]
+  rule narrowPrefix(... initialFormula: Initial:Expression, prefix: Prefix, limits: limits(Start, Size), toNarrow: merge(A:SBItemChunk, ToNarrow:SparseBytes))
       => narrowPrefix(... initialFormula: Initial, prefix: rconcat(A, Prefix), limits: limits(Start -Int size(A), Size), toNarrow: ToNarrow)
       requires size(A) <=Int Start
       [simplification(50)]

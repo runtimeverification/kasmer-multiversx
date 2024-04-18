@@ -7,17 +7,13 @@ endmodule
 module GET-BYTES-RANGE-LEMMAS  [symbolic]
     imports GET-BYTES-RANGE-LEMMAS-BASIC
 
-    rule functionSparseBytesWellDefined(
-            getBytesRange, _SbSize:Int, Start:Int, Width:Int
-        )
-        => 0 <Int Width andBool 0 <=Int Start
     rule functionCommutesAtStart(getBytesRange) => true
 
     rule #getBytesRange(SB, Addr:Int, Width:Int)
         => unwrap(extractSparseBytes(getBytesRange, SB, Addr, Width))
         requires (0 <Int Addr orBool Addr +Int Width =/=Int size(SB))
              andBool Addr <Int size(SB)
-             andBool functionSparseBytesWellDefined(getBytesRange, size(SB), Addr, Width)
+             andBool 0 <Int Width andBool 0 <=Int Addr
         [simplification]
     rule extractSparseBytes(getBytesRange, SB, Addr, Width)
         => fromBytes(#getBytesRange(SB, Addr, Width))

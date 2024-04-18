@@ -8,28 +8,28 @@ module SUBSTR-SPARSE-BYTES-LEMMAS
     imports SPARSE-BYTES-LEMMAS-BASIC
     imports SUBSTR-SPARSE-BYTES-LEMMAS-BASIC
 
-    rule functionSparseBytesWellDefined(
-            substr, _SbSize:Int, Start:Int, Width:Int
-        )
-        => 0 <=Int Start andBool 0 <=Int Width
     rule functionCommutesAtStart(substr) => true
 
     rule substrSparseBytes(SBI:SBItemChunk SB, Addr:Int, Width:Int)
         => extractSparseBytes(substr, SBI SB, Addr, Width)
         requires 0 <Int size(SB)
-            andBool functionSparseBytesWellDefined(substr, size(SBI SB), Addr, Width)
+            andBool 0 <=Int Addr andBool 0 <=Int Width
         [simplification]
     rule substrSparseBytes(concat(SB1, SB2), Addr:Int, Width:Int)
         => extractSparseBytes(substr, concat(SB1, SB2), Addr, Width)
-        requires functionSparseBytesWellDefined(substr, size(concat(SB1, SB2)), Addr, Width)
+        requires 0 <=Int Addr andBool 0 <=Int Width
+        [simplification]
+    rule substrSparseBytes(merge(SB1, SB2), Addr:Int, Width:Int)
+        => extractSparseBytes(substr, merge(SB1, SB2), Addr, Width)
+        requires 0 <=Int Addr andBool 0 <=Int Width
         [simplification]
     rule substrSparseBytes(extractSparseBytes(F, SB, A, W), Addr:Int, Width:Int)
         => extractSparseBytes(substr, extractSparseBytes(F, SB, A, W), Addr, Width)
-        requires functionSparseBytesWellDefined(substr, size(extractSparseBytes(F, SB, A, W)), Addr, Width)
+        requires 0 <=Int Addr andBool 0 <=Int Width
         [simplification]
     rule substrSparseBytes(substrSparseBytes(SB, A, W), Addr:Int, Width:Int)
         => extractSparseBytes(substr, substrSparseBytes(SB, A, W), Addr, Width)
-        requires functionSparseBytesWellDefined(substr, size(substrSparseBytes(SB, A, W)), Addr, Width)
+        requires 0 <=Int Addr andBool 0 <=Int Width
         [simplification]
 
     rule extractSparseBytes(substr, SB, Start, Width)

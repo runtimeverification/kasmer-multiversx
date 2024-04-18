@@ -9,24 +9,24 @@ module REPLACE-AT-LEMMAS
     imports REPLACE-AT-LEMMAS-BASIC
 
     rule functionSparseBytesWellDefined(
-            replaceAt(_Val:Bytes), _SBSize:Int, Addr:Int, Width:Int
+            replaceAt(_Val:Bytes), Addr:Int, Width:Int
         )
         => 0 <=Int Addr andBool 0 <Int Width
     rule updateSparseBytesSize(
             replaceAt(Val:Bytes), SBSize:Int, Addr:Int, Width:Int
         )
-        => maxInt(SBSize +Int lengthBytes(Val), Addr +Int Width)
+        => maxInt(SBSize, Addr +Int Width)
         requires functionSparseBytesWellDefined(
-            replaceAt(Val:Bytes), SBSize, Addr, Width
+            replaceAt(Val:Bytes), Addr, Width
         )
     rule startOffset(replaceAt(_:Bytes)) => 0
     rule functionCommutesAtStart(replaceAt(_:Bytes)) => true
     rule getReplacementSparseBytes(
-            replaceAt(Value:Bytes), SB:SparseBytes, Addr:Int, Width:Int
+            replaceAt(Value:Bytes), Addr:Int, Width:Int
         )
         => SBChunk(#bytes(Value))
         requires functionSparseBytesWellDefined(
-                replaceAt(Value:Bytes), size(SB), Addr, Width
+                replaceAt(Value:Bytes), Addr, Width
             )
           andBool Width ==Int lengthBytes(Value)
 
@@ -35,7 +35,7 @@ module REPLACE-AT-LEMMAS
               replaceAt(Value), SB, Addr, lengthBytes(Value)
           )
         requires functionSparseBytesWellDefined(
-              replaceAt(Value), size(SB), Addr, lengthBytes(Value)
+              replaceAt(Value), Addr, lengthBytes(Value)
           )
       [simplification, symbolic(SB)]
     rule replaceAt(SB:SparseBytes, Addr:Int, Value:Bytes)
@@ -43,7 +43,7 @@ module REPLACE-AT-LEMMAS
               replaceAt(Value), SB, Addr, lengthBytes(Value)
           )
         requires functionSparseBytesWellDefined(
-              replaceAt(Value), size(SB), Addr, lengthBytes(Value)
+              replaceAt(Value), Addr, lengthBytes(Value)
           )
       [simplification, symbolic(Addr)]
     rule replaceAt(SB:SparseBytes, Addr:Int, Value:Bytes)
@@ -51,17 +51,18 @@ module REPLACE-AT-LEMMAS
               replaceAt(Value), SB, Addr, lengthBytes(Value)
           )
         requires functionSparseBytesWellDefined(
-              replaceAt(Value), size(SB), Addr, lengthBytes(Value)
+              replaceAt(Value), Addr, lengthBytes(Value)
           )
       [simplification, symbolic(Value)]
 
     rule updateSparseBytes(
-              replaceAt(Value), SB, Addr, lengthBytes(Value)
+              replaceAt(Value), SB, Addr, Width
           )
         => replaceAt(SB, Addr, Value)
         requires functionSparseBytesWellDefined(
-              replaceAt(Value), size(SB), Addr, lengthBytes(Value)
+              replaceAt(Value), Addr, Width
           )
+          andBool Width ==Int lengthBytes(Value)
       [simplification, concrete]
 endmodule
 

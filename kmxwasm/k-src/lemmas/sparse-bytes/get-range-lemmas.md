@@ -11,7 +11,7 @@ module GET-RANGE-LEMMAS
     rule #getRange(SB, Addr:Int, Width:Int)
         => Bytes2Int(unwrap(extractSparseBytes(getBytesRange, SB, Addr, Width)), LE, Unsigned)
         requires Addr <Int size(SB)
-             andBool functionSparseBytesWellDefined(getBytesRange, size(SB), Addr, Width)
+             andBool 0 <Int Width andBool 0 <=Int Addr
         [simplification]
 
 endmodule

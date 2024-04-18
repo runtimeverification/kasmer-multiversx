@@ -169,7 +169,7 @@ def instrs_cell_contents(root: KInner) -> KSequence | None:
         return None
     assert len(instrs.args) == 1
     seq = instrs.args[0]
-    assert isinstance(seq, KSequence)
+    assert isinstance(seq, KSequence), [seq, type(seq)]
     return seq
 
 

@@ -7,7 +7,11 @@ module SPARSE-BYTES-LEMMAS-BASIC
 
   syntax SparseBytes ::= concat(SparseBytes, SparseBytes)  [function, total, symbol(concatSparseBytes)]
   rule concat(.SparseBytes, A:SparseBytes) => A
-  rule concat(A:SBItemChunk B:SparseBytes, C:SparseBytes) => A concat(B, C)
+  rule concat(A:SBItemChunk B:SparseBytes, C:SparseBytes) => merge(A, concat(B, C))
+  syntax SparseBytes ::= merge(SBItemChunk, SparseBytes)  [function, total, symbol(mergeSparseBytes)]
+  rule merge(SBChunk(#bytes(A)), SBChunk(#bytes(B)) C:SparseBytes) => SBChunk(#bytes(A +Bytes B)) C
+  rule merge(SBChunk(#empty(A)), SBChunk(#empty(B)) C:SparseBytes) => SBChunk(#empty(A +Int B)) C
+  rule merge(A:SBItemChunk, B:SparseBytes) => A B [owise]
 
   syntax Bool ::= #setRangeActuallySets(addr:Int, val:Int, width:Int)  [function, total]
   rule #setRangeActuallySets(Addr:Int, Val:Int, Width:Int)

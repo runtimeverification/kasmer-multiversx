@@ -178,6 +178,8 @@ module MX-LEMMAS  [symbolic]
       [simplification]
   rule size(concat(A:SparseBytes, B:SparseBytes)) => size(A) +Int size(B)
       [simplification]
+  rule size(merge(A:SBItemChunk, B:SparseBytes)) => size(A) +Int size(B)
+      [simplification]
   rule 0 <=Int size(_:SparseBytes) => true
       [simplification]
 
