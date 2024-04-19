@@ -49,6 +49,7 @@ jobs:
         uses: Gr1N/setup-poetry@v8
       - name: 'Build and run code quality checks'
         run: make -C kmxwasm check
+
   unit-tests:
     name: 'Kmxwasm unittests'
     runs-on: [self-hosted, linux, normal]
@@ -70,6 +71,7 @@ jobs:
       - name: 'Tear down Docker'
         if: always()
         run: docker stop --time 0 mx-wasm-ci-${GITHUB_SHA}
+
   integration-tests:
     name: 'Kmxwasm integration tests'
     runs-on: [self-hosted, linux, normal]
@@ -84,15 +86,16 @@ jobs:
         uses: ./.github/actions/with-docker
         with:
           container-name: mx-wasm-ci-${{ github.sha }}
-      - name: 'Install dependencies'
-        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} poetry -C kmxwasm install
-      - name: 'Build Haskell semantics'
-        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm kbuild-haskell
+      - name: 'Build kmxwasm'
+        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make kmxwasm
+      - name: 'Build semantics'
+        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make build
       - name: 'Run integration tests'
         run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-integration
       - name: 'Tear down Docker'
         if: always()
         run: docker stop --time 0 mx-wasm-ci-${GITHUB_SHA}
+
   booster-tests:
     name: 'Kmxwasm booster tests'
     runs-on: [self-hosted, linux, normal]
@@ -107,15 +110,16 @@ jobs:
         uses: ./.github/actions/with-docker
         with:
           container-name: mx-wasm-ci-${{ github.sha }}
-      - name: 'Install dependencies'
-        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} poetry -C kmxwasm install
-      - name: 'Build Haskell semantics'
-        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm kbuild-haskell
+      - name: 'Build kmxwasm'
+        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make kmxwasm
+      - name: 'Build semantics'
+        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make build
       - name: 'Run booster tests'
         run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-booster
       - name: 'Tear down Docker'
         if: always()
         run: docker stop --time 0 mx-wasm-ci-${GITHUB_SHA}
+
   lemma-tests:
     name: 'Build and Test lemmas'
     runs-on: [self-hosted, linux, normal]
@@ -130,8 +134,10 @@ jobs:
         uses: ./.github/actions/with-docker
         with:
           container-name: mx-wasm-ci-${{ github.sha }}
-      - name: 'Install dependencies'
-        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} poetry -C kmxwasm install
+      - name: 'Build kmxwasm'
+        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make kmxwasm
+      - name: 'Build semantics'
+        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make build
       - name: 'Check lemmas are up to date'
         run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make -C kmxwasm test-lemmas-not-changed
       - name: 'Test lemmas'

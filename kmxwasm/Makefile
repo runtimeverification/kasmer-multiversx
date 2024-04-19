@@ -95,20 +95,3 @@ black: poetry-install
 
 check-black: poetry-install
 	$(POETRY_RUN) black --check src
-
-k-src/mx-semantics/deps/wasm-semantics/blockchain-k-plugin/krypto.md:
-	make -C k-src/mx-semantics deps/wasm-semantics/blockchain-k-plugin/krypto.md
-
-kbuild-%: k-src/mx-semantics/deps/wasm-semantics/blockchain-k-plugin/krypto.md
-	echo && kompile \
-			--backend $* \
-			--md-selector k \
-			--emit-json \
-			-I k-src \
-			-I k-src/mx-semantics/deps \
-			--output-definition ../.build/defn/haskell \
-			--main-module MX-WASM \
-			--syntax-module MX-WASM-SYNTAX \
-			k-src/mx-wasm.md
-
-.PHONY: kbuild-*

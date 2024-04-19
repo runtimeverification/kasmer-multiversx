@@ -9,6 +9,7 @@ from pyk.prelude.kint import INT, eqInt, gtInt, leInt, ltInt
 from pyk.prelude.ml import mlEquals
 
 from ..build import LEMMA_PROOFS, kbuild_semantics
+from ..kdist.plugin import K_DIR
 from ..property_testing.paths import KBUILD_DIR, KBUILD_ML_PATH, ROOT
 from .expression import (
     addInt,
@@ -45,7 +46,7 @@ from .lemmas import (
 )
 from .proof import basicListInduction, proofSplit, proofVar
 
-LEMMAS_DIR = ROOT / 'kmxwasm' / 'k-src' / 'lemmas'
+LEMMAS_DIR = K_DIR / 'lemmas'
 PROOFS_DIR = LEMMAS_DIR / 'proofs'
 
 HELPER_LEMMAS_FILE = PROOFS_DIR / 'helper-lemmas.k'
