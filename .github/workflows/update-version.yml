@@ -31,14 +31,13 @@ jobs:
       - name: 'Update mx-semantics submodule, pyk/K releases'
         run: |
           mx_semantics_version=$(cat deps/mx-semantics_release)
-          cd kmxwasm/k-src/mx-semantics
+          cd deps/mx-semantics
           git fetch --tags
           git checkout v${mx_semantics_version}
-          cd ../../..
-          git add kmxwasm/k-src/mx-semantics && git commit -m "kmxwasm/k-src/mx-semantics: update submodule v${mx_semantics_version}" || true
-          cat kmxwasm/k-src/mx-semantics/deps/k_release > deps/k_release
-          cat kmxwasm/k-src/mx-semantics/deps/pyk_release > deps/pyk_release
-          git add deps/k_release deps/pyk_release && git commit -m 'deps/{k_release,pyk_release}: update versions' || true
+          cd ../..
+          git add deps/mx-semantics && git commit -m "deps/mx-semantics: update submodule v${mx_semantics_version}" || true
+          cat deps/mx-semantics/deps/k_release > deps/k_release
+          git add deps/k_release && git commit -m 'deps/k_release: update versions' || true
       - name: 'Update poetry files'
         run: |
           KMULTIVERSX_VERSION=$(cat ./deps/mx-semantics_release)
