@@ -3,8 +3,7 @@ from pathlib import Path
 
 from pyk.ktool.kprove import _kprove
 
-from ..build import kbuild_semantics
-from ..property_testing.paths import KBUILD_DIR, KBUILD_ML_PATH
+from ..build import semantics
 
 
 def prove(lemma_file: Path, kompiled_dir: Path) -> None:
@@ -30,14 +29,7 @@ def main(args: list[str]) -> None:
         bad_usage()
     target = args[1]
 
-    tools = kbuild_semantics(
-        output_dir=KBUILD_DIR,
-        config_file=KBUILD_ML_PATH,
-        target=target,
-        llvm=False,
-        booster=False,
-        bug_report=None,
-    )
+    tools = semantics(target=target, booster=False, bug_report=None)
 
     if args[0] == 'kompile':
         return

@@ -22,9 +22,9 @@ from .ast.mx import (
     set_call_stack_cell_content,
     set_interim_states_cell_content,
 )
-from .build import HASKELL, Kompiled, kbuild_semantics
+from .build import HASKELL, semantics
 from .json import load_json_kclaim
-from .property_testing.paths import KBUILD_DIR, KBUILD_ML_PATH, ROOT
+from .property_testing.paths import ROOT
 from .property_testing.printers import print_node
 from .property_testing.running import RunException, Stuck, Success, profile_step, run_claim, split_edge
 from .property_testing.wasm_krun_initializer import WasmKrunInitializer
@@ -54,20 +54,6 @@ class Action:
 
 
 @dataclass(frozen=True)
-class Kompile(Action):
-    booster: bool
-
-    def run(self) -> None:
-        Kompiled(
-            output_dir=KBUILD_DIR,
-            config_file=KBUILD_ML_PATH,
-            target=HASKELL,
-            llvm=True,
-            booster=self.booster,
-        )
-
-
-@dataclass(frozen=True)
 class RunClaim(Action):
     claim_path: Path
     is_k: bool
@@ -79,7 +65,6 @@ class RunClaim(Action):
     iterations: int
     kcfg_path: Path
     bug_report: BugReport | None
-    kompiled: Kompiled | None
 
     def run(self) -> None:
         with self.make_tools() as tools:
@@ -170,18 +155,7 @@ class RunClaim(Action):
             raise NotImplementedError(f'Unknown run_claim result: {type(result)}')
 
     def make_tools(self) -> Tools:
-        if self.kompiled:
-            kompiled = self.kompiled
-        else:
-            kompiled = Kompiled(
-                output_dir=KBUILD_DIR,
-                config_file=KBUILD_ML_PATH,
-                target=HASKELL,
-                llvm=True,
-                booster=self.booster,
-            )
-
-        return kompiled.make_tools(self.bug_report)
+        return semantics(target=HASKELL, booster=self.booster, bug_report=self.bug_report)
 
 
 @dataclass(frozen=True)
@@ -236,14 +210,7 @@ class BisectAfter(Action):
     bug_report: BugReport | None
 
     def run(self) -> None:
-        tools = kbuild_semantics(
-            output_dir=KBUILD_DIR,
-            config_file=KBUILD_ML_PATH,
-            target=HASKELL,
-            llvm=True,
-            booster=self.booster,
-            bug_report=self.bug_report,
-        )
+        tools = semantics(target=HASKELL, booster=self.booster, bug_report=self.bug_report)
 
         t = Timer('Loading kcfg')
         kcfg = KCFG.read_cfg_data(self.kcfg_path)
@@ -401,14 +368,7 @@ class Profile(Action):
                 )
                 break
 
-        tools = kbuild_semantics(
-            output_dir=KBUILD_DIR,
-            config_file=KBUILD_ML_PATH,
-            target=HASKELL,
-            llvm=True,
-            booster=self.booster,
-            bug_report=self.bug_report,
-        )
+        tools = semantics(target=HASKELL, booster=self.booster, bug_report=self.bug_report)
 
         t = Timer('Loading kcfg')
         kcfg = KCFG.read_cfg_data(self.kcfg_path)
@@ -509,14 +469,7 @@ class ShowNode(Action):
     booster: bool
 
     def run(self) -> None:
-        tools = kbuild_semantics(
-            output_dir=KBUILD_DIR,
-            config_file=KBUILD_ML_PATH,
-            target=HASKELL,
-            llvm=True,
-            booster=self.booster,
-            bug_report=None,
-        )
+        tools = semantics(target=HASKELL, booster=self.booster, bug_report=None)
 
         t = Timer('Loading kcfg')
         kcfg = KCFG.read_cfg_data(self.kcfg_path)
@@ -535,14 +488,7 @@ class Tree(Action):
     booster: bool
 
     def run(self) -> None:
-        tools = kbuild_semantics(
-            output_dir=KBUILD_DIR,
-            config_file=KBUILD_ML_PATH,
-            target=HASKELL,
-            llvm=True,
-            booster=self.booster,
-            bug_report=None,
-        )
+        tools = semantics(target=HASKELL, booster=self.booster, bug_report=None)
 
         t = Timer('Loading kcfg')
         kcfg = KCFG.read_cfg_data(self.kcfg_path)
@@ -554,12 +500,6 @@ class Tree(Action):
 
 def read_flags() -> Action:
     parser = argparse.ArgumentParser(description='Symbolic testing for MultiversX contracts')
-    parser.add_argument(
-        '--kompile',
-        dest='kompile',
-        action='store_true',
-        help='Compile the semantics for future use',
-    )
     parser.add_argument(
         '--restart',
         dest='restart',
@@ -670,8 +610,6 @@ def read_flags() -> Action:
         help='Generate bug report with given name',
     )
     args = parser.parse_args()
-    if args.kompile:
-        return Kompile(booster=args.booster)
     if args.show_node is not None:
         return ShowNode(args.show_node, Path(args.kcfg), booster=args.booster)
     if args.tree:
@@ -718,7 +656,6 @@ def read_flags() -> Action:
         kcfg_path=Path(args.kcfg),
         booster=args.booster,
         bug_report=args.bug_report,
-        kompiled=None,
     )
 
 
