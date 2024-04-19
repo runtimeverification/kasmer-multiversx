@@ -236,43 +236,44 @@ class BisectAfter(Action):
     bug_report: BugReport | None
 
     def run(self) -> None:
-        with kbuild_semantics(
+        tools = kbuild_semantics(
             output_dir=KBUILD_DIR,
             config_file=KBUILD_ML_PATH,
             target=HASKELL,
             llvm=True,
             booster=self.booster,
             bug_report=self.bug_report,
-        ) as tools:
-            t = Timer('Loading kcfg')
-            kcfg = KCFG.read_cfg_data(self.kcfg_path)
-            t.measure()
+        )
 
-            result = split_edge(tools, kcfg, start_node_id=self.node_id)
-            result.kcfg.write_cfg_data()
+        t = Timer('Loading kcfg')
+        kcfg = KCFG.read_cfg_data(self.kcfg_path)
+        t.measure()
 
-            if isinstance(result, Success):
-                print('Success')
-                return
-            if isinstance(result, RunException):
-                print('Exception')
-                show = KCFGShow(tools.printer, tools.node_printer)
-                for line in show.pretty(result.kcfg):
-                    print(line)
-                print('Last node:')
-                print('Printing: ', result.last_processed_node)
-                if result.last_processed_node != -1:
-                    node = result.kcfg.get_node(result.last_processed_node)
-                    if node is None:
-                        print(f'Node not found: {result.last_processed_node}')
-                    else:
-                        print_node(tools.printer, node)
+        result = split_edge(tools, kcfg, start_node_id=self.node_id)
+        result.kcfg.write_cfg_data()
+
+        if isinstance(result, Success):
+            print('Success')
+            return
+        if isinstance(result, RunException):
+            print('Exception')
+            show = KCFGShow(tools.printer, tools.node_printer)
+            for line in show.pretty(result.kcfg):
+                print(line)
+            print('Last node:')
+            print('Printing: ', result.last_processed_node)
+            if result.last_processed_node != -1:
+                node = result.kcfg.get_node(result.last_processed_node)
+                if node is None:
+                    print(f'Node not found: {result.last_processed_node}')
                 else:
-                    print('No node to print.')
-                if isinstance(result.exception, KoreClientError):
-                    print(result.exception)
-                raise result.exception
-            raise NotImplementedError(f'Unknown run_claim result: {type(result)}')
+                    print_node(tools.printer, node)
+            else:
+                print('No node to print.')
+            if isinstance(result.exception, KoreClientError):
+                print(result.exception)
+            raise result.exception
+        raise NotImplementedError(f'Unknown run_claim result: {type(result)}')
 
 
 @dataclass(frozen=True)
@@ -399,104 +400,106 @@ class Profile(Action):
                     profile.setup,
                 )
                 break
-        with kbuild_semantics(
+
+        tools = kbuild_semantics(
             output_dir=KBUILD_DIR,
             config_file=KBUILD_ML_PATH,
             target=HASKELL,
             llvm=True,
             booster=self.booster,
             bug_report=self.bug_report,
-        ) as tools:
-            t = Timer('Loading kcfg')
-            kcfg = KCFG.read_cfg_data(self.kcfg_path)
-            t.measure()
+        )
 
-            t = Timer('Removing nodes')
-            for node_id in self.remove:
-                kcfg.remove_node(node_id)
-            t.measure()
+        t = Timer('Loading kcfg')
+        kcfg = KCFG.read_cfg_data(self.kcfg_path)
+        t.measure()
 
-            t = Timer('Removing edges')
-            for edge in list(kcfg.edges(source_id=self.node_id)):
-                kcfg.remove_edge(source_id=edge.source.id, target_id=edge.target.id)
-            t.measure()
+        t = Timer('Removing nodes')
+        for node_id in self.remove:
+            kcfg.remove_node(node_id)
+        t.measure()
 
-            t = Timer('Prepare profile node')
-            node = kcfg.get_node(self.node_id)
-            assert node
-            instrs = KSequence([setup, KSequence([instruction_kitem] * self.depth)])
-            new_config = replace_instrs_cell(node.cterm.config, instrs)
-            new_config = set_call_stack_cell_content(new_config, KVariable('CallStackVar'))
-            new_config = set_interim_states_cell_content(new_config, KVariable('InterimStatesVar'))
-            new_config = set_all_code_cell_content(new_config, lambda x: KVariable(f'AccountsVar{x}'))
-            # new_config = set_accounts_cell_content(new_config, KVariable('AccountsVar'))
-            kcfg.replace_node(KCFG.Node(node.id, cterm=CTerm(new_config, node.cterm.constraints)))
-            t.measure()
+        t = Timer('Removing edges')
+        for edge in list(kcfg.edges(source_id=self.node_id)):
+            kcfg.remove_edge(source_id=edge.source.id, target_id=edge.target.id)
+        t.measure()
 
-            existing = {node.id for node in kcfg.nodes}
+        t = Timer('Prepare profile node')
+        node = kcfg.get_node(self.node_id)
+        assert node
+        instrs = KSequence([setup, KSequence([instruction_kitem] * self.depth)])
+        new_config = replace_instrs_cell(node.cterm.config, instrs)
+        new_config = set_call_stack_cell_content(new_config, KVariable('CallStackVar'))
+        new_config = set_interim_states_cell_content(new_config, KVariable('InterimStatesVar'))
+        new_config = set_all_code_cell_content(new_config, lambda x: KVariable(f'AccountsVar{x}'))
+        # new_config = set_accounts_cell_content(new_config, KVariable('AccountsVar'))
+        kcfg.replace_node(KCFG.Node(node.id, cterm=CTerm(new_config, node.cterm.constraints)))
+        t.measure()
 
-            steps_needed = self.depth * steps + setup_steps
-            result = profile_step(
-                tools,
-                restart_kcfg=kcfg,
-                node_id=self.node_id,
-                depth=steps_needed,
-                groups=self.depth,
-            )
+        existing = {node.id for node in kcfg.nodes}
 
-            if isinstance(result, Success):
-                new = {node.id for node in kcfg.nodes if not node.id in existing}
-                if len(new) != 1:
+        steps_needed = self.depth * steps + setup_steps
+        result = profile_step(
+            tools,
+            restart_kcfg=kcfg,
+            node_id=self.node_id,
+            depth=steps_needed,
+            groups=self.depth,
+        )
+
+        if isinstance(result, Success):
+            new = {node.id for node in kcfg.nodes if not node.id in existing}
+            if len(new) != 1:
+                result = RunException(
+                    kcfg=kcfg,
+                    exception=Exception(f'Invalid number of new nodes: {len(new)}'),
+                    last_processed_node=self.node_id,
+                )
+            else:
+                new_id = list(new)[0]
+                new_node = kcfg.node(new_id)
+                maybe_instrs = instrs_cell_contents(new_node.cterm.config)
+                if maybe_instrs is None:
                     result = RunException(
-                        kcfg=kcfg,
-                        exception=Exception(f'Invalid number of new nodes: {len(new)}'),
-                        last_processed_node=self.node_id,
+                        kcfg=kcfg, exception=Exception('Instrs not found.'), last_processed_node=new_id
+                    )
+                elif 0 != len(maybe_instrs):
+                    result = RunException(
+                        kcfg=kcfg, exception=Exception('Unprocessed instrs.'), last_processed_node=new_id
                     )
                 else:
-                    new_id = list(new)[0]
-                    new_node = kcfg.node(new_id)
-                    maybe_instrs = instrs_cell_contents(new_node.cterm.config)
-                    if maybe_instrs is None:
+                    edge = kcfg.edges(target_id=new_id)[0]
+                    if steps_needed != edge.depth:
                         result = RunException(
-                            kcfg=kcfg, exception=Exception('Instrs not found.'), last_processed_node=new_id
+                            kcfg=kcfg,
+                            exception=Exception(
+                                f'Did not execute the expected number of steps: {[steps_needed , edge.depth]}.'
+                            ),
+                            last_processed_node=new_id,
                         )
-                    elif 0 != len(maybe_instrs):
-                        result = RunException(
-                            kcfg=kcfg, exception=Exception('Unprocessed instrs.'), last_processed_node=new_id
-                        )
-                    else:
-                        edge = kcfg.edges(target_id=new_id)[0]
-                        if steps_needed != edge.depth:
-                            result = RunException(
-                                kcfg=kcfg,
-                                exception=Exception(
-                                    f'Did not execute the expected number of steps: {[steps_needed , edge.depth]}.'
-                                ),
-                                last_processed_node=new_id,
-                            )
 
-            if isinstance(result, Success):
-                print('Success')
-                return
-            if isinstance(result, RunException):
-                print('Exception')
-                show = KCFGShow(tools.printer, tools.node_printer)
-                for line in show.pretty(result.kcfg):
-                    print(line)
-                print('Last node:')
-                print('Printing: ', result.last_processed_node)
-                if result.last_processed_node != -1:
-                    node = result.kcfg.get_node(result.last_processed_node)
-                    if node is None:
-                        print(f'Node not found: {result.last_processed_node}')
-                    else:
-                        print_node(tools.printer, node)
+        if isinstance(result, Success):
+            print('Success')
+            return
+        if isinstance(result, RunException):
+            print('Exception')
+            show = KCFGShow(tools.printer, tools.node_printer)
+            for line in show.pretty(result.kcfg):
+                print(line)
+            print('Last node:')
+            print('Printing: ', result.last_processed_node)
+            if result.last_processed_node != -1:
+                node = result.kcfg.get_node(result.last_processed_node)
+                if node is None:
+                    print(f'Node not found: {result.last_processed_node}')
                 else:
-                    print('No node to print.')
-                if isinstance(result.exception, KoreClientError):
-                    print(result.exception)
-                raise result.exception
-            raise NotImplementedError(f'Unknown run_claim result: {type(result)}')
+                    print_node(tools.printer, node)
+            else:
+                print('No node to print.')
+            if isinstance(result.exception, KoreClientError):
+                print(result.exception)
+            raise result.exception
+        raise NotImplementedError(f'Unknown run_claim result: {type(result)}')
 
 
 @dataclass(frozen=True)
@@ -506,23 +509,24 @@ class ShowNode(Action):
     booster: bool
 
     def run(self) -> None:
-        with kbuild_semantics(
+        tools = kbuild_semantics(
             output_dir=KBUILD_DIR,
             config_file=KBUILD_ML_PATH,
             target=HASKELL,
             llvm=True,
             booster=self.booster,
             bug_report=None,
-        ) as tools:
-            t = Timer('Loading kcfg')
-            kcfg = KCFG.read_cfg_data(self.kcfg_path)
-            t.measure()
-            print('Printing: ', self.node_id)
-            node = kcfg.get_node(self.node_id)
-            if node:
-                print_node(tools.printer, node)
-            else:
-                print('No node to print.')
+        )
+
+        t = Timer('Loading kcfg')
+        kcfg = KCFG.read_cfg_data(self.kcfg_path)
+        t.measure()
+        print('Printing: ', self.node_id)
+        node = kcfg.get_node(self.node_id)
+        if node:
+            print_node(tools.printer, node)
+        else:
+            print('No node to print.')
 
 
 @dataclass(frozen=True)
@@ -531,20 +535,21 @@ class Tree(Action):
     booster: bool
 
     def run(self) -> None:
-        with kbuild_semantics(
+        tools = kbuild_semantics(
             output_dir=KBUILD_DIR,
             config_file=KBUILD_ML_PATH,
             target=HASKELL,
             llvm=True,
             booster=self.booster,
             bug_report=None,
-        ) as tools:
-            t = Timer('Loading kcfg')
-            kcfg = KCFG.read_cfg_data(self.kcfg_path)
-            t.measure()
-            show = KCFGShow(tools.printer, tools.node_printer)
-            for line in show.pretty(kcfg):
-                print(line)
+        )
+
+        t = Timer('Loading kcfg')
+        kcfg = KCFG.read_cfg_data(self.kcfg_path)
+        t.measure()
+        show = KCFGShow(tools.printer, tools.node_printer)
+        for line in show.pretty(kcfg):
+            print(line)
 
 
 def read_flags() -> Action:
