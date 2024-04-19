@@ -29,9 +29,19 @@ LOGGING_CELL_PATH = ELROND_CELL_PATH + ['<logging>']
 NODE_CELL_PATH = ELROND_CELL_PATH + ['<node>']
 
 CALL_STATE_PATH = NODE_CELL_PATH + ['<callState>']
+
+OUTPUT_ACCOUNTS_CELL_PATH = CALL_STATE_PATH + ['<outputAccounts>']
+
 CALL_STACK_PATH = NODE_CELL_PATH + ['<callStack>']
 INTERIM_STATES_PATH = NODE_CELL_PATH + ['<interimStates>']
 ACCOUNTS_PATH = NODE_CELL_PATH + ['<accounts>']
+
+CURRENT_BLOCK_INFO_PATH = NODE_CELL_PATH + ['<currentBlockInfo>']
+CUR_BLOCK_TIMESTAMP_PATH = CURRENT_BLOCK_INFO_PATH + ['<curBlockTimestamp>']
+CUR_BLOCK_NONCE_PATH = CURRENT_BLOCK_INFO_PATH + ['<curBlockNonce>']
+CUR_BLOCK_ROUND_PATH = CURRENT_BLOCK_INFO_PATH + ['<curBlockRound>']
+CUR_BLOCK_EPOCH_PATH = CURRENT_BLOCK_INFO_PATH + ['<curBlockEpoch>']
+
 VM_OUTPUT_PATH = NODE_CELL_PATH + ['<vmOutput>']
 
 COMMANDS_CELL_PATH = NODE_CELL_PATH + [COMMANDS_CELL_NAME]
@@ -52,6 +62,12 @@ CODE = KSort('Code')
 
 
 # TODO: Move these to the elrond-semantics repository.
+def listAsyncCall(items: Iterable[KInner]) -> KInner:  # noqa: N802
+    return full_list(
+        concat_label='_ListAsyncCall_', item_label='ListAsyncCallItem', empty_label='.ListAsyncCall', items=items
+    )
+
+
 def listBytes(items: Iterable[KInner]) -> KInner:  # noqa: N802
     return full_list(concat_label='_ListBytes_', item_label='ListBytesItem', empty_label='.ListBytes', items=items)
 
@@ -72,6 +88,10 @@ def bytesStack(items: Iterable[KInner]) -> KInner:  # noqa: N802
 
 def accountCellMap(accounts: Iterable[KInner]) -> KInner:  # noqa: N802
     return cell_map(name='AccountCellMap', items=accounts)
+
+
+def directCall() -> KInner:  # noqa: N802
+    return KApply('DirectCall')
 
 
 def find_single_named_node(root: KInner, name: str) -> KApply:
@@ -312,6 +332,26 @@ def get_logging_cell_content(root: KInner) -> KInner:
 
 def set_logging_cell_content(root: KInner, replacement: KInner) -> KInner:
     return replace_contents_with_path(root, LOGGING_CELL_PATH, replacement)
+
+
+def set_cur_block_timestamp_cell_content(root: KInner, replacement: KInner) -> KInner:
+    return replace_contents_with_path(root, CUR_BLOCK_TIMESTAMP_PATH, replacement)
+
+
+def set_cur_block_nonce_cell_content(root: KInner, replacement: KInner) -> KInner:
+    return replace_contents_with_path(root, CUR_BLOCK_NONCE_PATH, replacement)
+
+
+def set_cur_block_round_cell_content(root: KInner, replacement: KInner) -> KInner:
+    return replace_contents_with_path(root, CUR_BLOCK_ROUND_PATH, replacement)
+
+
+def set_cur_block_epoch_cell_content(root: KInner, replacement: KInner) -> KInner:
+    return replace_contents_with_path(root, CUR_BLOCK_EPOCH_PATH, replacement)
+
+
+def set_output_accounts_cell_content(root: KInner, replacement: KInner) -> KInner:
+    return replace_contents_with_path(root, OUTPUT_ACCOUNTS_CELL_PATH, replacement)
 
 
 def set_generated_counter_cell_content(root: KInner, replacement: KInner) -> KInner:

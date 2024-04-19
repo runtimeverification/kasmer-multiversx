@@ -8,9 +8,9 @@ from kmultiversx.kasmer import deploy_test, generate_claim, load_wasm
 from kmultiversx.utils import kast_to_json_str
 from pyk.cli.utils import BugReport
 from pyk.kast.inner import KInner
+from pyk.kdist import kdist
 from pyk.ktool.krun import KRun
 
-from kmxwasm.build import LLVM, Kompiled
 from kmxwasm.property import RunClaim
 
 sys.setrecursionlimit(1500000000)
@@ -35,20 +35,17 @@ class AbortTestParams:
 @pytest.mark.parametrize('testcase', TEST_FILES, ids=str)
 def test_aborted(
     testcase: Path,
-    kompiled: Kompiled,
     tmp_path: Path,
     bug_report: BugReport | None,
 ) -> None:
 
     # Given
-    kbuild, package = kompiled.kbuild, kompiled.package
-
     args = AbortTestParams(testcase)
 
     wasm_path = wat_to_wasm(tmp_path, testcase.with_suffix('.wat'))
     test_wasm = load_wasm(str(wasm_path))
 
-    claim_str = generate_test_claim(args, kbuild.definition_dir(package, LLVM), test_wasm)
+    claim_str = generate_test_claim(args, kdist.get('mxwasm-semantics.llvm'), test_wasm)
     claim_path = tmp_path / 'claim.json'
     claim_path.write_text(claim_str)
 
@@ -69,7 +66,6 @@ def test_aborted(
             iterations=10000,
             kcfg_path=tmp_path / 'kcfg',
             bug_report=bug_report,
-            kompiled=kompiled,
         ).run()
     except Exception as e:
         if bug_report is not None:

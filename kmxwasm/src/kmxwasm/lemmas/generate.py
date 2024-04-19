@@ -8,8 +8,8 @@ from pyk.prelude.kbool import BOOL, FALSE, TRUE, andBool, notBool, orBool
 from pyk.prelude.kint import INT, eqInt, gtInt, leInt, ltInt
 from pyk.prelude.ml import mlEquals
 
-from ..build import LEMMA_PROOFS, kbuild_semantics
-from ..property_testing.paths import KBUILD_DIR, KBUILD_ML_PATH, ROOT
+from ..build import LEMMA_PROOFS, semantics
+from ..kdist.plugin import K_DIR
 from .expression import (
     addInt,
     divIntTotal,
@@ -45,7 +45,7 @@ from .lemmas import (
 )
 from .proof import basicListInduction, proofSplit, proofVar
 
-LEMMAS_DIR = ROOT / 'kmxwasm' / 'k-src' / 'lemmas'
+LEMMAS_DIR = K_DIR / 'lemmas'
 PROOFS_DIR = LEMMAS_DIR / 'proofs'
 
 HELPER_LEMMAS_FILE = PROOFS_DIR / 'helper-lemmas.k'
@@ -298,36 +298,29 @@ def cleanup(s: str) -> str:
 
 
 def main(args: list[str]) -> None:
-    # with kbuild_semantics(KBUILD_DIR, config_file=KBUILD_ML_PATH) as tools:
-    #     tools.printer
-    #     return
-
     LEMMAS_FILE.write_text('```k\nmodule PROVEN-MX-LEMMAS\nendmodule\n```\n')
     HELPER_LEMMAS_FILE.write_text('module HELPER-LEMMAS\nendmodule\n')
 
-    with kbuild_semantics(
-        KBUILD_DIR, config_file=KBUILD_ML_PATH, target=LEMMA_PROOFS, llvm=False, booster=False, bug_report=None
-    ) as tools:
-        for lemma in LEMMAS:
-            definition = lemma.make_definition()
-            printed = tools.printer.pretty_print(definition)
-            proof_path = PROOFS_DIR / f'{lemma.name.lower()}.k'
-            proof_path.write_text(cleanup(printed + '\n'))
+    tools = semantics(target=LEMMA_PROOFS, booster=False, bug_report=None)
 
-        lemmas_module = make_proven_lemmas_module(LEMMAS, tools.printer.definition)
-        printed_lemmas = tools.printer.pretty_print(lemmas_module)
-        LEMMAS_FILE.write_text('```k\n' + cleanup(printed_lemmas) + '\n```\n')
+    for lemma in LEMMAS:
+        definition = lemma.make_definition()
+        printed = tools.printer.pretty_print(definition)
+        proof_path = PROOFS_DIR / f'{lemma.name.lower()}.k'
+        proof_path.write_text(cleanup(printed + '\n'))
 
-        helper_module = make_helper_lemmas_module(HELPER_LEMMAS)
-        printed_helper = tools.printer.pretty_print(helper_module)
-        helper_module_trusted = make_helper_lemmas_module(HELPER_LEMMAS, trusted=True)
-        printed_helper_trusted = tools.printer.pretty_print(helper_module_trusted)
-        HELPER_LEMMAS_FILE.write_text(f'{cleanup(printed_helper)}\n\n{cleanup(printed_helper_trusted)}\n')
+    lemmas_module = make_proven_lemmas_module(LEMMAS, tools.printer.definition)
+    printed_lemmas = tools.printer.pretty_print(lemmas_module)
+    LEMMAS_FILE.write_text('```k\n' + cleanup(printed_lemmas) + '\n```\n')
 
-    with kbuild_semantics(
-        KBUILD_DIR, config_file=KBUILD_ML_PATH, target=LEMMA_PROOFS, llvm=False, booster=False, bug_report=None
-    ) as tools:
-        tools.printer
+    helper_module = make_helper_lemmas_module(HELPER_LEMMAS)
+    printed_helper = tools.printer.pretty_print(helper_module)
+    helper_module_trusted = make_helper_lemmas_module(HELPER_LEMMAS, trusted=True)
+    printed_helper_trusted = tools.printer.pretty_print(helper_module_trusted)
+    HELPER_LEMMAS_FILE.write_text(f'{cleanup(printed_helper)}\n\n{cleanup(printed_helper_trusted)}\n')
+
+    tools = semantics(target=LEMMA_PROOFS, booster=False, bug_report=None)
+    tools.printer
 
 
 if __name__ == '__main__':

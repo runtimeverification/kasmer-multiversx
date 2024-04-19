@@ -28,26 +28,28 @@ jobs:
           python-version: '3.10'
       - name: 'Install Poetry'
         uses: Gr1N/setup-poetry@v8
-      - name: 'Update mx-semantics submodule, pyk/K releases'
+      - name: 'Update mx-semantics'
         run: |
-          mx_semantics_version=$(cat deps/mx-semantics_release)
-          cd kmxwasm/k-src/mx-semantics
+          KMULTIVERSX_VERSION=$(cat deps/mx-semantics_release)
+          cd deps/mx-semantics
           git fetch --tags
-          git checkout v${mx_semantics_version}
-          cd ../../..
-          git add kmxwasm/k-src/mx-semantics && git commit -m "kmxwasm/k-src/mx-semantics: update submodule v${mx_semantics_version}" || true
-          cat kmxwasm/k-src/mx-semantics/deps/k_release > deps/k_release
-          cat kmxwasm/k-src/mx-semantics/deps/pyk_release > deps/pyk_release
-          git add deps/k_release deps/pyk_release && git commit -m 'deps/{k_release,pyk_release}: update versions' || true
+          git checkout v${KMULTIVERSX_VERSION}
+          cd ../..
+          git add deps/mx-semantics && git commit -m "deps/mx-semantics: update submodule v${KMULTIVERSX_VERSION}" || true
       - name: 'Update poetry files'
         run: |
-          KMULTIVERSX_VERSION=$(cat ./deps/mx-semantics_release)
+          KMULTIVERSX_VERSION=$(cat deps/mx-semantics_release)
           sed -i 's!kmultiversx = { git = "https://github.com/runtimeverification/mx-semantics.git", tag = "[v0-9\.]*", subdirectory = "kmultiversx" }!kmultiversx = { git = "https://github.com/runtimeverification/mx-semantics.git", tag = "v'${KMULTIVERSX_VERSION}'", subdirectory = "kmultiversx" }!' kmxwasm/pyproject.toml
           poetry -C kmxwasm update
           git add kmxwasm/pyproject.toml kmxwasm/poetry.lock && git commit -m 'kmxwasm/{pyproject.toml,poetry.lock}: sync Poetry files' || true
+      - name: 'Update K release'
+        run: |
+          K_VERSION=$(poetry -C kmxwasm run python3 -c 'import pyk; print(pyk.K_VERSION)')
+          echo ${K_VERSION} > deps/k_release
+          git add deps/k_release && git commit -m "deps/k_release: sync release file version ${K_VERSION}" || true
       - name: 'Update Nix flake inputs'
         run: |
-          K_VERSION=$(cat ./deps/k_release)
+          K_VERSION=$(cat deps/k_release)
           sed -i 's!    k-framework.url = "github:runtimeverification/k/[v0-9\.]*"!    k-framework.url = "github:runtimeverification/k/v'"${K_VERSION}"'"!' flake.nix
           nix --extra-experimental-features 'nix-command flakes' --show-trace flake update
           git add flake.nix flake.lock && git commit -m 'flake.{nix,lock}: update Nix derivations' || true
