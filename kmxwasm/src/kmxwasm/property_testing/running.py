@@ -168,9 +168,18 @@ def run_claim(
     if restart_kcfg:
         kcfg = restart_kcfg
         (final_node, target_node_id) = find_final_node(kcfg)
+        for node in kcfg.nodes:
+            if node.id != target_node_id and not kcfg.predecessors(node.id):
+                if init_node_id == -1:
+                    init_node_id = node.id
+                else:
+                    raise ValueError(f'Cannot figure out the init node {init_node_id} vs {node.id}')
     else:
         (kcfg, init_node_id, target_node_id) = KCFG.from_claim(tools.printer.definition, claim, cfg_dir=kcfg_path)
         final_node = kcfg.node(target_node_id)
+
+    init_node = kcfg.get_node(init_node_id)
+    assert init_node
 
     a = abstracters(target_node_id)
     all_abstracters = [abstracter for abstracter, _, _ in a]
@@ -211,7 +220,7 @@ def run_claim(
                     if command_is_new_wasm_instance(node.cterm.config):
                         print('is new wasm')
                         t = Timer('  Initialize wasm')
-                        wasm_initializer.initialize(kcfg=kcfg, start_node=node)
+                        wasm_initializer.initialize(kcfg=kcfg, start_node=node, first_node=init_node)
                         t.measure()
                     elif touches_abstract_content(all_abstract_identifiers, node.cterm.config):
                         print('changes abstracted cell')
