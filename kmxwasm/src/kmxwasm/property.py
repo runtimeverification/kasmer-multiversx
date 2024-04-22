@@ -155,7 +155,7 @@ class RunClaim(Action):
             raise NotImplementedError(f'Unknown run_claim result: {type(result)}')
 
     def make_tools(self) -> Tools:
-        return semantics(target=HASKELL, booster=self.booster, bug_report=self.bug_report)
+        return semantics(target=HASKELL, booster=self.booster, llvm=True, bug_report=self.bug_report)
 
 
 @dataclass(frozen=True)
@@ -210,7 +210,7 @@ class BisectAfter(Action):
     bug_report: BugReport | None
 
     def run(self) -> None:
-        tools = semantics(target=HASKELL, booster=self.booster, bug_report=self.bug_report)
+        tools = semantics(target=HASKELL, booster=self.booster, llvm=True, bug_report=self.bug_report)
 
         t = Timer('Loading kcfg')
         kcfg = KCFG.read_cfg_data(self.kcfg_path)
@@ -368,7 +368,7 @@ class Profile(Action):
                 )
                 break
 
-        tools = semantics(target=HASKELL, booster=self.booster, bug_report=self.bug_report)
+        tools = semantics(target=HASKELL, booster=self.booster, llvm=True, bug_report=self.bug_report)
 
         t = Timer('Loading kcfg')
         kcfg = KCFG.read_cfg_data(self.kcfg_path)
@@ -466,10 +466,9 @@ class Profile(Action):
 class ShowNode(Action):
     node_id: int
     kcfg_path: Path
-    booster: bool
 
     def run(self) -> None:
-        tools = semantics(target=HASKELL, booster=self.booster, bug_report=None)
+        tools = semantics(target=HASKELL, booster=False, llvm=False, bug_report=None)
 
         t = Timer('Loading kcfg')
         kcfg = KCFG.read_cfg_data(self.kcfg_path)
@@ -485,10 +484,9 @@ class ShowNode(Action):
 @dataclass(frozen=True)
 class Tree(Action):
     kcfg_path: Path
-    booster: bool
 
     def run(self) -> None:
-        tools = semantics(target=HASKELL, booster=self.booster, bug_report=None)
+        tools = semantics(target=HASKELL, booster=False, llvm=False, bug_report=None)
 
         t = Timer('Loading kcfg')
         kcfg = KCFG.read_cfg_data(self.kcfg_path)
@@ -611,9 +609,9 @@ def read_flags() -> Action:
     )
     args = parser.parse_args()
     if args.show_node is not None:
-        return ShowNode(args.show_node, Path(args.kcfg), booster=args.booster)
+        return ShowNode(args.show_node, Path(args.kcfg))
     if args.tree:
-        return Tree(Path(args.kcfg), booster=args.booster)
+        return Tree(Path(args.kcfg))
     if args.bisect_after:
         return BisectAfter(args.bisect_after, Path(args.kcfg), booster=args.booster, bug_report=args.bug_report)
     if args.simplify_before:

@@ -29,7 +29,7 @@ def main(args: list[str]) -> None:
         bad_usage()
     target = args[1]
 
-    tools = semantics(target=target, booster=False, bug_report=None)
+    tools = semantics(target=target, booster=False, llvm=False, bug_report=None)
 
     if args[0] == 'kompile':
         return
