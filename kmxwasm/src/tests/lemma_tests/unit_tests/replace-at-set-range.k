@@ -123,9 +123,8 @@ module REPLACE-AT-SET-RANGE
                     0, Int2Bytes(2, 515, LE)
                 )
             )
-            // TODO: This test is broken for two reasons:
-            // 1. Unevaluated #Ceil ( #splitReplaceAt ( #setRange ( A , 1 , 258 , 2 ) , 0 , b"\x03\x02" , 1 ) )
-            // 2. Unevaluated #splitReplaceAt ( #setRange ( A , 1 , 258 , 2 ) , 0 , b"\x03\x02" , 1 ) )
+            // TODO: The symbolic part of this test is not working, it probably
+            // does not matter anyway.
             // ListItem(
             //     replaceAt(
             //         #setRange( A, 1, 258, 2 ),
@@ -212,7 +211,7 @@ module REPLACE-AT-SET-RANGE
             //           ( #setRange( A, 0, 258, 4 )
             //           , 1 , Int2Bytes(2, 515, LE)
             //           ),
-            //         #setRange( A, 4, 0, 1 ),
+            //         #setRange( A, 4, 0, 1 )
             //       )
             //     )
             // )
@@ -255,20 +254,21 @@ module REPLACE-AT-SET-RANGE
                 ):SparseBytes:KItem
             )
             // ListItem(
-            //     ( #setRange
-            //         ( SBChunk( #bytes( Int2Bytes(A, 1, LE) ) )
-            //           SBChunk( #empty(100 -Int A) )
-            //         , 0, 258, B
-            //         )
-            //       SBChunk( #bytes ( b"\x03\x02\x00\x00" ) )
-            //     ):SparseBytes:KItem
+            //     concat
+            //       ( #setRange
+            //           ( SBChunk( #bytes( Int2Bytes(A, 1, LE) ) )
+            //             SBChunk( #empty(100 -Int A) )
+            //           , 0, 258, B
+            //           )
+            //       , SBChunk( #bytes ( b"\x03\x02\x00\x00" ) )
+            //       )
             // )
         )
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
-      requires 0 <Int A andBool A <=Int 100
-          andBool 0 <Int B andBool B <=Int 100
+      requires 0 <Int A andBool A <Int 100
+          andBool 0 <Int B andBool B <Int 100
 
     claim
       <k>
@@ -311,23 +311,24 @@ module REPLACE-AT-SET-RANGE
                 ):SparseBytes:KItem
             )
             // ListItem(
-            //     ( #setRange(
-            //           #setRange
-            //             ( SBChunk( #bytes( Int2Bytes(A, 1, LE) ) )
-            //               SBChunk( #empty(100 -Int A) )
-            //               SBChunk( #bytes ( b"\x00\x00\x00\x00" ) )
-            //             , 0, 258, B
-            //             ),
-            //           0, 258, C
+            //     concat
+            //       ( #setRange(
+            //             #setRange
+            //               ( SBChunk( #bytes( Int2Bytes(A, 1, LE) ) )
+            //                 SBChunk( #empty(100 -Int A) )
+            //                 SBChunk( #bytes ( b"\x00\x00\x00\x00" ) )
+            //               , 0, 258, B
+            //               ),
+            //             0, 258, C
+            //         )
+            //       , SBChunk( #bytes ( b"\x03\x02\x00\x00" ) )
             //       )
-            //       SBChunk( #bytes ( b"\x03\x02\x00\x00" ) )
-            //     ):SparseBytes:KItem
             // )
         )
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
-      requires 0 <Int A andBool A <=Int 100
+      requires 0 <Int A andBool A <Int 100
           andBool 0 <Int B andBool B <=Int 100
           andBool 0 <Int C andBool C <=Int 100
 

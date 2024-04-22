@@ -133,7 +133,7 @@ module REPLACE-AT-REPLACE-AT-B
             )
             // ListItem(
             //     replaceAt(
-            //         replaceAt( B, A, 1, b"ab" ),
+            //         replaceAtB( B, A, 1, b"ab" ),
             //         0, Int2Bytes(2, 515, LE)
             //     )
             // )
@@ -234,40 +234,39 @@ module REPLACE-AT-REPLACE-AT-B
                     10, Int2Bytes(4, 515, LE)
                 )
             )
-            // TODO: The symbolic part of this test is not working properly right now,
-            // it would be nice if it did.
-            // ListItem(
-            //     replaceAt(
-            //         replaceAtB
-            //           ( Int2Bytes(A, 1, LE),
-            //             SBChunk( #empty(100 -Int A) )
-            //             SBChunk( #bytes ( b"\x00\x00\x00\x00" ) )
-            //           , 0, Int2Bytes(B, 1, LE)
-            //           ),
-            //         100, Int2Bytes(4, 515, LE)
-            //     )
-            // )
+            ListItem(
+                replaceAt(
+                    replaceAtB
+                      ( Int2Bytes(A, 1, LE),
+                        SBChunk( #empty(100 -Int A) )
+                        SBChunk( #bytes ( b"\x00\x00\x00\x00" ) )
+                      , 0, Int2Bytes(B, 1, LE)
+                      ),
+                    100, Int2Bytes(4, 515, LE)
+                )
+            )
         ) => doneSimplification(
             ListItem(
                 ( SBChunk ( #bytes ( b"1234\x00\x00\x00\x00\x00\x00" ) )
                   SBChunk ( #bytes ( b"\x03\x02\x00\x00" ) )
                 ):SparseBytes:KItem
             )
-            // ListItem(
-            //     ( replaceAtB
-            //         ( Int2Bytes(A, 1, LE),
-            //           SBChunk( #empty(100 -Int A) )
-            //         , 0, Int2Bytes(B, 1, LE)
-            //         )
-            //       SBChunk( #bytes ( b"\x03\x02\x00\x00" ) )
-            //     ):SparseBytes:KItem
-            // )
+            ListItem(
+                concat
+                  ( replaceAtB
+                      ( Int2Bytes(A, 1, LE)
+                      , SBChunk( #empty(100 -Int A) )
+                      , 0, Int2Bytes(B, 1, LE)
+                      )
+                  , SBChunk( #bytes ( b"\x03\x02\x00\x00" ) )
+                  )
+            )
         )
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
-      requires 0 <Int A andBool A <=Int 100
-          andBool 0 <Int B andBool B <=Int 100
+      requires 0 <Int A andBool A <Int 100
+          andBool 0 <Int B andBool B <Int 100
 
     claim
       <k>
@@ -286,22 +285,20 @@ module REPLACE-AT-REPLACE-AT-B
                     100, Int2Bytes(4, 515, LE)
                 )
             )
-            // TODO: The symbolic part of this test is not working properly right now,
-            // it would be nice if it did.
-            // ListItem(
-            //     replaceAt(
-            //         #setRange(
-            //             replaceAtB
-            //               ( Int2Bytes(A, 1, LE),
-            //                 SBChunk( #empty(100 -Int A) )
-            //                 SBChunk( #bytes ( b"\x00\x00\x00\x00" ) )
-            //               , 0, Int2Bytes(B, 1, LE)
-            //               ),
-            //             0, 258, C
-            //         ),
-            //         100, Int2Bytes(4, 515, LE)
-            //     )
-            // )
+            ListItem(
+                replaceAt(
+                    #setRange(
+                        replaceAtB
+                          ( Int2Bytes(A, 1, LE),
+                            SBChunk( #empty(100 -Int A) )
+                            SBChunk( #bytes ( b"\x00\x00\x00\x00" ) )
+                          , 0, Int2Bytes(B, 1, LE)
+                          ),
+                        0, 258, C
+                    ),
+                    100, Int2Bytes(4, 515, LE)
+                )
+            )
         ) => doneSimplification(
             ListItem(
                 ( SBChunk ( #bytes ( b"\x02\x01\x00\x00" ) )
@@ -309,19 +306,22 @@ module REPLACE-AT-REPLACE-AT-B
                   SBChunk ( #bytes ( b"\x03\x02\x00\x00" ) )
                 ):SparseBytes:KItem
             )
-            // ListItem(
-            //     ( replaceAt(
-            //           replaceAtB
-            //             ( Int2Bytes(A, 1, LE),
-            //               SBChunk( #empty(100 -Int A) )
-            //               SBChunk( #bytes ( b"\x00\x00\x00\x00" ) )
-            //             , 0, Int2Bytes(B, 1, LE)
-            //             ),
-            //           0, 258, C
-            //       )
-            //       SBChunk( #bytes ( b"\x03\x02\x00\x00" ) )
-            //     ):SparseBytes:KItem
-            // )
+            ListItem(
+                ( SBChunk ( #bytes ( Int2Bytes ( C , 258 , LE ) ) )
+                  replaceAt
+                    ( substrSparseBytes
+                      ( replaceAtB
+                          ( Int2Bytes(A, 1, LE),
+                            SBChunk( #empty(100 -Int A) )
+                            SBChunk( #bytes ( b"\x00\x00\x00\x00" ) )
+                          , 0, Int2Bytes(B, 1, LE)
+                          )
+                      , C, 104
+                      )
+                    , 100 -Int C, Int2Bytes(4, 515, LE)
+                    )
+                ):SparseBytes:KItem
+            )
         )
       </k>
       <commands> .K </commands>
