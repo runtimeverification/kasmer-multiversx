@@ -6,10 +6,10 @@ from pyk.prelude.ml import mlOr
 
 from kmxwasm.testing.fixtures import Tools
 
-K_SRC_DIR = Path(__file__).parent.parent.parent.parent / 'k-src'
-LEMMA_PROOFS_DIR = K_SRC_DIR / 'lemmas' / 'tests'
+CURRENT_DIR = Path(__file__).parent
+LEMMA_PROOFS_DIR = CURRENT_DIR / 'tests'
 PROVE_FILES = tuple(LEMMA_PROOFS_DIR.rglob('*.k'))
-PROVE_TEST_DATA = tuple(((str(input_path.relative_to(K_SRC_DIR)), input_path)) for input_path in PROVE_FILES)
+PROVE_TEST_DATA = tuple(((str(input_path.relative_to(CURRENT_DIR)), input_path)) for input_path in PROVE_FILES)
 
 
 @pytest.mark.parametrize(('test_id', 'test_file'), PROVE_TEST_DATA, ids=[test_id for test_id, _ in PROVE_TEST_DATA])
