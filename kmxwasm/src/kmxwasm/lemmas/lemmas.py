@@ -59,7 +59,7 @@ class Lemma:
             if v in rhs_vars and v not in lhs_vars:
                 new_v = '?' + new_v
             if new_v != v:
-                v_subst[v] = KVariable(new_v)
+                v_subst[v] = KVariable(new_v)  # noqa: B909
 
         lhs = Subst(v_subst)(self.lhs)
         rhs = self.rhs  # apply_existential_substitutions(Subst(v_subst)(self.rhs))

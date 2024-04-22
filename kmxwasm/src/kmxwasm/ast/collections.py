@@ -40,5 +40,5 @@ def cell_map(name: str, items: Iterable[KInner]) -> KInner:
             raise ValueError(
                 f'Expected a list of KApply with at least two arguments each, one has {item.arity} arguments.'
             )
-        items_dict[item.args[0]] = item
+        items_dict[item.args[0]] = item  # noqa: B909
     return k_map(concat_label=f'_{name}_', item_label=f'{name}Item', empty_label=f'.{name}', items=items_dict)
