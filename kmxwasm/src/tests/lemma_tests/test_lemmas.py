@@ -22,7 +22,10 @@ REGRESSION_TEST_DATA = tuple(
 @pytest.mark.parametrize(('test_id', 'test_file'), UNIT_TEST_DATA, ids=[test_id for test_id, _ in UNIT_TEST_DATA])
 def test_unit(test_id: str, test_file: Path, lemma_tests_tools: Tools) -> None:
     result = lemma_tests_tools.kprove.prove(test_file)
-    assert CTerm._is_top(mlOr([res.kast for res in result]))
+    result_or = mlOr([res.kast for res in result])
+    if not CTerm._is_top(result_or):
+        print(lemma_tests_tools.printer.pretty_print(result_or))
+    assert CTerm._is_top(result_or)
 
 
 @pytest.mark.parametrize(
@@ -30,4 +33,7 @@ def test_unit(test_id: str, test_file: Path, lemma_tests_tools: Tools) -> None:
 )
 def test_regression(test_id: str, test_file: Path, lemma_tests_tools: Tools) -> None:
     result = lemma_tests_tools.kprove.prove(test_file)
-    assert CTerm._is_top(mlOr([res.kast for res in result]))
+    result_or = mlOr([res.kast for res in result])
+    if not CTerm._is_top(result_or):
+        print(lemma_tests_tools.printer.pretty_print(result_or))
+    assert CTerm._is_top(result_or)
