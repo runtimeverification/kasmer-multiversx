@@ -11,9 +11,14 @@ module REPLACE-AT
                 replaceAt( SBChunk ( #bytes ( b"\x00\x00\x00\x00" ) ), 0, Int2Bytes ( 4 , A , LE ) )
             )
         ) => doneSimplification(
-            ListItem( SBChunk ( #bytes ( b"1234" ) ) )
+            ListItem(
+                ( SBChunk ( #bytes ( b"1234" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
             ListItem(
                 ( SBChunk ( #bytes ( Int2Bytes ( 4 , A , LE ) ) )
+                  .SparseBytes
                 ):SparseBytes:KItem
             )
         )
@@ -31,9 +36,14 @@ module REPLACE-AT
                 replaceAt( SBChunk ( #bytes ( b"\x00\x00\x00\x00" ) ), 0, Int2Bytes ( 3 , A , LE ) )
             )
         ) => doneSimplification(
-            ListItem( SBChunk ( #bytes ( b"123\x00" ) ) )
+            ListItem(
+                ( SBChunk ( #bytes ( b"123\x00" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
             ListItem(
                 ( SBChunk ( #bytes ( Int2Bytes ( 3, A , LE ) +Bytes b"\x00" ) )
+                  .SparseBytes
                 ):SparseBytes:KItem
             )
         )
@@ -51,9 +61,14 @@ module REPLACE-AT
                 replaceAt( SBChunk ( #bytes ( b"\x00\x00\x00\x00" ) ), 1, Int2Bytes ( 2 , A , LE ) )
             )
         ) => doneSimplification(
-            ListItem( SBChunk ( #bytes ( b"\x0012\x00" ) ) )
+            ListItem(
+                ( SBChunk ( #bytes ( b"\x0012\x00" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
             ListItem(
                 ( SBChunk ( #bytes ( b"\x00" +Bytes Int2Bytes ( 2 , A , LE ) +Bytes b"\x00" ) )
+                  .SparseBytes
                 ):SparseBytes:KItem
             )
         )
@@ -72,9 +87,14 @@ module REPLACE-AT
                     Int2Bytes ( 1 , A , LE ) +Bytes b"\x00\x00\x00" ) ), 1, Int2Bytes ( 2 , A , LE ) )
             )
         ) => doneSimplification(
-            ListItem( SBChunk ( #bytes ( b"\x0012\x00" ) ) )
+            ListItem(
+                ( SBChunk ( #bytes ( b"\x0012\x00" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
             ListItem(
                 ( SBChunk ( #bytes ( Int2Bytes ( 1 , A , LE ) +Bytes Int2Bytes ( 2 , A , LE ) +Bytes b"\x00" ) )
+                  .SparseBytes
                 ):SparseBytes:KItem
             )
         )
@@ -96,9 +116,14 @@ module REPLACE-AT
                 )
             )
         ) => doneSimplification(
-            ListItem( SBChunk ( #bytes ( b"\x0012\x00" ) ) )
+            ListItem(
+                ( SBChunk ( #bytes ( b"\x0012\x00" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
             ListItem(
                 ( SBChunk ( #bytes ( b"\x00" +Bytes Int2Bytes ( 2 , A , LE ) +Bytes b"\x00" ) )
+                  .SparseBytes
                 ):SparseBytes:KItem
             )
         )
@@ -120,9 +145,14 @@ module REPLACE-AT
                 )
             )
         ) => doneSimplification(
-            ListItem( SBChunk ( #bytes ( b"\x0012\x00" ) ) )
+            ListItem(
+                ( SBChunk ( #bytes ( b"\x0012\x00" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
             ListItem(
                 ( SBChunk ( #bytes ( b"\x00" +Bytes Int2Bytes ( 2 , A , LE ) +Bytes b"\x00" ) )
+                  .SparseBytes
                 ):SparseBytes:KItem
             )
         )
@@ -144,9 +174,14 @@ module REPLACE-AT
                 )
             )
         ) => doneSimplification(
-            ListItem( SBChunk ( #bytes ( b"\x00123\x00" ) ) )
+            ListItem(
+                ( SBChunk ( #bytes ( b"\x00123\x00" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
             ListItem(
                 ( SBChunk ( #bytes ( b"\x00" +Bytes Int2Bytes ( 3 , A , LE ) +Bytes b"\x00" ) )
+                  .SparseBytes
                 ):SparseBytes:KItem
             )
         )
@@ -165,9 +200,14 @@ module REPLACE-AT
                 replaceAt(SBChunk ( #empty ( 4 ) ), 0, Int2Bytes ( 4 , A , LE ))
             )
         ) => doneSimplification(
-            ListItem( SBChunk ( #bytes ( b"1234" ) ) )
+            ListItem(
+                ( SBChunk ( #bytes ( b"1234" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
             ListItem(
                 ( SBChunk ( #bytes ( Int2Bytes ( 4 , A , LE ) ) )
+                  .SparseBytes
                 ):SparseBytes:KItem
             )
         )
@@ -268,10 +308,12 @@ module REPLACE-AT
         ) => doneSimplification(
             ListItem(
                 ( SBChunk ( #bytes ( b"12" ) )
+                  .SparseBytes
                 ):SparseBytes:KItem
             )
             ListItem(
                 ( SBChunk ( #bytes ( Int2Bytes ( 2 , A , LE ) ) )
+                  .SparseBytes
                 ):SparseBytes:KItem
             )
         )
@@ -346,10 +388,12 @@ module REPLACE-AT
         ) => doneSimplification(
             ListItem(
                 ( SBChunk ( #bytes ( b"\x0012" ) )
+                  .SparseBytes
                 ):SparseBytes:KItem
             )
             ListItem(
                 ( SBChunk ( #bytes ( b"\x00" +Bytes Int2Bytes ( 2 , A , LE ) ) )
+                  .SparseBytes
                 ):SparseBytes:KItem
             )
         )

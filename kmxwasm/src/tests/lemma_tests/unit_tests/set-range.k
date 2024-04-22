@@ -1,5 +1,7 @@
 module SET-RANGE
     imports MX-WASM-LEMMA-TESTS
+    imports HANDLE-SPARSE-BYTES-LEMMAS-SYNTAX
+    imports SET-RANGE-LEMMAS-BASIC
 
     claim
       <k>
@@ -11,15 +13,21 @@ module SET-RANGE
                 #setRange( SBChunk ( #bytes ( b"\x00\x00\x00\x00" ) ), 0, A, 4 )
             )
         ) => doneSimplification(
-            ListItem( SBChunk ( #bytes ( b"\x02\x01\x00\x00" ) ) )
+            ListItem(
+                ( SBChunk ( #bytes ( b"\x02\x01\x00\x00" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
             ListItem(
                 ( SBChunk ( #bytes ( Int2Bytes ( 4 , A , LE ) ) )
+                  .SparseBytes
                 ):SparseBytes:KItem
             )
         )
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
+      requires 0 <=Int A
 
     claim
       <k>
@@ -31,18 +39,21 @@ module SET-RANGE
                 #setRange( SBChunk ( #bytes ( b"\x00\x00\x00\x00" ) ), 0, A, 3 )
             )
         ) => doneSimplification(
-            ListItem( SBChunk ( #bytes ( b"\x02\x01\x00\x00" ) ) )
-            // TODO: It is invalid for these two to have different
-            // constructor-based representations.
             ListItem(
-                ( SBChunk ( #bytes ( Int2Bytes ( 3 , A , LE ) ) )
-                  SBChunk ( #bytes ( b"\x00" ) )
+                ( SBChunk ( #bytes ( b"\x02\x01\x00\x00" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
+            ListItem(
+                ( SBChunk ( #bytes ( Int2Bytes ( 3 , A , LE ) +Bytes b"\x00" ) )
+                  .SparseBytes
                 ):SparseBytes:KItem
             )
         )
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
+      requires 0 <=Int A
 
     claim
       <k>
@@ -54,19 +65,21 @@ module SET-RANGE
                 #setRange( SBChunk ( #bytes ( b"\x00\x00\x00\x00" ) ), 1, A, 2 )
             )
         ) => doneSimplification(
-            // TODO: It is invalid for these two to have different
-            // constructor-based representations.
-            ListItem( SBChunk ( #bytes ( b"\x00\x02\x01\x00" ) ) )
             ListItem(
-                ( SBChunk ( #bytes ( b"\x00" ) )
-                  SBChunk ( #bytes ( Int2Bytes ( 2 , A , LE ) ) )
-                  SBChunk ( #bytes ( b"\x00" ) )
+                ( SBChunk ( #bytes ( b"\x00\x02\x01\x00" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
+            ListItem(
+                ( SBChunk ( #bytes ( b"\x00" +Bytes Int2Bytes ( 2 , A , LE ) +Bytes b"\x00" ) )
+                  .SparseBytes
                 ):SparseBytes:KItem
             )
         )
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
+      requires 0 <=Int A
 
     claim
       <k>
@@ -79,19 +92,21 @@ module SET-RANGE
                     Int2Bytes ( 1 , A , LE ) +Bytes b"\x00\x00\x00" ) ), 1, A, 2 )
             )
         ) => doneSimplification(
-            // TODO: It is invalid for these two to have different
-            // constructor-based representations.
-            ListItem( SBChunk ( #bytes ( b"\x00\x02\x01\x00" ) ) )
             ListItem(
-                ( SBChunk ( #bytes ( Int2Bytes ( 1 , A , LE ) ) )
-                  SBChunk ( #bytes ( Int2Bytes ( 2 , A , LE ) ) )
-                  SBChunk ( #bytes ( b"\x00" ) )
+                ( SBChunk ( #bytes ( b"\x00\x02\x01\x00" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
+            ListItem(
+                ( SBChunk ( #bytes ( Int2Bytes ( 1 , A , LE ) +Bytes Int2Bytes ( 2 , A , LE ) +Bytes b"\x00" ) )
+                  .SparseBytes
                 ):SparseBytes:KItem
             )
         )
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
+      requires 0 <=Int A
 
 
     claim
@@ -109,17 +124,22 @@ module SET-RANGE
         ) => doneSimplification(
             // TODO: It is invalid for these two to have different
             // constructor-based representations.
-            ListItem( SBChunk ( #bytes ( b"\x00\x02\x01\x00" ) ) )
             ListItem(
-                ( SBChunk ( #bytes ( b"\x00" ) )
-                  SBChunk ( #bytes ( Int2Bytes ( 2 , A , LE ) ) )
+                ( SBChunk ( #bytes ( b"\x00\x02\x01\x00" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
+            ListItem(
+                ( SBChunk ( #bytes ( b"\x00" +Bytes Int2Bytes ( 2 , A , LE ) ) )
                   SBChunk ( #bytes ( b"\x00" ) )
+                  .SparseBytes
                 ):SparseBytes:KItem
             )
         )
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
+      requires 0 <=Int A
 
 
     claim
@@ -137,10 +157,13 @@ module SET-RANGE
         ) => doneSimplification(
             // TODO: It is invalid for these two to have different
             // constructor-based representations.
-            ListItem( SBChunk ( #bytes ( b"\x00\x02\x01\x00" ) ) )
             ListItem(
-                ( SBChunk ( #bytes ( b"\x00" ) )
-                  SBChunk ( #bytes ( Int2Bytes ( 2 , A , LE ) ) )
+                ( SBChunk ( #bytes ( b"\x00\x02\x01\x00" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
+            ListItem(
+                ( SBChunk ( #bytes ( b"\x00" +Bytes Int2Bytes ( 2 , A , LE ) ) )
                   SBChunk ( #bytes ( b"\x00" ) )
                 ):SparseBytes:KItem
             )
@@ -148,6 +171,7 @@ module SET-RANGE
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
+      requires 0 <=Int A
 
 
     claim
@@ -165,10 +189,13 @@ module SET-RANGE
         ) => doneSimplification(
             // TODO: It is invalid for these two to have different
             // constructor-based representations.
-            ListItem( SBChunk ( #bytes ( b"\x00\x02\x01\x00\x00" ) ) )
             ListItem(
-                ( SBChunk ( #bytes ( b"\x00" ) )
-                  SBChunk ( #bytes ( Int2Bytes ( 3 , A , LE ) ) )
+                ( SBChunk ( #bytes ( b"\x00\x02\x01\x00\x00" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
+            ListItem(
+                ( SBChunk ( #bytes ( b"\x00" +Bytes Int2Bytes ( 3 , A , LE ) ) )
                   SBChunk ( #bytes ( b"\x00" ) )
                 ):SparseBytes:KItem
             )
@@ -176,6 +203,7 @@ module SET-RANGE
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
+      requires 0 <=Int A
 
 
     claim
@@ -188,15 +216,21 @@ module SET-RANGE
                 #setRange(SBChunk ( #empty ( 4 ) ), 0, A, 4)
             )
         ) => doneSimplification(
-            ListItem( SBChunk ( #bytes ( b"\x02\x01\x00\x00" ) ) )
+            ListItem(
+                ( SBChunk ( #bytes ( b"\x02\x01\x00\x00" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
             ListItem(
                 ( SBChunk ( #bytes ( Int2Bytes ( 4 , A , LE ) ) )
+                  .SparseBytes
                 ):SparseBytes:KItem
             )
         )
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
+      requires 0 <=Int A
 
 
     claim
@@ -223,6 +257,7 @@ module SET-RANGE
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
+      requires 0 <=Int A
 
 
     claim
@@ -251,6 +286,7 @@ module SET-RANGE
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
+      requires 0 <=Int A
 
 
     claim
@@ -277,6 +313,7 @@ module SET-RANGE
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
+      requires 0 <=Int A
 
 
     claim
@@ -291,16 +328,19 @@ module SET-RANGE
         ) => doneSimplification(
             ListItem(
                 ( SBChunk ( #bytes ( b"\x02\x01" ) )
+                  .SparseBytes
                 ):SparseBytes:KItem
             )
             ListItem(
                 ( SBChunk ( #bytes ( Int2Bytes ( 2 , A , LE ) ) )
+                  .SparseBytes
                 ):SparseBytes:KItem
             )
         )
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
+      requires 0 <=Int A
 
 
     claim
@@ -329,6 +369,7 @@ module SET-RANGE
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
+      requires 0 <=Int A
 
 
     claim
@@ -341,20 +382,23 @@ module SET-RANGE
                 #setRange( SBChunk ( #bytes ( b"\x00" ) ), 1, A, 2)
             )
         ) => doneSimplification(
+            // TODO: It is invalid for these two to have different
+            // constructor-based representations.
             ListItem(
                 ( SBChunk ( #bytes ( b"\x00" ) )
                   SBChunk ( #bytes ( b"\x02\x01" ) )
                 ):SparseBytes:KItem
             )
             ListItem(
-                ( SBChunk ( #bytes ( b"\x00" ) )
-                  SBChunk ( #bytes ( Int2Bytes ( 2 , A , LE ) ) )
+                ( SBChunk ( #bytes ( b"\x00" +Bytes Int2Bytes ( 2 , A , LE ) ) )
+                  .SparseBytes
                 ):SparseBytes:KItem
             )
         )
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
+      requires 0 <=Int A
 
 
     claim
@@ -367,21 +411,21 @@ module SET-RANGE
                 #setRange( SBChunk ( #bytes ( b"\x00\x00" ) ), 1, A, 2)
             )
         ) => doneSimplification(
-            // TODO: It is invalid for these two to have different
-            // constructor-based representations.
             ListItem(
                 ( SBChunk ( #bytes ( b"\x00\x02\x01" ) )
+                  .SparseBytes
                 ):SparseBytes:KItem
             )
             ListItem(
-                ( SBChunk ( #bytes ( b"\x00" ) )
-                  SBChunk ( #bytes ( Int2Bytes ( 2 , A , LE ) ) )
+                ( SBChunk ( #bytes ( b"\x00" +Bytes Int2Bytes ( 2 , A , LE ) ) )
+                  .SparseBytes
                 ):SparseBytes:KItem
             )
         )
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
+      requires 0 <=Int A
 
 
     claim
@@ -394,6 +438,8 @@ module SET-RANGE
                 #setRange( SBChunk ( #empty ( 1 ) ), 10, A, 2)
             )
         ) => doneSimplification(
+            // TODO: It is invalid for these two to have different
+            // constructor-based representations.
             ListItem(
                 ( SBChunk ( #empty ( 1 ) )
                   SBChunk ( #empty ( 9 ) )
@@ -401,8 +447,7 @@ module SET-RANGE
                 ):SparseBytes:KItem
             )
             ListItem(
-                ( SBChunk ( #empty ( 1 ) )
-                  SBChunk ( #empty ( 9 ) )
+                ( SBChunk ( #empty ( 10 ) )
                   SBChunk ( #bytes ( Int2Bytes ( 2 , A , LE ) ) )
                 ):SparseBytes:KItem
             )
@@ -410,6 +455,7 @@ module SET-RANGE
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
+      requires 0 <=Int A
 
 
     claim
@@ -436,6 +482,7 @@ module SET-RANGE
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
+      requires 0 <=Int A
 
 
     claim
@@ -462,5 +509,6 @@ module SET-RANGE
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
+      requires 0 <=Int A
 
 endmodule

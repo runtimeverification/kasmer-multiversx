@@ -20,7 +20,11 @@ module SET-RANGE-REPLACE-AT-B
             //     )
             // )
         ) => doneSimplification(
-            ListItem( SBChunk ( #bytes ( b"\x03\x02\x00\x00" ) ) )
+            ListItem(
+                ( SBChunk ( #bytes ( b"\x03\x02\x00\x00" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
             // ListItem( #setRange( SBChunk( #bytes(B) ) A, 0, 515, 4 ) )
         )
       </k>
@@ -46,7 +50,11 @@ module SET-RANGE-REPLACE-AT-B
             //     )
             // )
         ) => doneSimplification(
-            ListItem( SBChunk ( #bytes ( b"\x03\x02\x00\x00" ) ) )
+            ListItem(
+                ( SBChunk ( #bytes ( b"\x03\x02\x00\x00" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
             // ListItem( #setRange( SBChunk( #bytes(B) ) A, 0, 515, 4 ) )
         )
       </k>
@@ -72,7 +80,12 @@ module SET-RANGE-REPLACE-AT-B
             //     )
             // )
         ) => doneSimplification(
-            ListItem( SBChunk ( #bytes ( b"\x03\x02\x00\x00" ) ) )
+            ListItem(
+                ( SBChunk ( #bytes ( b"\x03\x02\x00\x00" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+
+            )
             // ListItem( #setRange( SBChunk( #bytes(B) ) A, 0, 515, 4 ) )
         )
       </k>
@@ -98,7 +111,11 @@ module SET-RANGE-REPLACE-AT-B
             //     )
             // )
         ) => doneSimplification(
-            ListItem( SBChunk ( #bytes ( b"\x03\x02\x00\x00" ) ) )
+            ListItem(
+                ( SBChunk ( #bytes ( b"\x03\x02\x00\x00" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
             // ListItem( #setRange( SBChunk( #bytes(B) ) A, 0, 515, 4 ) )
         )
       </k>
@@ -122,7 +139,11 @@ module SET-RANGE-REPLACE-AT-B
             //     )
             // )
         ) => doneSimplification(
-            ListItem( SBChunk ( #bytes ( b"\x03\x02b\x00" ) ) )
+            ListItem(
+                ( SBChunk ( #bytes ( b"\x03\x02b\x00" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
             // TODO: Figure out how this should work (and if we should
             // do anything here).
             //
@@ -143,8 +164,6 @@ module SET-RANGE-REPLACE-AT-B
                     2, 515, 2
                 )
             )
-            // TODO: The symbolic part of this test is not working properly right now,
-            // it would be nice if it did.
             // ListItem(
             //     #setRange(
             //         replaceAtB( B, A, 1, b"12" ),
@@ -152,10 +171,16 @@ module SET-RANGE-REPLACE-AT-B
             //     )
             // )
         ) => doneSimplification(
-            ListItem( SBChunk ( #bytes ( b"\x001\x03\x02" ) ) )
+            ListItem(
+                ( SBChunk ( #bytes ( b"\x001\x03\x02" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
+            // TODO: The symbolic part of this test is not working properly right now,
+            // it may not matter if it does work or not.
             // ListItem(
             //     #setRange(
-            //         replaceAtB( B, A, 1, b"1" ),
+            //         replaceAt( A, 1, b"1" ),
             //         2, 515, 2
             //     )
             // )
@@ -181,7 +206,11 @@ module SET-RANGE-REPLACE-AT-B
             //     )
             // )
         ) => doneSimplification(
-            ListItem( SBChunk ( #bytes ( b"1\x03\x024" ) ) )
+            ListItem(
+                ( SBChunk ( #bytes ( b"1\x03\x024" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
             // TODO: Figure out how this should work (and if we should
             // do anything here).
             //

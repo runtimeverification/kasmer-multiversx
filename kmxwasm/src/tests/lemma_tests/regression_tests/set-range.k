@@ -16,8 +16,10 @@ module SET-RANGE
         ) => doneSimplification(
             (
             SBChunk ( #empty ( 9974 -Int ( ( log2IntTotal ( ARG_0 +Int -1000 ) +Int 8 ) divIntTotal 8 ) ) )
-            SBChunk ( #bytes ( Int2Bytes ( 4 , ( ( log2IntTotal ( ARG_0 +Int -1000 ) +Int 8 ) divIntTotal 8 ) +Int 26 , LE ) ) )
-            SBChunk ( #bytes ( b"\x01" ) )
+            SBChunk ( #bytes (
+                    Int2Bytes ( 4 , ( ( log2IntTotal ( ARG_0 +Int -1000 ) +Int 8 ) divIntTotal 8 ) +Int 26 , LE) 
+                    +Bytes b"\x01"
+                ) )
             ):SparseBytes:KItem
         )
       </k>

@@ -22,7 +22,11 @@ module REPLACE-AT-B-SET-RANGE
             //     )
             // )
         ) => doneSimplification(
-            ListItem( SBChunk ( #bytes ( b"\x03\x02\x00\x00" ) ) )
+            ListItem(
+                ( SBChunk ( #bytes ( b"\x03\x02\x00\x00" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
             // ListItem( replaceAt( A, 0, Int2Bytes(4, 515, LE) ) )
         )
       </k>
