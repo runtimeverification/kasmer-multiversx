@@ -44,7 +44,7 @@ jobs:
           git add kmxwasm/pyproject.toml kmxwasm/poetry.lock && git commit -m 'kmxwasm/{pyproject.toml,poetry.lock}: sync Poetry files' || true
       - name: 'Update K release'
         run: |
-          K_VERSION=$(poetry -C kmxwasm run python3 -c 'import pyk; print(pyk.K_VERSION)')
+          K_VERSION=$(poetry -C kmxwasm run python3 -c 'import pyk; print(pyk.__version__)')
           echo ${K_VERSION} > deps/k_release
           git add deps/k_release && git commit -m "deps/k_release: sync release file version ${K_VERSION}" || true
       - name: 'Update Nix flake inputs'
