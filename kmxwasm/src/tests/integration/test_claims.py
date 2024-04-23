@@ -1,5 +1,4 @@
 import sys
-from datetime import datetime
 from typing import Final
 
 import pytest
@@ -227,9 +226,6 @@ class TestSimpleProofs:
         ids=[test_id for test_id, *_ in SIMPLE_PROOFS_DATA],
     )
     def test_run_claim(self, tools: Tools, test_id: str, claim: KClaim, success: bool) -> None:
-        # TODO: Fix this after updating the mx-semantics
-        if test_id == 'simple transaction fail' and datetime.today().strftime('%Y-%m-%d') <= '2024-04-25':
-            return
         result = run_claim(
             tools,
             WasmKrunInitializer(tools),

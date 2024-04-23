@@ -281,11 +281,11 @@ def run_claim(
                 to_process = expandable_leaves(kcfg, target_node_id)
 
         if last_processed_node != -1:
-            print('Node', last_processed_node, 'took', current_time - last_time, 'sec.')
+            print('Node', last_processed_node, 'took', time.time() - current_time, 'sec.')
         return Success(kcfg)
     except BaseException as e:  # noqa: B036
         if last_processed_node != -1:
-            print('Node', last_processed_node, 'took', current_time - last_time, 'sec.')
+            print('Node', last_processed_node, 'took', time.time() - current_time, 'sec.')
         return RunException(kcfg, e, last_processed_node)
 
 
