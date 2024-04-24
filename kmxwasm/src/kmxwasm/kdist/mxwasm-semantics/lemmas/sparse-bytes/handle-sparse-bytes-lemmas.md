@@ -31,18 +31,6 @@ module HANDLE-SPARSE-BYTES-LEMMAS-SYNTAX
             SBSetFunction, start:Int, size:Int
         )  [function, total, symbol(getReplacementSparseBytes)]
 
-    syntax Bool ::= updateSparseBytesCanSwap(
-                f1:SBSetFunction, start1:Int, size1:Int,
-                f2:SBSetFunction, start2:Int, size2:Int)
-        [function, total]
-    rule updateSparseBytesCanSwap(F1, Start1, Width1, F2, Start2, Width2)
-        => functionSparseBytesWellDefined(F2, Start2, Width2)
-            andBool functionSparseBytesWellDefined(F1, Start1, Width1)
-            andBool functionSparseBytesWellDefined(F1, Start1, Width1)
-            andBool functionSparseBytesWellDefined(F2, Start2, Width2)
-            andBool functionCommutesAtStart(F1)
-            andBool startOffset(F2) <=Int Start1
-
     // Must convert to/from for each function
     syntax SparseBytes ::= extractSparseBytes(
             SBGetFunction, SparseBytes, start:Int, size:Int
@@ -394,84 +382,10 @@ module UPDATE-SPARSE-BYTES-LEMMAS
           andBool canSplitSparseBytes(F2, SB, Start1)
         [simplification]
 
-    // rule updateSparseBytes(
-    //           F1:SBSetFunction,
-    //           updateSparseBytes(
-    //               F2:SBSetFunction,
-    //               SB:SparseBytes,
-    //               Start2:Int, Width2:Int),
-    //           Start1:Int, Width1:Int)
-    //     => updateSparseBytes(
-    //           F2,
-    //           updateSparseBytes(F1, SB, Start1 - startOffset(F2), Width1),
-    //           Start2, Width2)
-    //     requires disjontRanges(Start1, Width1, Start2, Width2)
-    //       andBool updateSparseBytesCanSwap(F1, Start1, Width1, F2, Start2, Width2)
-    //     [simplification, concrete(Start1,Width1), symbolic(Start2)]
-    // rule updateSparseBytes(
-    //           F1:SBSetFunction,
-    //           updateSparseBytes(
-    //               F2:SBSetFunction,
-    //               SB:SparseBytes,
-    //               Start2:Int, Width2:Int),
-    //           Start1:Int, Width1:Int)
-    //     => updateSparseBytes(
-    //           F2,
-    //           updateSparseBytes(F1, SB, Start1 - startOffset(F2), Width1),
-    //           Start2, Width2)
-    //     requires disjontRanges(Start1, Width1, Start2, Width2)
-    //       andBool updateSparseBytesCanSwap(F1, Start1, Width1, F2, Start2, Width2)
-    //   [simplification, concrete(Start1,Width1,Start2), symbolic(Width2)]
-
-    // rule updateSparseBytes(
-    //           F1:SBSetFunction,
-    //           updateSparseBytes(
-    //               F2:SBSetFunction,
-    //               SB:SparseBytes,
-    //               Start2:Int, Width2:Int),
-    //           Start1:Int, Width1:Int)
-    //     => updateSparseBytes(
-    //           F2,
-    //           updateSparseBytes(F1, SB, Start1 - startOffset(F2), Width1),
-    //           Start2:Int, Width2:Int)
-    //     requires disjontRanges(Start1, Width1, Start2, Width2)
-    //       andBool updateSparseBytesCanSwap(F1, Start1, Width1, F2, Start2, Width2)
-    //       andBool Start1 <Int Start2
-    //   [simplification, concrete(Start1,Width1,Start2,Width2)]
-    // rule updateSparseBytes(
-    //           F1:SBSetFunction,
-    //           updateSparseBytes(
-    //               F2:SBSetFunction,
-    //               SB:SparseBytes,
-    //               Start2:Int, Width2:Int),
-    //           Start1:Int, Width1:Int)
-    //     => updateSparseBytes(
-    //           F2,
-    //           updateSparseBytes(F1, SB, Start1 - startOffset(F2), Width1),
-    //           Start2:Int, Width2:Int)
-    //     requires disjontRanges(Start1, Width1, Start2, Width2)
-    //       andBool updateSparseBytesCanSwap(F1, Start1, Width1, F2, Start2, Width2)
-    //       andBool Start1 <Int Start2
-    //   [simplification, concrete(Start2),symbolic(Width2)]
-    // rule updateSparseBytes(
-    //           F1:SBSetFunction,
-    //           updateSparseBytes(
-    //               F2:SBSetFunction,
-    //               SB:SparseBytes,
-    //               Start2:Int, Width2:Int),
-    //           Start1:Int, Width1:Int)
-    //     => updateSparseBytes(
-    //           F2,
-    //           updateSparseBytes(F1, SB, Start1 - startOffset(F2), Width1),
-    //           Start2:Int, Width2:Int)
-    //     requires disjontRanges(Start1, Width1, Start2, Width2)
-    //       andBool updateSparseBytesCanSwap(F1, Start1, Width1, F2, Start2, Width2)
-    //       andBool Start1 <Int Start2
-    //   [simplification, symbolic(Start2)]
-
     // ----------------------------
     //  Included ranges cancelling
     // ----------------------------
+
     rule updateSparseBytes(
               F1:SBSetFunction,
               updateSparseBytes(
