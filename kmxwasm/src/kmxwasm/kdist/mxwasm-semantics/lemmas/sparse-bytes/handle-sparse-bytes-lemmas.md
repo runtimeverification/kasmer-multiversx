@@ -42,11 +42,15 @@ module HANDLE-SPARSE-BYTES-LEMMAS-SYNTAX
         )
         [function, total]
 
-    syntax Bool ::= canSplitSparseBytes(SBSetFunction, SparseBytes, addr:Int)  [function, total]
+    syntax Bool ::= canSplitSparseBytes(
+                        SBSetFunction, SparseBytes,
+                        addr:Int, innerAddr:Int, innerWidth:Int
+                    )  [function, total]
                   | #canSplitSparseBytes(SparseBytes, SparseBytes)  [function, total]
 
     syntax SparseBytes ::= splitSparseBytesFunction(
-            function:SparseBytes, SBSetFunction, toSplit:SparseBytes, addr:Int
+            function:SparseBytes, SBSetFunction, toSplit:SparseBytes,
+            addr:Int, innerAddr:Int, innerWidth:Int
         )
         [function, total]
     syntax SparseBytes ::= #splitSparseBytesFunction(
@@ -85,17 +89,19 @@ endmodule
 module SPLIT-SPARSE-BYTES
     imports HANDLE-SPARSE-BYTES-LEMMAS-SYNTAX
 
-    rule canSplitSparseBytes(F:SBSetFunction, SB, Addr)
+    rule canSplitSparseBytes(F:SBSetFunction, SB, Addr, InnerAddr:Int, InnerWidth:Int)
         => #canSplitSparseBytes(SB, splitSparseBytes(SB, .SparseBytes, Addr -Int startOffset(F)))
         requires startOffset(F) <Int Addr
+            andBool InnerAddr +Int InnerWidth <=Int Addr
     rule #canSplitSparseBytes(_, splitSparseBytes(Suffix, _, 0)) => true
         requires 0 <Int size(Suffix)
         [simplification]
 
-    rule splitSparseBytesFunction(Function:SparseBytes, F:SBSetFunction, ToSplit:SparseBytes, Addr:Int)
+    rule splitSparseBytesFunction(Function:SparseBytes, F:SBSetFunction, ToSplit:SparseBytes, Addr:Int, InnerAddr:Int, InnerWidth:Int)
         => #splitSparseBytesFunction(
             Function, ToSplit, splitSparseBytes(ToSplit, .SparseBytes, Addr -Int startOffset(F)), Addr
         )
+        requires InnerAddr +Int InnerWidth <=Int Addr
     rule #splitSparseBytesFunction(
             updateSparseBytes(Fn:SBSetFunction, _:SparseBytes, Addr:Int, Width:Int),
             _:SparseBytes,
@@ -103,6 +109,7 @@ module SPLIT-SPARSE-BYTES
             _:Int
         )
         => concat(updateSparseBytes(Fn, Prefix, Addr, Width), Suffix)
+        requires Addr +Int Width <Int size(Prefix)
         [simplification]
 
 
@@ -152,10 +159,13 @@ module SPLIT-SPARSE-BYTES
                   F:SBSetFunction, SB:SparseBytes, AddrF:Int, WidthF:Int),
               Prefix:SparseBytes, Addr:Int)
         => splitSparseBytes
-            ( splitSparseBytesFunction(updateSparseBytes(F, SB, AddrF, WidthF), F, SB, Addr),
-            Prefix, Addr
+            ( splitSparseBytesFunction
+              ( updateSparseBytes(F, SB, AddrF, WidthF)
+              , F, SB, Addr, AddrF, WidthF
+              )
+            , Prefix, Addr
             )
-        requires canSplitSparseBytes(F, SB, Addr)
+        requires canSplitSparseBytes(F, SB, Addr, AddrF, WidthF)
         [simplification]
 
 
@@ -367,6 +377,7 @@ module UPDATE-SPARSE-BYTES-LEMMAS
     // ----------------------------
     //      Disjoint ranges
     // ----------------------------
+
     rule updateSparseBytes(
               F1:SBSetFunction,
               updateSparseBytes(
@@ -376,10 +387,13 @@ module UPDATE-SPARSE-BYTES-LEMMAS
               Start1:Int, Width1:Int)
         => updateSparseBytes(
               F1,
-              splitSparseBytesFunction(updateSparseBytes(F2, SB, Start2, Width2), F2, SB, Start1),
+              splitSparseBytesFunction(
+                  updateSparseBytes(F2, SB, Start2, Width2),
+                  F2, SB, Start1, Start2, Width2
+              ),
               Start1, Width1)
         requires disjontRanges(Start1, Width1, Start2, Width2)
-          andBool canSplitSparseBytes(F2, SB, Start1)
+          andBool canSplitSparseBytes(F2, SB, Start1, Start2, Width2)
         [simplification]
 
     // ----------------------------
