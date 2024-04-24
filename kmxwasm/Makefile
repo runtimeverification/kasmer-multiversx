@@ -43,8 +43,8 @@ test-lemmas-not-changed: lemmas
 test-proofs: lemmas
 	$(POETRY_RUN) pytest src/tests/proofs/ --maxfail=1 --verbose --durations=0 --numprocesses=4 --dist=worksteal $(TEST_ARGS)
 
-test-lemmas-unit: lemmas
-	$(POETRY_RUN) pytest src/tests/lemma_unittests --maxfail=1 --verbose --durations=0 --numprocesses=4 --dist=worksteal $(TEST_ARGS)
+test-lemmas: lemmas
+	$(POETRY_RUN) pytest src/tests/lemma_tests --maxfail=1 --verbose --durations=0 --numprocesses=4 --dist=worksteal $(TEST_ARGS)
 
 test-booster: poetry-install
 	$(POETRY_RUN) pytest src/tests/booster --maxfail=1 --verbose --durations=0 --numprocesses=4 --dist=worksteal $(TEST_ARGS)

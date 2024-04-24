@@ -301,7 +301,7 @@ def main(args: list[str]) -> None:
     LEMMAS_FILE.write_text('```k\nmodule PROVEN-MX-LEMMAS\nendmodule\n```\n')
     HELPER_LEMMAS_FILE.write_text('module HELPER-LEMMAS\nendmodule\n')
 
-    tools = semantics(target=LEMMA_PROOFS, booster=False, bug_report=None)
+    tools = semantics(target=LEMMA_PROOFS, booster=False, llvm=False, bug_report=None)
 
     for lemma in LEMMAS:
         definition = lemma.make_definition()
@@ -319,7 +319,7 @@ def main(args: list[str]) -> None:
     printed_helper_trusted = tools.printer.pretty_print(helper_module_trusted)
     HELPER_LEMMAS_FILE.write_text(f'{cleanup(printed_helper)}\n\n{cleanup(printed_helper_trusted)}\n')
 
-    tools = semantics(target=LEMMA_PROOFS, booster=False, bug_report=None)
+    tools = semantics(target=LEMMA_PROOFS, booster=False, llvm=False, bug_report=None)
     tools.printer
 
 

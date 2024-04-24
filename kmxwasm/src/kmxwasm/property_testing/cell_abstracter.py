@@ -34,7 +34,7 @@ class CellAbstracter:
 
         new_config = self.__replace_with_variable(node.cterm.config, self.__variable_to_value, self.__next_variable)
         new_cterm = CTerm(new_config, node.cterm.constraints)
-        kcfg.replace_node(KCFG.Node(node.id, new_cterm))
+        kcfg.replace_node(node.let(cterm=new_cterm))
 
         if node_id in self.__should_be_concrete:
             self.__should_be_concrete.remove(node_id)
@@ -62,7 +62,7 @@ class CellAbstracter:
 
         new_config = self.__replace_with_original(node.cterm.config, variable_to_value, allow_missing_variable)
         new_cterm = CTerm(new_config, node.cterm.constraints)
-        kcfg.replace_node(KCFG.Node(node.id, new_cterm))
+        kcfg.replace_node(node.let(cterm=new_cterm))
 
         self.__should_be_concrete.add(node_id)
 
