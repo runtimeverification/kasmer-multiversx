@@ -109,7 +109,7 @@ module SPLIT-SPARSE-BYTES
             _:Int
         )
         => concat(updateSparseBytes(Fn, Prefix, Addr, Width), Suffix)
-        requires Addr +Int Width <Int size(Prefix)
+        requires Addr +Int Width -Int startOffset(Fn) <=Int size(Prefix)
         [simplification]
 
 
