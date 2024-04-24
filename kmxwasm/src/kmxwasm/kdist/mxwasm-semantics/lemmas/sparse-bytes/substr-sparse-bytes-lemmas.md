@@ -20,7 +20,7 @@ module SUBSTR-SPARSE-BYTES-LEMMAS
         requires 0 <=Int Start andBool Start <=Int End
         [simplification]
     rule substrSparseBytes(merge(SB1, SB2), Start:Int, End:Int)
-        => extractSparseBytes(substr, merge(SB1, SB2), Start, End)
+        => extractSparseBytes(substr, merge(SB1, SB2), Start, End -Int Start)
         requires 0 <=Int Start andBool Start <=Int End
         [simplification]
     rule substrSparseBytes(extractSparseBytes(F, SB, A, W), Start:Int, End:Int)
