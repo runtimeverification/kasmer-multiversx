@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
+from pathlib import Path
 
 from pyk.kast.att import KAtt
 from pyk.prelude.collections import LIST
@@ -9,7 +10,6 @@ from pyk.prelude.kint import INT, eqInt, gtInt, leInt, ltInt
 from pyk.prelude.ml import mlEquals
 
 from ..build import LEMMA_PROOFS, semantics
-from ..kdist.plugin import K_DIR
 from .expression import (
     addInt,
     divIntTotal,
@@ -45,6 +45,7 @@ from .lemmas import (
 )
 from .proof import basicListInduction, proofSplit, proofVar
 
+K_DIR = Path(__file__).parents[1] / 'kdist/mxwasm-semantics'
 LEMMAS_DIR = K_DIR / 'lemmas'
 PROOFS_DIR = LEMMAS_DIR / 'proofs'
 
