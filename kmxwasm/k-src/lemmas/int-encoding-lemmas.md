@@ -151,6 +151,10 @@ countConsecutiveZeroBits
   rule countConsecutiveZeroBytes(A, N)
       => int64BytesAre0(A, 0 <=Int N, 1 <=Int N, 2 <=Int N, 3 <=Int N, 4 <=Int N, 5 <=Int N, 6 <=Int N, 7 <=Int N)
         +Int countConsecutiveZeroBytes(A, N -Int 1)
+      requires 0 <=Int N
+      [simplification, concrete]
+  rule countConsecutiveZeroBytes(_, N) => 0
+      requires N <Int 0
       [simplification, concrete]
 
   // reverse encoding dropping consecutive 0 bytes starting with the highest byte.
@@ -604,10 +608,10 @@ module INT-ENCODING-LEMMAS  [symbolic]
       [simplification, smt-lemma]
   rule countConsecutiveZeroBytes(_, 6) <Int N => true
       requires 7 <Int N
-      [simplification, smt-lemma]
+      [simplification]
   rule countConsecutiveZeroBytes(_, 6) <=Int N => true
       requires 7 <=Int N
-      [simplification, smt-lemma]
+      [simplification]
 
   rule int64encoding( A, -1, -1, -1, -1, -1, -1, -1,  7 )
       >>IntTotal countConsecutiveZeroBits(A, 6)

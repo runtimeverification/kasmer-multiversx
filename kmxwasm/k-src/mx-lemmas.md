@@ -51,10 +51,28 @@ module MX-LEMMAS  [symbolic]
   rule {false #Equals B:Bool} => #Not ({true #Equals B:Bool})
       [simplification]
 
-  rule { _:Int #Equals undefined } => #Top  [simplification]
+  // rule { _:Int #Equals undefined } => #Top  [simplification]
   rule { (< _:IValType > _:Int) #Equals undefined } => #Bottom  [simplification]
   rule { (< _:FValType > _:Float) #Equals undefined } => #Bottom  [simplification]
   rule { (< _:RefValType > _:Int) #Equals undefined } => #Bottom  [simplification]
+
+  rule { undefined #Equals (< _:IValType > _:Int) } => #Bottom  [simplification]
+  rule { undefined #Equals (< _:FValType > _:Float) } => #Bottom  [simplification]
+  rule { undefined #Equals (< _:RefValType > _:Int) } => #Bottom  [simplification]
+
+  rule undefined ==K (< _:IValType > _:Int) => false
+      [simplification]
+  rule undefined ==K (< _:FValType > _:Float) => false
+      [simplification]
+  rule undefined ==K (< _:RefValType > _:Int) => false
+      [simplification]
+
+  rule (< _:IValType > _:Int) ==K undefined => false
+      [simplification]
+  rule (< _:FValType > _:Float) ==K undefined => false
+      [simplification]
+  rule (< _:RefValType > _:Int) ==K undefined => false
+      [simplification]
 
   // TODO: REMOVE -------------------------------
 

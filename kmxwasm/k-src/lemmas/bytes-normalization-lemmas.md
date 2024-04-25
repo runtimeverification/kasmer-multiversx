@@ -87,6 +87,7 @@ module BYTES-NORMALIZATION-LEMMAS  [symbolic]
         => maxInt(lengthBytes(B:Bytes), Length:Int)
         requires definedPadRightBytes(B, Length, Value)
         [simplification]
+    rule lengthBytes(zeros(Len)) => Len  [simplification]
     rule lengthBytes(A +Bytes B) => lengthBytes(A) +Int lengthBytes(B)
         [simplification]
     rule 0 <=Int lengthBytes(_:Bytes) => true

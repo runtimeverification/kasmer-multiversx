@@ -84,6 +84,7 @@ module SET-RANGE-LEMMAS
     rule updateSparseBytes(setRange(Value:Int), M:SparseBytes, Addr, Width:Int)
         => concat(M, updateSparseBytes(setRange(Value:Int), .SparseBytes, Addr -Int size(M), Width:Int))
         requires size(M) <=Int Addr
+          andBool 0 <Int size(M)
           andBool functionSparseBytesWellDefined(setRange(Value), Addr, Width)
         [simplification]
 

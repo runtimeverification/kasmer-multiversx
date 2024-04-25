@@ -54,11 +54,15 @@ module HANDLE-SPARSE-BYTES-LEMMAS-SYNTAX
         )
         [function, total]
 
-    syntax Bool ::= canSplitSparseBytes(SBSetFunction, SparseBytes, addr:Int)  [function, total]
+    syntax Bool ::= canSplitSparseBytes(
+                        SBSetFunction, SparseBytes,
+                        addr:Int, innerAddr:Int, innerWidth:Int
+                    )  [function, total]
                   | #canSplitSparseBytes(SparseBytes, SparseBytes)  [function, total]
 
     syntax SparseBytes ::= splitSparseBytesFunction(
-            function:SparseBytes, SBSetFunction, toSplit:SparseBytes, addr:Int
+            function:SparseBytes, SBSetFunction, toSplit:SparseBytes,
+            addr:Int, innerAddr:Int, innerWidth:Int
         )
         [function, total]
     syntax SparseBytes ::= #splitSparseBytesFunction(
@@ -97,17 +101,19 @@ endmodule
 module SPLIT-SPARSE-BYTES
     imports HANDLE-SPARSE-BYTES-LEMMAS-SYNTAX
 
-    rule canSplitSparseBytes(F:SBSetFunction, SB, Addr)
+    rule canSplitSparseBytes(F:SBSetFunction, SB, Addr, InnerAddr:Int, InnerWidth:Int)
         => #canSplitSparseBytes(SB, splitSparseBytes(SB, .SparseBytes, Addr -Int startOffset(F)))
         requires startOffset(F) <Int Addr
+            andBool InnerAddr +Int InnerWidth <=Int Addr
     rule #canSplitSparseBytes(_, splitSparseBytes(Suffix, _, 0)) => true
         requires 0 <Int size(Suffix)
         [simplification]
 
-    rule splitSparseBytesFunction(Function:SparseBytes, F:SBSetFunction, ToSplit:SparseBytes, Addr:Int)
+    rule splitSparseBytesFunction(Function:SparseBytes, F:SBSetFunction, ToSplit:SparseBytes, Addr:Int, InnerAddr:Int, InnerWidth:Int)
         => #splitSparseBytesFunction(
             Function, ToSplit, splitSparseBytes(ToSplit, .SparseBytes, Addr -Int startOffset(F)), Addr
         )
+        requires InnerAddr +Int InnerWidth <=Int Addr
     rule #splitSparseBytesFunction(
             updateSparseBytes(Fn:SBSetFunction, _:SparseBytes, Addr:Int, Width:Int),
             _:SparseBytes,
@@ -115,6 +121,7 @@ module SPLIT-SPARSE-BYTES
             _:Int
         )
         => concat(updateSparseBytes(Fn, Prefix, Addr, Width), Suffix)
+        requires Addr +Int Width -Int startOffset(Fn) <=Int size(Prefix)
         [simplification]
 
 
@@ -164,10 +171,10 @@ module SPLIT-SPARSE-BYTES
                   F:SBSetFunction, SB:SparseBytes, AddrF:Int, WidthF:Int),
               Prefix:SparseBytes, Addr:Int)
         => splitSparseBytes
-            ( splitSparseBytesFunction(updateSparseBytes(F, SB, AddrF, WidthF), F, SB, Addr),
+            ( splitSparseBytesFunction(updateSparseBytes(F, SB, AddrF, WidthF), F, SB, Addr, AddrF, WidthF),
             Prefix, Addr
             )
-        requires canSplitSparseBytes(F, SB, Addr)
+        requires canSplitSparseBytes(F, SB, Addr, AddrF, WidthF)
         [simplification]
 
 
@@ -182,7 +189,79 @@ module UPDATE-SPARSE-BYTES-LEMMAS
     // ----------------------------
     //    simplify concatenation
     // ----------------------------
-    rule updateSparseBytes(
+
+    // Evaluation schema for simplifying the basic SB representation
+    // Arguments: F, SB, Start, Len
+    //
+    // * SB = .SparseBytes
+    //     - replace SB with zeros
+    // * SB = chunk SB'
+    //     * size(chunk) <= start
+    //         - move the chunk before the update (1)
+    //     * start < size(chunk)
+    //         * SB' = .SparseBytes
+    //             * size(chunk) < start + width
+    //                 - add zeros at the end of the SB / 
+    //             * start + width <= size(chunk)
+    //                 * 0 < start
+    //                     * chunk = #bytes(A)
+    //                         * concrete(A, Start)
+    //                             - high priority rule to remove the prefix
+    //                         * A = B + C
+    //                             * len(B) <= start
+    //                                 - remove
+    //                             * start < len(B)
+    //                                 * start + width <= len(B)
+    //                                     - remove end
+    //                                 * len(B) < start + width
+    //                                     * concrete(B, Start)
+    //                                         - high priority rule to remove the start
+    //                                     * give up
+    //                         * otherwise
+    //                             - give up
+    //                     * chunk = #empty(A)
+    //                         - remove the prefix
+    //                 * 0 == start
+    //                     * chunk = #bytes(A)
+    //                         * start + width = len(A)
+    //                             - return result
+    //                         * start + width < len(A)
+    //                             * concrete(A, Width)
+    //                                 - high priority rule to split
+    //                             * A = B + C
+    //                                 * Width <= len(B)
+    //                                     - split
+    //                                 * len(B) < width
+    //                                     - give up
+    //                             * otherwise
+    //                                 - give up
+    //                     * chunk = #empty(A)
+    //                         * start + width = A
+    //                             - return result
+    //                         * start + width < A
+    //                             - split
+    //         * SB' = chunk2 SB'''
+    //             * start + width <= size(chunk)
+    //                 - remove SB' (2)
+    //             * size(chunk) < start + width
+    //                 * chunk = #bytes(A)
+    //                     * chunk2 = #bytes(B)
+    //                         - concatenate A + B
+    //                         - with high priority, if s+w<len(A+B), concrete(s,w,b),
+    //                           then split B
+    //                     * chunk2 = #empty(B)
+    //                         * start+width < len(A) + B
+    //                             - split B
+    //                         * len(A) + B <= start+width
+    //                             - concatenate with zeros(B)
+    //                 * chunk = #empty(A)
+    //                     * 0 < start
+    //                         - split A
+    //                     * 0 == start
+    //                         - replace with zeros(A)
+
+
+    rule updateSparseBytes(  // 1
               F:SBSetFunction,
               SBI:SBItemChunk SB:SparseBytes,
               Start:Int, Width:Int)
@@ -193,7 +272,7 @@ module UPDATE-SPARSE-BYTES-LEMMAS
             andBool functionCommutesAtStart(F)
             andBool size(SBI) <=Int Start
         [simplification]
-    rule updateSparseBytes(
+    rule updateSparseBytes(  // 2
               F:SBSetFunction,
               SBI:SBItemChunk SB:SparseBytes,
               Start:Int, Width:Int)
@@ -207,15 +286,123 @@ module UPDATE-SPARSE-BYTES-LEMMAS
             andBool notBool empty(SB)
         [simplification]
 
-    rule updateSparseBytes(
+    rule updateSparseBytes(  // 3
+              F:SBSetFunction,
+              SBChunk(#bytes(A)) SB:SparseBytes,
+              Start:Int, Width:Int)
+        => concat(
+              SBChunk(#bytes(substrBytes(A, 0, Start))),
+              updateSparseBytes
+                ( F
+                , SBChunk(#bytes(substrBytes(A, Start, lengthBytes(A))))
+                  SB
+                , 0, Width
+                )
+          )
+        requires functionSparseBytesWellDefined(F, Start, Width)
+            andBool functionCommutesAtStart(F)
+            andBool Start <Int lengthBytes(A)
+            andBool 0 <Int Start
+        [simplification, concrete(A, Start)]
+    rule updateSparseBytes(  // 4
+              F:SBSetFunction,
+              SBChunk(#empty(A)) SB:SparseBytes,
+              Start:Int, Width:Int)
+        => concat(
+              SBChunk(#empty(Start)),
+              updateSparseBytes
+                ( F
+                , SBChunk(#empty(A -Int Start))
+                  SB
+                , 0, Width
+                )
+          )
+        requires functionSparseBytesWellDefined(F, Start, Width)
+            andBool functionCommutesAtStart(F)
+            andBool Start <Int A
+            andBool 0 <Int Start
+        [simplification]
+    rule updateSparseBytes(  // 5
+              F:SBSetFunction,
+              SBChunk(#bytes(A)) SBChunk(#bytes(B)) SB:SparseBytes,
+              0, Width:Int)
+        => updateSparseBytes(F, SBChunk(#bytes(A +Bytes B)) SB, 0, Width)
+        requires functionSparseBytesWellDefined(F, 0, Width)
+            andBool functionCommutesAtStart(F)
+            andBool lengthBytes(A) <Int Width
+        [simplification]
+    rule updateSparseBytes(  // 5'
               F:SBSetFunction,
               SBChunk(#bytes(A)) SBChunk(#bytes(B)) SB:SparseBytes,
               Start:Int, Width:Int)
         => updateSparseBytes(F, SBChunk(#bytes(A +Bytes B)) SB, Start, Width)
         requires functionSparseBytesWellDefined(F, Start, Width)
             andBool functionCommutesAtStart(F)
+            andBool 0 <Int Start
+            andBool Start <Int lengthBytes(A)
+        [simplification, symbolic(A)]
+    rule updateSparseBytes(
+              F:SBSetFunction,
+              SBChunk(#bytes(A)) SBChunk(#empty(B)) SB:SparseBytes,
+              Start:Int, Width:Int)
+        => updateSparseBytes
+            ( F
+            , SBChunk(#bytes(A +Bytes zeros(Start +Int Width -Int lengthBytes(A))))
+              SBChunk(#empty(lengthBytes(A) +Int B -Int (Start +Int Width)))
+              SB
+            , Start, Width
+            )
+        requires functionSparseBytesWellDefined(F, Start, Width)
+            andBool functionCommutesAtStart(F)
             andBool Start <Int lengthBytes(A)
             andBool lengthBytes(A) <Int Start +Int Width
+            andBool Start +Int Width <Int lengthBytes(A) +Int B
+        [simplification]
+    rule updateSparseBytes(
+              F:SBSetFunction,
+              SBChunk(#bytes(A)) SBChunk(#empty(B)) SB:SparseBytes,
+              Start:Int, Width:Int)
+        => updateSparseBytes
+            ( F
+            , SBChunk(#bytes(A +Bytes zeros(B)))
+              SB
+            , Start, Width
+            )
+        requires functionSparseBytesWellDefined(F, Start, Width)
+            andBool functionCommutesAtStart(F)
+            andBool Start <Int lengthBytes(A)
+            andBool lengthBytes(A) +Int B <=Int Start +Int Width
+        [simplification]
+    rule updateSparseBytes(
+              F:SBSetFunction,
+              SBChunk(#empty(A)) SB:SparseBytes,
+              Start:Int, Width:Int)
+        => updateSparseBytes
+            ( F
+            , SBChunk(#empty(Start))
+              SBChunk(#empty(A -Int Start))
+              SB
+            , Start, Width
+            )
+        requires functionSparseBytesWellDefined(F, Start, Width)
+            andBool functionCommutesAtStart(F)
+            andBool Start <Int A
+            andBool A <Int Start +Int Width
+        [simplification]
+    rule updateSparseBytes(
+              F:SBSetFunction,
+              SBChunk(#empty(A)) SB:SparseBytes,
+              0, Width:Int)
+        => updateSparseBytes
+            ( F
+            , SBChunk(#bytes(zeros(A)))
+              SB
+            , 0, Width
+            )
+        requires functionSparseBytesWellDefined(F, 0, Width)
+            andBool functionCommutesAtStart(F)
+            andBool 0 <Int A
+            andBool A <Int Width
         [simplification]
 
     rule updateSparseBytes(
@@ -267,20 +454,21 @@ module UPDATE-SPARSE-BYTES-LEMMAS
         requires functionSparseBytesWellDefined(F, Start, Width)
             andBool functionCommutesAtStart(F)
             andBool 0 <Int Start
-            andBool Start +Int Width <=Int lengthBytes(A)
+            andBool Start <Int lengthBytes(A)
         [simplification, concrete(A, Start)]
     rule updateSparseBytes(
               F:SBSetFunction,
-              SBChunk(#bytes(A)),
-              0, Width:Int)
+              SBChunk(#empty(A)),
+              Start:Int, Width:Int)
         => concat(
-              updateSparseBytes(F, SBChunk(#bytes(substrBytes(A, 0, Width))), 0, Width),
-              SBChunk(#bytes(substrBytes(A, Width, lengthBytes(A))))
+              SBChunk(#empty(Start)),
+              updateSparseBytes(F, SBChunk(#empty(A -Int Start)), 0, Width)
           )
-        requires functionSparseBytesWellDefined(F, 0, Width)
+        requires functionSparseBytesWellDefined(F, Start, Width)
             andBool functionCommutesAtStart(F)
-            andBool Width <Int lengthBytes(A)
-        [simplification, concrete(A)]
+            andBool 0 <Int Start
+            andBool Start <Int A
+        [simplification]
 
     rule updateSparseBytes(
               F:SBSetFunction,
@@ -366,6 +554,7 @@ module UPDATE-SPARSE-BYTES-LEMMAS
     // ----------------------------
     //      Disjoint ranges
     // ----------------------------
+
     rule updateSparseBytes(
               F1:SBSetFunction,
               updateSparseBytes(
@@ -375,86 +564,14 @@ module UPDATE-SPARSE-BYTES-LEMMAS
               Start1:Int, Width1:Int)
         => updateSparseBytes(
               F1,
-              splitSparseBytesFunction(updateSparseBytes(F2, SB, Start2, Width2), F2, SB, Start1),
+              splitSparseBytesFunction(
+                  updateSparseBytes(F2, SB, Start2, Width2),
+                  F2, SB, Start1, Start2, Width2
+              ),
               Start1, Width1)
         requires disjontRanges(Start1, Width1, Start2, Width2)
-          andBool canSplitSparseBytes(F2, SB, Start1)
+          andBool canSplitSparseBytes(F2, SB, Start1, Start2, Width2)
         [simplification]
-
-    // rule updateSparseBytes(
-    //           F1:SBSetFunction,
-    //           updateSparseBytes(
-    //               F2:SBSetFunction,
-    //               SB:SparseBytes,
-    //               Start2:Int, Width2:Int),
-    //           Start1:Int, Width1:Int)
-    //     => updateSparseBytes(
-    //           F2,
-    //           updateSparseBytes(F1, SB, Start1 - startOffset(F2), Width1),
-    //           Start2, Width2)
-    //     requires disjontRanges(Start1, Width1, Start2, Width2)
-    //       andBool updateSparseBytesCanSwap(F1, Start1, Width1, F2, Start2, Width2)
-    //     [simplification, concrete(Start1,Width1), symbolic(Start2)]
-    // rule updateSparseBytes(
-    //           F1:SBSetFunction,
-    //           updateSparseBytes(
-    //               F2:SBSetFunction,
-    //               SB:SparseBytes,
-    //               Start2:Int, Width2:Int),
-    //           Start1:Int, Width1:Int)
-    //     => updateSparseBytes(
-    //           F2,
-    //           updateSparseBytes(F1, SB, Start1 - startOffset(F2), Width1),
-    //           Start2, Width2)
-    //     requires disjontRanges(Start1, Width1, Start2, Width2)
-    //       andBool updateSparseBytesCanSwap(F1, Start1, Width1, F2, Start2, Width2)
-    //   [simplification, concrete(Start1,Width1,Start2), symbolic(Width2)]
-
-    // rule updateSparseBytes(
-    //           F1:SBSetFunction,
-    //           updateSparseBytes(
-    //               F2:SBSetFunction,
-    //               SB:SparseBytes,
-    //               Start2:Int, Width2:Int),
-    //           Start1:Int, Width1:Int)
-    //     => updateSparseBytes(
-    //           F2,
-    //           updateSparseBytes(F1, SB, Start1 - startOffset(F2), Width1),
-    //           Start2:Int, Width2:Int)
-    //     requires disjontRanges(Start1, Width1, Start2, Width2)
-    //       andBool updateSparseBytesCanSwap(F1, Start1, Width1, F2, Start2, Width2)
-    //       andBool Start1 <Int Start2
-    //   [simplification, concrete(Start1,Width1,Start2,Width2)]
-    // rule updateSparseBytes(
-    //           F1:SBSetFunction,
-    //           updateSparseBytes(
-    //               F2:SBSetFunction,
-    //               SB:SparseBytes,
-    //               Start2:Int, Width2:Int),
-    //           Start1:Int, Width1:Int)
-    //     => updateSparseBytes(
-    //           F2,
-    //           updateSparseBytes(F1, SB, Start1 - startOffset(F2), Width1),
-    //           Start2:Int, Width2:Int)
-    //     requires disjontRanges(Start1, Width1, Start2, Width2)
-    //       andBool updateSparseBytesCanSwap(F1, Start1, Width1, F2, Start2, Width2)
-    //       andBool Start1 <Int Start2
-    //   [simplification, concrete(Start2),symbolic(Width2)]
-    // rule updateSparseBytes(
-    //           F1:SBSetFunction,
-    //           updateSparseBytes(
-    //               F2:SBSetFunction,
-    //               SB:SparseBytes,
-    //               Start2:Int, Width2:Int),
-    //           Start1:Int, Width1:Int)
-    //     => updateSparseBytes(
-    //           F2,
-    //           updateSparseBytes(F1, SB, Start1 - startOffset(F2), Width1),
-    //           Start2:Int, Width2:Int)
-    //     requires disjontRanges(Start1, Width1, Start2, Width2)
-    //       andBool updateSparseBytesCanSwap(F1, Start1, Width1, F2, Start2, Width2)
-    //       andBool Start1 <Int Start2
-    //   [simplification, symbolic(Start2)]
 
     // ----------------------------
     //  Included ranges cancelling
@@ -529,27 +646,8 @@ module EXTRACT-SPARSE-BYTES-LEMMAS
               Start:Int, Width:Int)
         => substrSparseBytes(SBI, Start, Start +Int Width)
         requires functionCommutesAtStart(F)
-            andBool 0 <Int Start
             andBool Start +Int Width <=Int size(SBI)
-            andBool ((notBool empty(SB)) orBool F =/=K substr)
-        [simplification]
-    rule extractSparseBytes(
-              F:SBGetFunction,
-              SBI:SBItemChunk SB:SparseBytes,
-              Start:Int, Width:Int)
-        => substrSparseBytes(SBI, Start, Start +Int Width)
-        requires functionCommutesAtStart(F)
-            andBool 0 <=Int Start
-            andBool Start +Int Width <Int size(SBI)
-            andBool ((notBool empty(SB)) orBool F =/=K substr)
-        [simplification]
-    rule extractSparseBytes(
-              F:SBGetFunction,
-              SBI:SBItemChunk _SB:SparseBytes,
-              0, Width:Int)
-        => SBI
-        requires functionCommutesAtStart(F)
-            andBool Width ==Int size(SBI)
+            andBool notBool empty(SB)
         [simplification]
 
     rule extractSparseBytes(
@@ -570,6 +668,39 @@ module EXTRACT-SPARSE-BYTES-LEMMAS
         requires functionCommutesAtStart(F)
             andBool 0 <=Int Start
             andBool Start +Int Width <=Int size(SB1)
+        [simplification]
+
+    // ------------------------------------------
+    // Simplify concatenation - only one chunk
+    // ------------------------------------------
+
+    rule extractSparseBytes(
+              F:SBGetFunction,
+              SBI:SBItemChunk,
+              Start:Int, Width:Int)
+        => substrSparseBytes(SBI, Start, Start +Int Width)
+        requires functionCommutesAtStart(F)
+            andBool 0 <Int Start
+            andBool Start +Int Width <=Int size(SBI)
+            andBool F =/=K substr
+        [simplification]
+    rule extractSparseBytes(
+              F:SBGetFunction,
+              SBI:SBItemChunk,
+              Start:Int, Width:Int)
+        => substrSparseBytes(SBI, Start, Start +Int Width)
+        requires functionCommutesAtStart(F)
+            andBool 0 <=Int Start
+            andBool Start +Int Width <Int size(SBI)
+            andBool F =/=K substr
+        [simplification]
+    rule extractSparseBytes(
+              F:SBGetFunction,
+              SBI:SBItemChunk _SB:SparseBytes,
+              0, Width:Int)
+        => SBI
+        requires functionCommutesAtStart(F)
+            andBool Width ==Int size(SBI)
         [simplification]
 
     // ------------------------------------------
