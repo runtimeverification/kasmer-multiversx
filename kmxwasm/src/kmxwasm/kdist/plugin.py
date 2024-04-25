@@ -54,6 +54,7 @@ def _default_args(src_dir: Path) -> dict[str, Any]:
     return {
         'include_dirs': [src_dir, PLUGIN_DIR],
         'md_selector': 'k',
+        'warnings_to_errors': True,
     }
 
 
