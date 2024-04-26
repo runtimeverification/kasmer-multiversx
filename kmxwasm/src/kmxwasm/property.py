@@ -98,6 +98,7 @@ class RunClaim(Action):
                             to_remove.append(next_id)
                     kcfg.remove_node(current_id)
                 t.measure()
+            t = Timer('Running the claim')
             result = run_claim(
                 tools,
                 WasmKrunInitializer(tools),
@@ -108,7 +109,10 @@ class RunClaim(Action):
                 depth=self.depth,
                 iterations=self.iterations,
             )
+            t.measure()
+            t = Timer('Saving the kcfg')
             result.kcfg.write_cfg_data()
+            t.measure()
 
             if isinstance(result, Stuck):
                 stuck_node = result.kcfg.get_node(result.stuck_node_id)

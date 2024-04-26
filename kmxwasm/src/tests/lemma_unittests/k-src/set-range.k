@@ -78,7 +78,13 @@ module SET-RANGE
               , 4 , 12 , 4
               )
         ) => doneSimplification(
-            ( SBChunk ( #empty ( 1 ) )
+            ( SBChunk ( #bytes (
+                  Int2Bytes ( 1 , int64encoding (... value: ARG_1 +Int ARG_2 +Int ARG_3 +Int ARG_4 , b8pos: 0 , b7pos: -1 , b6pos: -1 , b5pos: -1 , b4pos: -1 , b3pos: -1 , b2pos: -1 , b1pos: -1 ) , LE )
+                  +Bytes Int2Bytes ( 1 , int64encoding (... value: ARG_1 +Int ARG_2 +Int ARG_3 +Int ARG_4 , b8pos: -1 , b7pos: 0 , b6pos: -1 , b5pos: -1 , b4pos: -1 , b3pos: -1 , b2pos: -1 , b1pos: -1 ) , LE )
+                  +Bytes Int2Bytes ( 1 , int64encoding (... value: ARG_1 +Int ARG_2 +Int ARG_3 +Int ARG_4 , b8pos: -1 , b7pos: -1 , b6pos: 0 , b5pos: -1 , b4pos: -1 , b3pos: -1 , b2pos: -1 , b1pos: -1 ) , LE )
+                  +Bytes Int2Bytes ( 1 , int64encoding (... value: ARG_1 +Int ARG_2 +Int ARG_3 +Int ARG_4 , b8pos: -1 , b7pos: -1 , b6pos: -1 , b5pos: 0 , b4pos: -1 , b3pos: -1 , b2pos: -1 , b1pos: -1 ) , LE )
+                  +Bytes b"\f\x00\x00\x00" ) )
+              SBChunk ( #bytes ( b"\r\x00\x00\x00\x94\xff\xff\xff\x93\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x95\xff\xff\xff\x01\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00" ) )  .SparseBytes
             ):SparseBytes:KItem
         )
       </k>

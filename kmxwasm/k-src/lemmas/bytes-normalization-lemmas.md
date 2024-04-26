@@ -1,4 +1,4 @@
-The normal form for bytes is ((...((A +Bytes B) +Bytes C) +Bytes ...) +Bytes Z)
+The normal form for bytes is (A +Bytes (B +Bytes (C +Bytes ... +Bytes (Y +Bytes Z))))
 
 ```k
 requires "../ceils-syntax.k"
@@ -7,10 +7,7 @@ module BYTES-NORMALIZATION-LEMMAS  [symbolic]
     imports BYTES
     imports CEILS-SYNTAX
 
-    rule A +Bytes (B +Bytes C) => (A +Bytes B) +Bytes C  [simplification]
-    rule (A +Bytes B) +Bytes C => A +Bytes (B +Bytes C)
-        [simplification, concrete(B, C), symbolic(A)]
-    // TODO: Delete, given the normal form, only the above is needed.
+    rule (A +Bytes B) +Bytes C => A +Bytes (B +Bytes C)  [simplification]
     rule A +Bytes (B +Bytes C) => (A +Bytes B) +Bytes C
         [simplification, concrete(A, B), symbolic(C)]
 

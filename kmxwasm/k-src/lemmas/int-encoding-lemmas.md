@@ -360,6 +360,20 @@ module INT-ENCODING-LEMMAS  [symbolic]
         requires 8 <=Int B
         [simplification]
 
+  rule int64encoding(A, A8, A7, A6, A5, A4, A3, A2, A1) modIntTotal 256
+        => int64encoding(
+              A,
+              #if A8 ==Int 0 #then 0 #else -1 #fi,
+              #if A7 ==Int 0 #then 0 #else -1 #fi,
+              #if A6 ==Int 0 #then 0 #else -1 #fi,
+              #if A5 ==Int 0 #then 0 #else -1 #fi,
+              #if A4 ==Int 0 #then 0 #else -1 #fi,
+              #if A3 ==Int 0 #then 0 #else -1 #fi,
+              #if A2 ==Int 0 #then 0 #else -1 #fi,
+              #if A1 ==Int 0 #then 0 #else -1 #fi
+          )
+        [simplification]
+
   rule int64encoding(A, A8, A7, A6, A5, A4, A3, A2, A1) &Int 18446744073709551615
         => int64encoding(A, A8, A7, A6, A5, A4, A3, A2, A1)
         [simplification]
@@ -700,6 +714,31 @@ module INT-ENCODING-LEMMAS  [symbolic]
       requires 0 <=Int A andBool A <Int 1 <<Int 64
       [simplification]
 
+  rule int64encoding( A,  0,  1,  2,  3,  4,  5,  6,  7 ) modIntTotal 256
+    => int64encoding( A,  0, -1, -1, -1, -1, -1, -1, -1 )
+      [simplification]
+  rule int64encoding( A, -1,  0,  1,  2,  3,  4,  5,  6 ) modIntTotal 256
+    => int64encoding( A, -1,  0, -1, -1, -1, -1, -1, -1 )
+      [simplification]
+  rule int64encoding( A, -1, -1,  0,  1,  2,  3,  4,  5 ) modIntTotal 256
+    => int64encoding( A, -1, -1,  0, -1, -1, -1, -1, -1 )
+      [simplification]
+  rule int64encoding( A, -1, -1, -1,  0,  1,  2,  3,  4 ) modIntTotal 256
+    => int64encoding( A, -1, -1, -1,  0, -1, -1, -1, -1 )
+      [simplification]
+  rule int64encoding( A, -1, -1, -1, -1,  0,  1,  2,  3 ) modIntTotal 256
+    => int64encoding( A, -1, -1, -1, -1,  0, -1, -1, -1 )
+      [simplification]
+  rule int64encoding( A, -1, -1, -1, -1, -1,  0,  1,  2 ) modIntTotal 256
+    => int64encoding( A, -1, -1, -1, -1, -1,  0, -1, -1 )
+      [simplification]
+  rule int64encoding( A, -1, -1, -1, -1, -1, -1,  0,  1 ) modIntTotal 256
+    => int64encoding( A, -1, -1, -1, -1, -1, -1,  0, -1 )
+      [simplification]
+  rule int64encoding( A, -1, -1, -1, -1, -1, -1, -1,  0 ) modIntTotal 256
+    => int64encoding( A, -1, -1, -1, -1, -1, -1, -1,  0 )
+      [simplification]
+
   rule (((((((B
       +Bytes Int2Bytes
         ( 1, int64encoding( A, 0, -1, -1, -1, -1, -1, -1, -1 ), LE ))
@@ -718,6 +757,49 @@ module INT-ENCODING-LEMMAS  [symbolic]
       +Bytes Int2Bytes
         ( 1, int64encoding( A, -1, -1, -1, -1, -1, -1, -1, 0 ), LE )
       => B +Bytes Int2Bytes( 8, int64encoding( A, 0, 1, 2, 3, 4, 5, 6, 7 ), LE )
+      [simplification]
+
+  rule
+      ( Int2Bytes
+        ( 1, int64encoding( A, 0, -1, -1, -1, -1, -1, -1, -1 ), LE )
+      +Bytes ( Int2Bytes
+        ( 1, int64encoding( A, -1, 0, -1, -1, -1, -1, -1, -1 ), LE )
+      +Bytes ( Int2Bytes
+        ( 1, int64encoding( A, -1, -1, 0, -1, -1, -1, -1, -1 ), LE )
+      +Bytes ( Int2Bytes
+        ( 1, int64encoding( A, -1, -1, -1, 0, -1, -1, -1, -1 ), LE )
+      +Bytes ( Int2Bytes
+        ( 1, int64encoding( A, -1, -1, -1, -1, 0, -1, -1, -1 ), LE )
+      +Bytes ( Int2Bytes
+        ( 1, int64encoding( A, -1, -1, -1, -1, -1, 0, -1, -1 ), LE )
+      +Bytes ( Int2Bytes
+        ( 1, int64encoding( A, -1, -1, -1, -1, -1, -1, 0, -1 ), LE )
+      +Bytes ( Int2Bytes
+        ( 1, int64encoding( A, -1, -1, -1, -1, -1, -1, -1, 0 ), LE )
+      +Bytes B
+      ))))))))
+      => Int2Bytes( 8, int64encoding( A, 0, 1, 2, 3, 4, 5, 6, 7 ), LE ) +Bytes B
+      [simplification]
+
+  rule
+      ( Int2Bytes
+        ( 1, int64encoding( A, 0, -1, -1, -1, -1, -1, -1, -1 ), LE )
+      +Bytes ( Int2Bytes
+        ( 1, int64encoding( A, -1, 0, -1, -1, -1, -1, -1, -1 ), LE )
+      +Bytes ( Int2Bytes
+        ( 1, int64encoding( A, -1, -1, 0, -1, -1, -1, -1, -1 ), LE )
+      +Bytes ( Int2Bytes
+        ( 1, int64encoding( A, -1, -1, -1, 0, -1, -1, -1, -1 ), LE )
+      +Bytes ( Int2Bytes
+        ( 1, int64encoding( A, -1, -1, -1, -1, 0, -1, -1, -1 ), LE )
+      +Bytes ( Int2Bytes
+        ( 1, int64encoding( A, -1, -1, -1, -1, -1, 0, -1, -1 ), LE )
+      +Bytes ( Int2Bytes
+        ( 1, int64encoding( A, -1, -1, -1, -1, -1, -1, 0, -1 ), LE )
+      +Bytes ( Int2Bytes
+        ( 1, int64encoding( A, -1, -1, -1, -1, -1, -1, -1, 0 ), LE )
+      ))))))))
+      => Int2Bytes( 8, int64encoding( A, 0, 1, 2, 3, 4, 5, 6, 7 ), LE )
       [simplification]
 
 endmodule

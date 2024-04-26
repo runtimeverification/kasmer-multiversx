@@ -13,6 +13,7 @@ kbuild
 tmp
 *.tar.gz
 bug-report.tar
+*.debug-log
 
 .bash_logout
 .bashrc
