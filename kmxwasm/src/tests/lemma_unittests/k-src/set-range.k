@@ -5,6 +5,92 @@ module SET-RANGE
       <k>
         runSimplification(
             #setRange
+              ( SBChunk
+                ( #bytes
+                  ( Int2Bytes
+                      ( 1
+                      , ( int64encoding
+                          ( ... value: (((ARG_1:Int) +Int (ARG_2:Int)) +Int (ARG_3:Int)) +Int (ARG_4:Int)
+                          , b8pos: 0 , b7pos: 1 , b6pos: 2 , b5pos: 3 , b4pos: 4 , b3pos: 5 , b2pos: 6 , b1pos: 7
+                          )
+                        ) modIntTotal (256)
+                      , LE
+                      )
+                    +Bytes Int2Bytes
+                      ( 1
+                      , ( int64encoding
+                          ( ... value: (((ARG_1:Int) +Int (ARG_2:Int)) +Int (ARG_3:Int)) +Int (ARG_4:Int)
+                          , b8pos: -1 , b7pos: 0 , b6pos: 1 , b5pos: 2 , b4pos: 3 , b3pos: 4 , b2pos: 5 , b1pos: 6
+                          )
+                        ) modIntTotal (256)
+                      , LE
+                      )
+                    +Bytes Int2Bytes
+                      ( 1
+                      , ( int64encoding
+                          ( ... value: (((ARG_1:Int) +Int (ARG_2:Int)) +Int (ARG_3:Int)) +Int (ARG_4:Int)
+                          , b8pos: -1 , b7pos: -1 , b6pos: 0 , b5pos: 1 , b4pos: 2 , b3pos: 3 , b2pos: 4 , b1pos: 5
+                          )
+                        )
+                        modIntTotal (256)
+                      , LE
+                      )
+                    +Bytes Int2Bytes
+                      ( 1
+                      , ( int64encoding
+                          ( ... value: (((ARG_1:Int) +Int (ARG_2:Int)) +Int (ARG_3:Int)) +Int (ARG_4:Int)
+                          , b8pos: -1 , b7pos: -1 , b6pos: -1 , b5pos: 0 , b4pos: 1 , b3pos: 2 , b2pos: 3 , b1pos: 4
+                          )
+                        ) modIntTotal (256)
+                      , LE
+                      )
+                    +Bytes Int2Bytes
+                      ( 1
+                      , ( int64encoding
+                          ( ... value: (((ARG_1:Int) +Int (ARG_2:Int)) +Int (ARG_3:Int)) +Int (ARG_4:Int)
+                          , b8pos: -1 , b7pos: -1 , b6pos: -1 , b5pos: -1 , b4pos: 0 , b3pos: 1 , b2pos: 2 , b1pos: 3
+                          )
+                        ) modIntTotal (256)
+                      , LE
+                      )
+                    +Bytes Int2Bytes
+                      ( 1
+                      , ( int64encoding
+                          ( ... value: (((ARG_1:Int) +Int (ARG_2:Int)) +Int (ARG_3:Int)) +Int (ARG_4:Int)
+                          , b8pos: -1 , b7pos: -1 , b6pos: -1 , b5pos: -1 , b4pos: -1 , b3pos: 0 , b2pos: 1 , b1pos: 2
+                          )
+                        ) modIntTotal (256)
+                      , LE
+                      )
+                    +Bytes Int2Bytes
+                      ( 1
+                      , ( int64encoding
+                          ( ... value: (((ARG_1:Int) +Int (ARG_2:Int)) +Int (ARG_3:Int)) +Int (ARG_4:Int)
+                          , b8pos: -1 , b7pos: -1 , b6pos: -1 , b5pos: -1 , b4pos: -1 , b3pos: -1 , b2pos: 0 , b1pos: 1
+                          )
+                        ) modIntTotal (256)
+                      , LE
+                      )
+                    +Bytes b"\x00\r\x00\x00\x00\x94\xff\xff\xff\x93\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x95\xff\xff\xff\x01\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00"
+                  )
+                )
+                .SparseBytes
+              , 4 , 12 , 4
+              )
+        ) => doneSimplification(
+            ( SBChunk ( #empty ( 1 ) )
+            ):SparseBytes:KItem
+        )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+      requires 1000 <Int ARG_0
+        andBool ARG_0:Int <Int 6668014432879854274079851790721257797144758322315908160396257811764037237817632071521432200871554290742929910593433240445888801654119365080363356052330830046095157579514014558463078285911814024728965016135886601981690748037476461291163877376
+
+    claim
+      <k>
+        runSimplification(
+            #setRange
             ( SBChunk
               ( #empty ( (9974) -Int (((log2IntTotal ( (ARG_0:Int) +Int (-1000) )) +Int (8)) divIntTotal (8)) ) )
               SBChunk ( #bytes ( b"\x1a\x00\x00\x00" ) )

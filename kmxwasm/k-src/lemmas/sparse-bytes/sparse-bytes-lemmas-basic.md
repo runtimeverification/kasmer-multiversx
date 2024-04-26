@@ -13,6 +13,8 @@ module SPARSE-BYTES-LEMMAS-BASIC
   rule merge(SBChunk(#empty(A)), SBChunk(#empty(B)) C:SparseBytes) => SBChunk(#empty(A +Int B)) C
   rule merge(SBChunk(#bytes(A)), SBChunk(#empty(B)) C:SparseBytes) => SBChunk(#bytes(A)) SBChunk(#empty(B)) C
   rule merge(SBChunk(#empty(A)), SBChunk(#bytes(B)) C:SparseBytes) => SBChunk(#empty(A)) SBChunk(#bytes(B)) C
+  rule merge(SBChunk(#bytes(A)), .SparseBytes) => SBChunk(#bytes(A)) .SparseBytes
+  rule merge(SBChunk(#empty(A)), .SparseBytes) => SBChunk(#empty(A)) .SparseBytes
 
   syntax Bool ::= #setRangeActuallySets(addr:Int, val:Int, width:Int)  [function, total]
   rule #setRangeActuallySets(Addr:Int, Val:Int, Width:Int)

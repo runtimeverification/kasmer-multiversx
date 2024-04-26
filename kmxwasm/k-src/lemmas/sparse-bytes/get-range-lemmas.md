@@ -13,6 +13,11 @@ module GET-RANGE-LEMMAS
         requires Addr <Int size(SB)
              andBool 0 <Int Width andBool 0 <=Int Addr
         [simplification]
+    rule #getRange(SB, Addr:Int, Width:Int)
+        => 0
+        requires size(SB) <=Int Addr 
+             andBool 0 <Int Width andBool 0 <=Int Addr
+        [simplification]
 
 endmodule
 ```
