@@ -2,7 +2,7 @@
   description = "kmxwasm - Symbolic execution for the MulitversX blockchain with the Wasm semantics, using pyk.";
 
   inputs = {
-    k-framework.url = "github:runtimeverification/k/v7.0.17";
+    k-framework.url = "github:runtimeverification/k/v7.0.25";
     nixpkgs.follows = "k-framework/nixpkgs";
     flake-utils.follows = "k-framework/flake-utils";
   };
