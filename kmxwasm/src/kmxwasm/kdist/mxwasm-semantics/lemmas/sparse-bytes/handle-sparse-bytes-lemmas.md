@@ -711,7 +711,16 @@ module EXTRACT-SPARSE-BYTES-LEMMAS
 
     rule extractSparseBytes(
               F:SBGetFunction,
-              SBI:SBItemChunk,
+              SBChunk(#empty(A)),
+              Start:Int, Width:Int)
+        => SBChunk(#empty(Width))
+        requires functionCommutesAtStart(F)
+            andBool 0 <=Int Start
+            andBool Start +Int Width <=Int A
+        [simplification]
+    rule extractSparseBytes(
+              F:SBGetFunction,
+              SBChunk(#bytes(_)) #as SBI:SBItemChunk,
               Start:Int, Width:Int)
         => substrSparseBytes(SBI, Start, Start +Int Width)
         requires functionCommutesAtStart(F)

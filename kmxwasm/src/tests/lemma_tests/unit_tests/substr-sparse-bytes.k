@@ -1,4 +1,4 @@
-module GET-RANGE
+module SUBSTR-SPARSE-BYTES
     imports MX-WASM-LEMMA-TESTS
 
     // Lookup in a concrete chunk
@@ -6,7 +6,7 @@ module GET-RANGE
       <k>
         runSimplification(
             ListItem(
-                #getRange (
+                substrSparseBytes (
                     SBChunk (
                         #bytes ( b"\x04\x00\x00\x00\x00" )
                     )
@@ -14,7 +14,7 @@ module GET-RANGE
                 )
             )
             ListItem(
-                #getRange (
+                substrSparseBytes (
                     SBChunk (
                         #bytes ( b"\x04\x00\x00\x00" +Bytes Int2Bytes ( 1 , _ARG_0:Int , LE ) )
                     )
@@ -22,8 +22,16 @@ module GET-RANGE
                 )
             )
         ) => doneSimplification(
-            ListItem(4)
-            ListItem(4)
+            ListItem(
+                ( SBChunk(#bytes(b"\x04"))
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
+            ListItem(
+                ( SBChunk(#bytes(b"\x04"))
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
         )
       </k>
       <commands> .K </commands>
@@ -33,20 +41,28 @@ module GET-RANGE
       <k>
         runSimplification(
             ListItem(
-                #getRange (
+                substrSparseBytes (
                     SBChunk ( #empty ( 5 ) )
                     , 0 , 1
                 )
             )
             ListItem(
-                #getRange (
+                substrSparseBytes (
                     SBChunk ( #empty ( A ) )
                     , 0 , 1
                 )
             )
         ) => doneSimplification(
-            ListItem(0)
-            ListItem(0)
+            ListItem(
+                ( SBChunk(#empty(1))
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
+            ListItem(
+                ( SBChunk(#empty(1))
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
         )
       </k>
       <commands> .K </commands>
@@ -58,36 +74,48 @@ module GET-RANGE
       <k>
         runSimplification(
             ListItem(
-                #getRange
+                substrSparseBytes
                   ( SBChunk ( #empty ( 10 ) )
                     SBChunk ( #bytes ( b"\x04\x00\x00\x00" ) )
                     SBChunk ( #empty ( 10 ) )
                     SBChunk ( #bytes ( b"\x05\x00\x00\x00" ) )
-                  , 24 , 1
+                  , 24 , 25
                   )
             )
             ListItem(
-                #getRange
+                substrSparseBytes
                   ( SBChunk ( #empty ( 10 ) )
                     SBChunk ( #bytes ( b"\x04\x00\x00\x00" ) )
                     SBChunk ( #empty ( 10 ) )
                     SBChunk ( #bytes ( b"\x05\x00\x00\x00" +Bytes _B ) )
-                  , 24 , 1
+                  , 24 , 25
                   )
             )
             ListItem(
-                #getRange
+                substrSparseBytes
                   ( SBChunk ( #empty ( 10 ) )
                     SBChunk ( #bytes ( b"\x04\x00\x00\x00" ) )
                     SBChunk ( #empty ( A ) )
                     SBChunk ( #bytes ( b"\x05\x00\x00\x00" ) )
-                  , 14 +Int A , 1
+                  , 14 +Int A , 15 +Int A
                   )
             )
         ) => doneSimplification(
-            ListItem(5)
-            ListItem(5)
-            ListItem(5)
+            ListItem(
+                ( SBChunk(#bytes(b"\x05"))
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
+            ListItem(
+                ( SBChunk(#bytes(b"\x05"))
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
+            ListItem(
+                ( SBChunk(#bytes(b"\x05"))
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
         )
       </k>
       <commands> .K </commands>
@@ -99,36 +127,36 @@ module GET-RANGE
       <k>
         runSimplification(
             ListItem(
-                #getRange
+                substrSparseBytes
                   ( SBChunk ( #bytes ( b"\x04\x00\x00\x00\x00" ) )
                   , 8 , 1
                   )
             )
             ListItem(
-                #getRange
+                substrSparseBytes
                   ( SBChunk ( #bytes ( b"\x04\x00\x00\x00\x00" ) )
                   , A , 1
                   )
             )
             ListItem(
-                #getRange
+                substrSparseBytes
                   ( SBChunk ( #bytes ( b"\x04" ) )
                     SBChunk ( #empty ( 4 ) )
-                  , A , 1
+                  , A , A +Int 1
                   )
             )
             ListItem(
-                #getRange
+                substrSparseBytes
                   ( SBChunk ( #bytes ( b"\x04" ) )
                     SBChunk ( #empty ( B ) )
-                  , A , 1
+                  , A , A +Int 1
                   )
             )
         ) => doneSimplification(
-            ListItem(0)
-            ListItem(0)
-            ListItem(0)
-            ListItem(0)
+            ListItem( .SparseBytes )
+            ListItem( .SparseBytes )
+            ListItem( .SparseBytes )
+            ListItem( .SparseBytes )
         )
       </k>
       <commands> .K </commands>
@@ -141,27 +169,39 @@ module GET-RANGE
       <k>
         runSimplification(
             ListItem(
-                #getRange
+                substrSparseBytes
                   ( SBChunk ( #bytes ( Int2Bytes(4, 145, LE) ) )
                   , 0 , 4
                   )
             )
             ListItem(
-                #getRange
+                substrSparseBytes
                   ( SBChunk ( #bytes ( Int2Bytes(4, A, LE) ) )
                   , 0 , 4
                   )
             )
             ListItem(
-                #getRange
+                substrSparseBytes
                   ( SBChunk ( #bytes ( Int2Bytes((log2Int(B) +Int 8) /Int 8, B, LE) ) )
                   , 0 , (log2Int(B) +Int 8) /Int 8
                   )
             )
         ) => doneSimplification(
-            ListItem(145)
-            ListItem(A)
-            ListItem(B)
+            ListItem(
+                ( SBChunk(#bytes(b"\x91\x00\x00\x00"))
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
+            ListItem(
+                ( SBChunk(#bytes(Int2Bytes(4, A, LE)))
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
+            ListItem(
+                ( SBChunk(#bytes(Int2Bytes((log2Int(B) +Int 8) /Int 8, B, LE)))
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
         )
       </k>
       <commands> .K </commands>
@@ -175,27 +215,39 @@ module GET-RANGE
       <k>
         runSimplification(
             ListItem(
-                #getRange
+                substrSparseBytes
                   ( SBChunk ( #bytes ( b"a" +Bytes Int2Bytes(4, 145, LE) +Bytes b"b" ) )
-                  , 1 , 4
+                  , 1 , 5
                   )
             )
             ListItem(
-                #getRange
+                substrSparseBytes
                   ( SBChunk ( #bytes ( b"a" +Bytes Int2Bytes(4, A, LE) +Bytes b"b" ) )
-                  , 1 , 4
+                  , 1 , 5
                   )
             )
             ListItem(
-                #getRange
+                substrSparseBytes
                   ( SBChunk ( #bytes ( b"a" +Bytes Int2Bytes((log2Int(B) +Int 8) /Int 8, B, LE) +Bytes b"b" ) )
-                  , 1 , (log2Int(B) +Int 8) /Int 8
+                  , 1 , 1 +Int (log2Int(B) +Int 8) /Int 8
                   )
             )
         ) => doneSimplification(
-            ListItem(145)
-            ListItem(A)
-            ListItem(B)
+            ListItem(
+                ( SBChunk(#bytes(b"\x91\x00\x00\x00"))
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
+            ListItem(
+                ( SBChunk(#bytes(Int2Bytes(4, A, LE)))
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
+            ListItem(
+                ( SBChunk(#bytes(Int2Bytes((log2Int(B) +Int 8) /Int 8, B, LE)))
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
         )
       </k>
       <commands> .K </commands>

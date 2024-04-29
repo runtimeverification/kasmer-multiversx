@@ -136,7 +136,7 @@ module MX-LEMMAS  [symbolic]
   rule lengthBytes(A +Bytes B) => lengthBytes(A) +Int lengthBytes(B)
       [simplification]
   rule 0 <=Int lengthBytes(_:Bytes) => true
-      [simplification]
+      [simplification, smt-lemma]
   rule lengthBytes(replaceAtBytesTotal(Dest:Bytes, Index:Int, Src:Bytes))
       => lengthBytes(Dest)
       requires 0 <=Int Index andBool Index +Int lengthBytes(Src) <=Int lengthBytes(Dest)
