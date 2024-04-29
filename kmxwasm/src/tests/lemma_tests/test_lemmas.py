@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import pytest
-from pyk.cterm import CTerm
+from pyk.kast.manip import is_top
 from pyk.prelude.ml import mlOr
 
 from kmxwasm.testing.fixtures import Tools
@@ -23,9 +23,9 @@ REGRESSION_TEST_DATA = tuple(
 def test_unit(test_id: str, test_file: Path, lemma_tests_tools: Tools) -> None:
     result = lemma_tests_tools.kprove.prove(test_file)
     result_or = mlOr([res.kast for res in result])
-    if not CTerm._is_top(result_or):
+    if not is_top(result_or, weak=True):
         print(lemma_tests_tools.printer.pretty_print(result_or))
-    assert CTerm._is_top(result_or)
+    assert is_top(result_or, weak=True)
 
 
 @pytest.mark.parametrize(
@@ -34,6 +34,6 @@ def test_unit(test_id: str, test_file: Path, lemma_tests_tools: Tools) -> None:
 def test_regression(test_id: str, test_file: Path, lemma_tests_tools: Tools) -> None:
     result = lemma_tests_tools.kprove.prove(test_file)
     result_or = mlOr([res.kast for res in result])
-    if not CTerm._is_top(result_or):
+    if not is_top(result_or, weak=True):
         print(lemma_tests_tools.printer.pretty_print(result_or))
-    assert CTerm._is_top(result_or)
+    assert is_top(result_or, weak=True)
