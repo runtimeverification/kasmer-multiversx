@@ -109,8 +109,7 @@ class Tools:
                         '--smt-timeout',
                         '1000',
                         # '--solver-transcript', 'log.z3',
-                        '--log-entries',
-                        'DebugApplyEquation',  # 'DebugAttemptEquation', #DebugSolverSend,DebugSolverRecv,
+                        # '--log-entries', 'DebugApplyEquation',  # 'DebugAttemptEquation', #DebugSolverSend,DebugSolverRecv,
                         # '--debug-equation', 'xyzzy2'
                     ),
                     # port=39425,
