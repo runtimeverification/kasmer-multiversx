@@ -64,6 +64,18 @@ module REPLACE-AT-LEMMAS
           )
           andBool Width ==Int lengthBytes(Value)
       [simplification, concrete]
+
+    rule updateSparseBytes(
+              replaceAt(Value), SB, 0, Width
+          )
+        => SBChunk(#bytes(Value))
+        requires functionSparseBytesWellDefined(
+              replaceAt(Value), 0, Width
+          )
+          andBool Width ==Int lengthBytes(Value)
+          andBool Width ==Int size(SB)
+      [simplification]
+
 endmodule
 
 ```
