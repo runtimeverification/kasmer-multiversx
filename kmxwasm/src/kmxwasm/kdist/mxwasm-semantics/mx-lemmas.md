@@ -12,6 +12,21 @@ module MX-LEMMAS-BASIC
 
 endmodule
 
+module MX-UPDATE-MAP
+  imports private BOOL
+  imports private MAP
+
+  // supply updateMap simplifications to avoid the MAP.updateAll hook error
+  // TODO upstream these equations to K:domains.md
+  rule updateMap(M, .Map) => M
+      [simplification]
+  rule updateMap(.Map, M) => M
+      [simplification]
+  rule updateMap(M1, K |-> V M2) => updateMap(M1[K <- V], M2)
+      requires notBool (K in_keys(M2))
+      [simplification, preserves-definedness]
+endmodule
+
 module MX-LEMMAS  [symbolic]
   imports private CEILS
   imports private ELROND
@@ -19,6 +34,7 @@ module MX-LEMMAS  [symbolic]
   imports private INT-KORE
   imports private INT-NORMALIZATION-LEMMAS
   imports public MX-LEMMAS-BASIC
+  imports public MX-UPDATE-MAP
   imports private SET
   imports private SPARSE-BYTES-LEMMAS
   imports private WASM-TEXT
