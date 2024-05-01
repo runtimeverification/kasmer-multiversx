@@ -78,7 +78,7 @@ module GET-BYTES-RANGE
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
-      requires 0 <Int A
+      // requires 0 <Int A
 
     // Skipping chunks
     claim
