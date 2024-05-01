@@ -1,7 +1,7 @@
 from collections.abc import Callable
 
 from pyk.cterm import CTerm
-from pyk.kast.inner import KApply, KInner, KSort, KVariable, bottom_up
+from pyk.kast.inner import KApply, KInner, KSort, KToken, KVariable, bottom_up
 from pyk.kcfg import KCFG
 from pyk.kcfg.kcfg import NodeIdLike
 
@@ -80,6 +80,8 @@ def multi_cell_abstracter(
                 return term
             if not term.arity == 1:
                 raise ValueError(f'Wrong arity for {cell_name}: {term.arity}')
+            if type(term.args[0]) is KToken:
+                return term
 
             variable = new_variable()
             variable_to_value[variable] = term.args[0]
@@ -135,8 +137,10 @@ def single_cell_abstracter(
     def replace_with_variable(
         config: KInner, variable_to_value: dict[KVariable, KInner], new_variable: Callable[[], KVariable]
     ) -> KInner:
-        variable = new_variable()
         original = get_single_argument_kapply_contents_path(config, cell_path)
+        if type(original) is KToken:
+            return config
+        variable = new_variable()
         variable_to_value[variable] = original
         return replace_contents_with_path(root=config, path=cell_path, replacement=variable)
 

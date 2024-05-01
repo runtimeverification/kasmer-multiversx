@@ -59,6 +59,7 @@ FUNCS_PATH = WASM_CELL_PATH + [MAIN_STORE_CELL_NAME, FUNCS_CELL_NAME]
 FINISH_EXECUTE_ON_DEST_CONTEXT_LABEL = 'finishExecuteOnDestContext'
 
 CODE = KSort('Code')
+MODULE_DECL = KSort('ModuleDecl')
 
 
 # TODO: Move these to the elrond-semantics repository.
