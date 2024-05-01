@@ -13,8 +13,8 @@ from pyk.prelude.collections import LIST
 from ..ast.mx import (
     ACCOUNTS_PATH,
     CALL_STACK_PATH,
-    CODE,
     INTERIM_STATES_PATH,
+    MODULE_DECL,
     cfg_changes_call_stack,
     cfg_changes_interim_states,
     cfg_touches_code,
@@ -99,7 +99,7 @@ def abstracters(
                 parent_path=ACCOUNTS_PATH,
                 cell_name='<code>',
                 variable_root='AbstractCode',
-                variable_sort=CODE,
+                variable_sort=MODULE_DECL,
                 destination=target_node_id,
             ),
             CODE_CUT_POINT_RULES,
