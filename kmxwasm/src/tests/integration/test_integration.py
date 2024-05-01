@@ -21,9 +21,6 @@ INPUT_FILES = [TEST_DATA / 'test_call_add-spec.json', TEST_DATA / 'test_fund-spe
     'test_file', INPUT_FILES, ids=[str(test_file.relative_to(TEST_DATA)) for test_file in INPUT_FILES]
 )
 def test_success(test_file: Path, tools: Tools) -> None:
-    # TODO: Fix this after updating the mx-semantics
-    if test_file.name == 'test_fund-spec-1k.json' and datetime.today().strftime('%Y-%m-%d') <= '2024-04-30':
-        return
 
     claim = load_json_kclaim(test_file)
     # Fix the claim, it's not clear why these cells are being
