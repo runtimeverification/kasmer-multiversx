@@ -31,7 +31,7 @@ of the bytes corresponding to `B<N>` values that are `>= 0`, placed on the
       b3pos: Int,
       b2pos: Int,
       b1pos: Int
-  )  [function, total, smtlib(int64encoding)]
+  )  [function, total, smtlib(int64encoding), no-evaluators]
   rule int64encoding(0, _, _, _, _, _, _, _, _) => 0
   rule int64encoding(_, -1, -1, -1, -1, -1, -1, -1, -1) => 0
   rule int64encoding(A, 7, 6, 5, 4, 3, 2, 1, 0) => A
@@ -96,7 +96,7 @@ Examples:
       b3Is0:Bool,
       b2Is0:Bool,
       b1Is0:Bool
-  )  [function, total, smtlib(int64BytesAre0)]
+  )  [function, total, smtlib(int64BytesAre0), no-evaluators]
   rule int64BytesAre0(_, false, false, false, false, false, false, false, false) => 1
   rule int64BytesAre0(A, true, true, true, true, true, true, true, true) => #bool(A ==Int 0)
       requires A <Int 2 ^Int 64
@@ -140,14 +140,14 @@ countConsecutiveZeroBits
 ```k
 
   syntax Int ::= countConsecutiveZeroBits(value: Int, processed: Int)
-      [function, total, smtlib(countConsecutiveZeroBits)]
+      [function, total, smtlib(countConsecutiveZeroBits), no-evaluators]
   rule countConsecutiveZeroBits(A, N)
       => 8 *Int int64BytesAre0(A, 0 <=Int N, 1 <=Int N, 2 <=Int N, 3 <=Int N, 4 <=Int N, 5 <=Int N, 6 <=Int N, 7 <=Int N)
         +Int countConsecutiveZeroBits(A, N -Int 1)
       [simplification, concrete]
 
   syntax Int ::= countConsecutiveZeroBytes(value: Int, processed: Int)
-      [function, total, smtlib(countConsecutiveZeroBytes)]
+      [function, total, smtlib(countConsecutiveZeroBytes), no-evaluators]
   rule countConsecutiveZeroBytes(A, N)
       => int64BytesAre0(A, 0 <=Int N, 1 <=Int N, 2 <=Int N, 3 <=Int N, 4 <=Int N, 5 <=Int N, 6 <=Int N, 7 <=Int N)
         +Int countConsecutiveZeroBytes(A, N -Int 1)

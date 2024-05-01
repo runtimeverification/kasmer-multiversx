@@ -85,7 +85,7 @@ the update size is the same as the updated data size).
 
     syntax SparseBytes ::= updateSparseBytes(
             SBSetFunction, SparseBytes, start:Int, size:Int
-        )  [function, total, symbol(updateSparseBytes)]
+        )  [function, total, symbol(updateSparseBytes), no-evaluators]
 
 ```
 
@@ -100,7 +100,7 @@ You should add an entry for each update function.
 
     syntax Bool ::= functionSparseBytesWellDefined(
             SBSetFunction, start:Int, size:Int
-        )  [function, total, symbol(functionSparseBytesWellDefined)]
+        )  [function, total, symbol(functionSparseBytesWellDefined), no-evaluators]
 
 ```
 
@@ -113,7 +113,7 @@ You should add an entry for each update function.
 
     syntax Int ::= updateSparseBytesSize(
             SBSetFunction, sbSize:Int, start:Int, size:Int
-        )  [function, total, symbol(updateSparseBytesSize)]
+        )  [function, total, symbol(updateSparseBytesSize), no-evaluators]
 
 ```
 
@@ -126,7 +126,7 @@ You should add an entry for each update function.
 ```k
 
     syntax Int ::= startOffset(SBSetFunction)
-        [function, total, symbol(startOffset)]
+        [function, total, symbol(startOffset), no-evaluators]
 
 ```
 
@@ -139,7 +139,7 @@ You should add an entry for each update function.
 ```k
 
     syntax Bool ::= functionCommutesAtStart(SBFunction)
-        [function, total, symbol(functionCommutesAtStart)]
+        [function, total, symbol(functionCommutesAtStart), no-evaluators]
 
 ```
 
@@ -152,7 +152,7 @@ You should add an entry for each update function.
 
     syntax SparseBytes ::= getReplacementSparseBytes(
             SBSetFunction, start:Int, size:Int
-        )  [function, total, symbol(getReplacementSparseBytes)]
+        )  [function, total, symbol(getReplacementSparseBytes), no-evaluators]
 
 ```
 
@@ -168,7 +168,7 @@ when the extract size is the same as the size of the `SparseBytes`).
     syntax SparseBytes ::= extractSparseBytes(
             SBGetFunction, SparseBytes, start:Int, size:Int
         )
-        [function, total, symbol(extractSparseBytes)]
+        [function, total, symbol(extractSparseBytes), no-evaluators]
 
 ```
 
@@ -211,23 +211,23 @@ See the `SPLIT-SPARSE-BYTES` module for details on how this is implemented.
     syntax SparseBytes ::= splitSparseBytes(
             toSplit:SparseBytes, prefix:SparseBytes, addr:Int
         )
-        [function, total]
+        [function, total, no-evaluators]
 
     syntax Bool ::= canSplitSparseBytes(
                         SBSetFunction, SparseBytes,
                         addr:Int, innerAddr:Int, innerWidth:Int
-                    )  [function, total]
-                  | #canSplitSparseBytes(SparseBytes, SparseBytes)  [function, total]
+                    )  [function, total, no-evaluators]
+                  | #canSplitSparseBytes(SparseBytes, SparseBytes)  [function, total, no-evaluators]
 
     syntax SparseBytes ::= splitSparseBytesFunction(
             function:SparseBytes, SBSetFunction, toSplit:SparseBytes,
             addr:Int, innerAddr:Int, innerWidth:Int
         )
-        [function, total]
+        [function, total, no-evaluators]
     syntax SparseBytes ::= #splitSparseBytesFunction(
             function:SparseBytes, toSplit:SparseBytes, splitter:SparseBytes, addr:Int
         )
-        [function, total]
+        [function, total, no-evaluators]
 
     syntax Bool ::= empty(SparseBytes)  [function, total]
     rule empty(.SparseBytes) => true

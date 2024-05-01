@@ -141,13 +141,13 @@ module BINARY-SEARCH-SYNTAX
   imports BOOL
   imports INT
 
-  syntax Bool ::= evaluate(BinSearchResultLambda, min:Int, max:Int)  [function, total]
+  syntax Bool ::= evaluate(BinSearchResultLambda, min:Int, max:Int)  [function, total, no-evaluators]
 
   syntax BinSearchBeforeLambda
   syntax Bool ::= evaluate(BinSearchBeforeLambda, Int)  [function, total]
 
   syntax Bool ::= findLowerUnknown(BinSearchBeforeLambda, BinSearchResultLambda, min:Int, max:Int)
-      [function, total]
+      [function, total, no-evaluators]
 
   syntax BinSearchResultLambda ::=  GeqThan(Int)
                                   | GtThan(Int)
