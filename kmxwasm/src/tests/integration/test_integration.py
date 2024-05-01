@@ -14,7 +14,7 @@ sys.setrecursionlimit(1500000000)
 
 
 TEST_DATA = (Path(__file__).parent / 'data').resolve(strict=True)
-INPUT_FILES = [TEST_DATA / 'test_call_add_less-spec.json', TEST_DATA / 'test_fund-spec-1k.json']
+INPUT_FILES = [TEST_DATA / 'test_call_add-spec.json', TEST_DATA / 'test_fund-spec.json']
 
 
 @pytest.mark.parametrize(
