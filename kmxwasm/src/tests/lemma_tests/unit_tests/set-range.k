@@ -264,6 +264,33 @@ module SET-RANGE
       <k>
         runSimplification(
             ListItem(
+                #setRange( SBChunk ( #empty ( 4 ) ), 0, 258, 3 )
+            )
+            ListItem(
+                #setRange( SBChunk ( #empty ( 4 ) ), 0, A, 3)
+            )
+        ) => doneSimplification(
+            ListItem(
+                ( SBChunk ( #bytes ( b"\x02\x01\x00" ) )
+                  SBChunk ( #empty ( 1 ) )
+                ):SparseBytes:KItem
+            )
+            ListItem(
+                ( SBChunk ( #bytes ( Int2Bytes ( 3 , A , LE ) ) )
+                  SBChunk ( #empty ( 1 ) )
+                ):SparseBytes:KItem
+            )
+        )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+      requires 0 <=Int A
+
+
+    claim
+      <k>
+        runSimplification(
+            ListItem(
                 #setRange( SBChunk ( #empty ( 4 ) ), 1, 258, 2 )
             )
             ListItem(
@@ -503,6 +530,233 @@ module SET-RANGE
             ListItem(
                 ( SBChunk ( #empty ( 1 ) )
                   SBChunk ( #bytes ( Int2Bytes ( 2 , A , LE ) ) )
+                ):SparseBytes:KItem
+            )
+        )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+      requires 0 <=Int A
+
+
+    claim
+      <k>
+        runSimplification(
+            ListItem(
+                #setRange
+                  ( SBChunk ( #bytes ( b"1234" ) )
+                    SBChunk( #empty(4) )
+                  , 2, 258, 4
+                  )
+            )
+            ListItem(
+                #setRange
+                  ( SBChunk ( #bytes ( Int2Bytes ( 4 , A , LE ) ) )
+                    SBChunk( #empty(4) )
+                  , 2, A, 4
+                  )
+            )
+        ) => doneSimplification(
+            ListItem(
+                ( SBChunk ( #bytes ( b"12\x02\x01\x00\x00\x00\x00" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
+            // TODO: The constructor-based representation should be the same as above.
+            ListItem(
+                concat(
+                  #setRange
+                    ( SBChunk ( #bytes ( Int2Bytes ( 4 , A , LE ) ) )
+                      SBChunk( #empty(2) )
+                    , 2, A, 4
+                    ),
+                  SBChunk ( #empty ( 2 ) )
+                ):SparseBytes:KItem
+            )
+        )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+      requires 0 <=Int A
+
+
+    claim
+      <k>
+        runSimplification(
+            ListItem(
+                #setRange
+                  ( SBChunk( #empty(4) )
+                    SBChunk ( #bytes ( b"1234" ) )
+                  , 2, 258, 4
+                  )
+            )
+            ListItem(
+                #setRange
+                  ( SBChunk( #empty(4) )
+                    SBChunk ( #bytes ( b"1234" ) )
+                  , 2, A, 4
+                  )
+            )
+        ) => doneSimplification(
+            ListItem(
+                ( SBChunk ( #empty ( 2 ) )
+                  SBChunk ( #bytes ( b"\x02\x01\x00\x0034" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
+            ListItem(
+                ( SBChunk ( #empty ( 2 ) )
+                  SBChunk ( #bytes ( Int2Bytes ( 4 , A , LE ) +Bytes b"34" ) )
+                ):SparseBytes:KItem
+            )
+        )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+      requires 0 <=Int A
+
+
+    claim
+      <k>
+        runSimplification(
+            ListItem(
+                #setRange
+                  ( SBChunk ( #bytes ( b"1234" ) )
+                    SBChunk( #bytes ( b"1" ) )
+                    SBChunk( #bytes ( b"234" ) )
+                  , 2, 258, 4
+                  )
+            )
+            ListItem(
+                #setRange
+                  ( SBChunk ( #bytes ( b"1234" ) )
+                    SBChunk( #bytes ( Int2Bytes(1, A, LE) ) )
+                    SBChunk( #bytes ( b"234" ) )
+                  , 2, A, 4
+                  )
+            )
+        ) => doneSimplification(
+            ListItem(
+                ( SBChunk ( #bytes ( b"12\x02\x01\x00\x0034" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
+            // TODO: The constructor-based representation should be the same as above.
+            ListItem(
+                ( SBChunk ( #bytes ( b"12" +Bytes Int2Bytes ( 4 , A , LE ) ) )
+                  SBChunk ( #bytes ( b"34" ) )
+                ):SparseBytes:KItem
+            )
+        )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+      requires 0 <=Int A
+
+
+    claim
+      <k>
+        runSimplification(
+            ListItem(
+                #setRange
+                  ( SBChunk ( #bytes ( b"1234" ) )
+                    SBChunk( #empty(4) )
+                  , 2, 258, 4
+                  )
+            )
+            ListItem(
+                #setRange
+                  ( SBChunk ( #bytes ( b"1234" ) )
+                    SBChunk( #empty(B) )
+                  , 2, A, 4
+                  )
+            )
+        ) => doneSimplification(
+            ListItem(
+                ( SBChunk ( #bytes ( b"12\x02\x01\x00\x00\x00\x00" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
+            // TODO: The constructor-based representation should be the same as above.
+            ListItem(
+                ( SBChunk ( #bytes ( b"12" +Bytes Int2Bytes ( 4 , A , LE ) ) )
+                  SBChunk ( #empty ( B -Int 2 ) )
+                ):SparseBytes:KItem
+            )
+        )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+      requires 0 <=Int A andBool 4 <Int B
+
+
+    claim
+      <k>
+        runSimplification(
+            ListItem(
+                #setRange
+                  ( SBChunk( #empty(4) )
+                    SBChunk ( #bytes ( b"1234" ) )
+                  , 2, 258, 4
+                  )
+            )
+            ListItem(
+                #setRange
+                  ( SBChunk( #empty(4) )
+                    SBChunk ( #bytes ( Int2Bytes ( 4 , A , LE ) ) )
+                  , 2, A, 4
+                  )
+            )
+        ) => doneSimplification(
+            ListItem(
+                ( SBChunk ( #empty ( 2 ) )
+                  SBChunk ( #bytes ( b"\x02\x01\x00\x0034" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
+            // TODO: The constructor-based representation should be the same as above.
+            ListItem(
+                (
+                  SBChunk ( #empty ( 2 ) )
+                  SBChunk ( #bytes ( Int2Bytes ( 4 , A , LE ) ) )
+                  SBChunk ( #bytes ( Int2Bytes ( 2 , A >>IntTotal 16 , LE ) ) )
+                ):SparseBytes:KItem
+            )
+        )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+      requires 0 <=Int A
+
+
+    claim
+      <k>
+        runSimplification(
+            ListItem(
+                #setRange
+                  ( SBChunk( #empty(2) )
+                    SBChunk ( #bytes ( b"1234" ) )
+                  , 0, 258, 4
+                  )
+            )
+            ListItem(
+                #setRange
+                  ( SBChunk( #empty(2) )
+                    SBChunk ( #bytes ( Int2Bytes ( 4 , A , LE ) ) )
+                  , 0, A, 4
+                  )
+            )
+        ) => doneSimplification(
+            ListItem(
+                ( SBChunk ( #bytes ( b"\x02\x01\x00\x0034" ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
+            // TODO: The constructor-based representation should be the same as above.
+            ListItem(
+                (
+                  SBChunk ( #bytes ( Int2Bytes ( 4 , A , LE ) ) )
+                  SBChunk ( #bytes ( Int2Bytes ( 2 , A >>IntTotal 16 , LE ) ) )
                 ):SparseBytes:KItem
             )
         )

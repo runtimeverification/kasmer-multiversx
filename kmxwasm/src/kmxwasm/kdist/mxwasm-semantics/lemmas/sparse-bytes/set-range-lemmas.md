@@ -69,6 +69,8 @@ module SET-RANGE-LEMMAS
         requires 0 <Int Addr
           andBool functionSparseBytesWellDefined(setRange(Value), Addr, Width)
         [simplification]
+    // TODO: This should be a general function based on
+    // something like splitSparseBytesItemNoFunction
     rule updateSparseBytes(setRange(Value:Int), M:SparseBytes, 0, Width:Int)
         => SBChunk(#bytes(Int2Bytes(Width, Value, LE)))
           substrSparseBytes(M, Width, size(M))
