@@ -28,6 +28,21 @@ Arithmetic expressions
 
 The normal form of an arithmetic expression is less well defined.
 
+* there are no '-' operations, `A +Int -1 *Int B` is used instead of
+  `A -Int B
+* Addition is grouped to the left, i.e.,
+  `((..((A +Int B) +Int C) +Int ...) +Int Z)`
+* Only the last element of an addition is concrete, i.e. `(A +Int B) +Int 7`
+  is normal, `(A +Int 7) +Int 8` and `(A +Int 7) +Int C` are not.
+* Multiplication is grouped to the right, i.e.,
+  `(Z *Int (... *Int (C *Int (A *Int B)) ...))`
+* Only the fist element of an addition is concrete, i.e., `7 *Int (A *Int B)`
+  is normal, `8 *Int (7 *Int A)` and `C *Int (7*Int B)` are not.
+* Multiplication with constants is always distributed, i.e.,
+  `7 *Int A +Int 7 *Int B` is normal, `7 *Int (A +Int B)` is not.
+* (Not fully enforced): Constants multiplied with the same symbolic term, then
+  added, are merged, i.e., `(7 *Int A +Int B) +Int 8 *Int A` is not normal and
+  will be transformed to `15 *Int A +Int B`
 ```k
 requires "../ceils-syntax.k"
 
@@ -331,6 +346,44 @@ module INT-ARITHMETIC-NORMALIZATION-LEMMAS
   rule ((Y +Int I1 *Int X) +Int Z) +Int I2 *Int X => (Y +Int (I1 +Int I2) *Int X) +Int Z
       [simplification(200), concrete(I1, I2)]
 
+  // Distance 3:
+  rule (((X +Int Y) +Int Z) +Int T) +Int X => ((2 *Int X +Int Y) +Int Z) +Int T
+      [simplification(200)]
+  rule (((X +Int Y) +Int Z) +Int T) +Int I *Int X => (((1 +Int I) *Int X +Int Y) +Int Z) +Int T
+      [simplification(200), concrete(I)]
+  rule (((I *Int X +Int Y) +Int Z) +Int T) +Int X => (((1 +Int I) *Int X +Int Y) +Int T) +Int Z
+      [simplification(200), concrete(I)]
+  rule (((I1 *Int X +Int Y) +Int Z) +Int T) +Int I2 *Int X => (((I1 +Int I2) *Int X +Int Y) +Int T) +Int Z
+      [simplification(200), symbolic(X), concrete(I1, I2)]
+
+  rule (((Y +Int X) +Int Z) +Int T) +Int X => ((Y +Int 2 *Int X) +Int Z) +Int T
+      [simplification(200)]
+  rule (((Y +Int X) +Int Z) +Int T) +Int I *Int X => ((Y +Int (1 +Int I) *Int X) +Int Z) +Int T
+      [simplification(200), concrete(I)]
+  rule (((Y +Int I *Int X) +Int Z) +Int T) +Int X => ((Y +Int (1 +Int I) *Int X) +Int Z) +Int T
+      [simplification(200), concrete(I)]
+  rule (((Y +Int I1 *Int X) +Int Z) +Int T) +Int I2 *Int X => ((Y +Int (I1 +Int I2) *Int X) +Int Z) +Int T
+      [simplification(200), concrete(I1, I2)]
+
+  // Distance 4:
+  rule ((((X +Int Y) +Int Z) +Int T) +Int S) +Int X => (((2 *Int X +Int Y) +Int Z) +Int T) +Int S
+      [simplification(200)]
+  rule ((((X +Int Y) +Int Z) +Int T) +Int S) +Int I *Int X => ((((1 +Int I) *Int X +Int Y) +Int Z) +Int T) +Int S
+      [simplification(200), concrete(I)]
+  rule ((((I *Int X +Int Y) +Int Z) +Int T) +Int S) +Int X => ((((1 +Int I) *Int X +Int Y) +Int T) +Int S) +Int Z
+      [simplification(200), concrete(I)]
+  rule ((((I1 *Int X +Int Y) +Int Z) +Int T) +Int S) +Int I2 *Int X => ((((I1 +Int I2) *Int X +Int Y) +Int T) +Int S) +Int Z
+      [simplification(200), symbolic(X), concrete(I1, I2)]
+
+  rule ((((Y +Int X) +Int Z) +Int T) +Int S) +Int X => (((Y +Int 2 *Int X) +Int Z) +Int S) +Int T
+      [simplification(200)]
+  rule ((((Y +Int X) +Int Z) +Int T) +Int S) +Int I *Int X => (((Y +Int (1 +Int I) *Int X) +Int Z) +Int T) +Int S
+      [simplification(200), concrete(I)]
+  rule ((((Y +Int I *Int X) +Int Z) +Int T) +Int S) +Int X => (((Y +Int (1 +Int I) *Int X) +Int Z) +Int T) +Int S
+      [simplification(200), concrete(I)]
+  rule ((((Y +Int I1 *Int X) +Int Z) +Int T) +Int S) +Int I2 *Int X => (((Y +Int (I1 +Int I2) *Int X) +Int Z) +Int T) +Int S
+      [simplification(200), concrete(I1, I2)]
+
   rule (((X modIntTotal Y) +Int Z) +Int T) modIntTotal Y => (X +Int Z +Int T) modIntTotal Y
       [simplification]
   rule (((X modIntTotal Y) +Int Z) -Int T) modIntTotal Y => (X +Int Z -Int T) modIntTotal Y
@@ -362,6 +415,13 @@ module INT-ARITHMETIC-NORMALIZATION-LEMMAS
   rule {0 #Equals A ^IntTotal B} => {0 #Equals A}
       requires B =/=Int 0
       [simplification(50)]
+
+  rule {0 #Equals A divIntTotal B} => {true #Equals A <Int B}
+      requires 0 <=Int A andBool 0 <Int B
+      [simplification]
+  rule {A divIntTotal B #Equals 0} => {true #Equals A <Int B}
+      requires 0 <=Int A andBool 0 <Int B
+      [simplification]
 
   // log2IntTotal(X) is the index of the highest bit. This means that
   // X < 2^(log2IntTotal(X) + 1) since the highest bit of the right term
