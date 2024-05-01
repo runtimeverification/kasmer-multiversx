@@ -1,4 +1,4 @@
-module GET-RANGE
+module GET-BYTES-RANGE
     imports MX-WASM-LEMMA-TESTS
 
     // Lookup in a concrete chunk
@@ -6,7 +6,7 @@ module GET-RANGE
       <k>
         runSimplification(
             ListItem(
-                #getRange (
+                #getBytesRange (
                     SBChunk (
                         #bytes ( b"\x04\x00\x00\x00\x00" )
                     )
@@ -14,7 +14,7 @@ module GET-RANGE
                 )
             )
             ListItem(
-                #getRange (
+                #getBytesRange (
                     SBChunk (
                         #bytes ( b"\x04\x00\x00\x00" +Bytes Int2Bytes ( 1 , _ARG_0:Int , LE ) )
                     )
@@ -22,8 +22,8 @@ module GET-RANGE
                 )
             )
         ) => doneSimplification(
-            ListItem(4)
-            ListItem(4)
+            ListItem(b"\x04")
+            ListItem(b"\x04")
         )
       </k>
       <commands> .K </commands>
@@ -33,20 +33,20 @@ module GET-RANGE
       <k>
         runSimplification(
             ListItem(
-                #getRange (
+                #getBytesRange (
                     SBChunk ( #empty ( 5 ) )
                     , 0 , 1
                 )
             )
             ListItem(
-                #getRange (
+                #getBytesRange (
                     SBChunk ( #empty ( A ) )
                     , 0 , 1
                 )
             )
         ) => doneSimplification(
-            ListItem(0)
-            ListItem(0)
+            ListItem(b"\x00")
+            ListItem(b"\x00")
         )
       </k>
       <commands> .K </commands>
@@ -58,7 +58,7 @@ module GET-RANGE
       <k>
         runSimplification(
             ListItem(
-                #getRange
+                #getBytesRange
                   ( SBChunk ( #empty ( 10 ) )
                     SBChunk ( #bytes ( b"\x04\x00\x00\x00" ) )
                     SBChunk ( #empty ( 10 ) )
@@ -67,7 +67,7 @@ module GET-RANGE
                   )
             )
             ListItem(
-                #getRange
+                #getBytesRange
                   ( SBChunk ( #empty ( 10 ) )
                     SBChunk ( #bytes ( b"\x04\x00\x00\x00" ) )
                     SBChunk ( #empty ( 10 ) )
@@ -76,7 +76,7 @@ module GET-RANGE
                   )
             )
             ListItem(
-                #getRange
+                #getBytesRange
                   ( SBChunk ( #empty ( 10 ) )
                     SBChunk ( #bytes ( b"\x04\x00\x00\x00" ) )
                     SBChunk ( #empty ( A ) )
@@ -85,9 +85,9 @@ module GET-RANGE
                   )
             )
         ) => doneSimplification(
-            ListItem(5)
-            ListItem(5)
-            ListItem(5)
+            ListItem(b"\x05")
+            ListItem(b"\x05")
+            ListItem(b"\x05")
         )
       </k>
       <commands> .K </commands>
@@ -99,36 +99,36 @@ module GET-RANGE
       <k>
         runSimplification(
             ListItem(
-                #getRange
+                #getBytesRange
                   ( SBChunk ( #bytes ( b"\x04\x00\x00\x00\x00" ) )
                   , 8 , 1
                   )
             )
             ListItem(
-                #getRange
+                #getBytesRange
                   ( SBChunk ( #bytes ( b"\x04\x00\x00\x00\x00" ) )
                   , A , 1
                   )
             )
             ListItem(
-                #getRange
+                #getBytesRange
                   ( SBChunk ( #bytes ( b"\x04" ) )
                     SBChunk ( #empty ( 4 ) )
                   , A , 1
                   )
             )
             ListItem(
-                #getRange
+                #getBytesRange
                   ( SBChunk ( #bytes ( b"\x04" ) )
                     SBChunk ( #empty ( B ) )
                   , A , 1
                   )
             )
         ) => doneSimplification(
-            ListItem(0)
-            ListItem(0)
-            ListItem(0)
-            ListItem(0)
+            ListItem(b"\x00")
+            ListItem(b"\x00")
+            ListItem(b"\x00")
+            ListItem(b"\x00")
         )
       </k>
       <commands> .K </commands>
@@ -141,27 +141,27 @@ module GET-RANGE
       <k>
         runSimplification(
             ListItem(
-                #getRange
+                #getBytesRange
                   ( SBChunk ( #bytes ( Int2Bytes(4, 145, LE) ) )
                   , 0 , 4
                   )
             )
             ListItem(
-                #getRange
+                #getBytesRange
                   ( SBChunk ( #bytes ( Int2Bytes(4, A, LE) ) )
                   , 0 , 4
                   )
             )
             ListItem(
-                #getRange
+                #getBytesRange
                   ( SBChunk ( #bytes ( Int2Bytes((log2Int(B) +Int 8) /Int 8, B, LE) ) )
                   , 0 , (log2Int(B) +Int 8) /Int 8
                   )
             )
         ) => doneSimplification(
-            ListItem(145)
-            ListItem(A)
-            ListItem(B)
+            ListItem(b"\x91\x00\x00\x00")
+            ListItem(Int2Bytes(4, A, LE))
+            ListItem(Int2Bytes((log2Int(B) +Int 8) /Int 8, B, LE))
         )
       </k>
       <commands> .K </commands>
@@ -175,27 +175,27 @@ module GET-RANGE
       <k>
         runSimplification(
             ListItem(
-                #getRange
+                #getBytesRange
                   ( SBChunk ( #bytes ( b"a" +Bytes Int2Bytes(4, 145, LE) +Bytes b"b" ) )
                   , 1 , 4
                   )
             )
             ListItem(
-                #getRange
+                #getBytesRange
                   ( SBChunk ( #bytes ( b"a" +Bytes Int2Bytes(4, A, LE) +Bytes b"b" ) )
                   , 1 , 4
                   )
             )
             ListItem(
-                #getRange
+                #getBytesRange
                   ( SBChunk ( #bytes ( b"a" +Bytes Int2Bytes((log2Int(B) +Int 8) /Int 8, B, LE) +Bytes b"b" ) )
                   , 1 , (log2Int(B) +Int 8) /Int 8
                   )
             )
         ) => doneSimplification(
-            ListItem(145)
-            ListItem(A)
-            ListItem(B)
+            ListItem(b"\x91\x00\x00\x00")
+            ListItem(Int2Bytes(4, A, LE))
+            ListItem(Int2Bytes((log2Int(B) +Int 8) /Int 8, B, LE))
         )
       </k>
       <commands> .K </commands>
