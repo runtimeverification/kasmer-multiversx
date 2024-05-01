@@ -545,7 +545,7 @@ colors = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "kmultiversx"
-version = "0.1.46"
+version = "0.1.47"
 description = "Python tools for Elrond semantics"
 optional = false
 python-versions = "^3.10"
@@ -555,13 +555,13 @@ develop = false
 [package.dependencies]
 hypothesis = "^6.82.6"
 pycryptodomex = "^3.18.0"
-pykwasm = {git = "https://github.com/runtimeverification/wasm-semantics.git", tag = "v0.1.41", subdirectory = "pykwasm"}
+pykwasm = {git = "https://github.com/runtimeverification/wasm-semantics.git", tag = "v0.1.43", subdirectory = "pykwasm"}
 
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/mx-semantics.git"
-reference = "v0.1.46"
-resolved_reference = "291ccd3de5049dda72fd39ff899c692b6511375c"
+reference = "v0.1.47"
+resolved_reference = "4b4d57e1a5ddc83cf0f43299003b16a0c77eb129"
 subdirectory = "kmultiversx"
 
 [[package]]
@@ -853,9 +853,8 @@ version = "0.2.0"
 description = "py-wasm: A python implementation of the web assembly interpreter"
 optional = false
 python-versions = ">=3.5, <4"
-files = [
-    {file = "0.2.0.tar.gz", hash = "sha256:83d335ef1ec5064ee8efffdcba88a69644974953726b58003b48fe4a735eb686"},
-]
+files = []
+develop = false
 
 [package.dependencies]
 cytoolz = {version = ">=0.9.0,<1.0.0", markers = "implementation_name == \"cpython\""}
@@ -870,8 +869,10 @@ lint = ["flake8 (==3.6.0)", "isort (>=4.3.9,<5)", "mypy (==1.6.1)"]
 test = ["hypothesis (>=6.88.1,<7)", "pytest (>=7.4.3,<8)", "pytest-watch (>=4.2.0,<5)", "pytest-xdist (>=3.2.0,<4)", "tox (>=4.11.3,<5)"]
 
 [package.source]
-type = "url"
-url = "https://github.com/runtimeverification/py-wasm/archive/refs/tags/0.2.0.tar.gz"
+type = "git"
+url = "https://github.com/runtimeverification/py-wasm.git"
+reference = "0.2.1"
+resolved_reference = "e5fb6ed5b1aebf1c0d67087397b3c1240ff412da"
 
 [[package]]
 name = "pybind11"
@@ -994,7 +995,7 @@ subdirectory = "pyk"
 
 [[package]]
 name = "pykwasm"
-version = "0.1.41"
+version = "0.1.43"
 description = ""
 optional = false
 python-versions = "^3.10"
@@ -1004,14 +1005,14 @@ develop = false
 [package.dependencies]
 cytoolz = "^0.12.1"
 numpy = "^1.24.2"
-py-wasm = {url = "https://github.com/runtimeverification/py-wasm/archive/refs/tags/0.2.0.tar.gz"}
+py-wasm = {git = "https://github.com/runtimeverification/py-wasm.git", tag = "0.2.1"}
 pyk = {git = "https://github.com/runtimeverification/k.git", tag = "v7.0.25", subdirectory = "pyk"}
 
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/wasm-semantics.git"
-reference = "v0.1.41"
-resolved_reference = "4f5c9fac3efa0fcfc69da555c90886fa1b0f7f2c"
+reference = "v0.1.43"
+resolved_reference = "2df369205f3ae12825e3cd649836ea88c71ad116"
 subdirectory = "pykwasm"
 
 [[package]]
@@ -1264,4 +1265,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "88c289641c389de87230bf35aac28052ec003f5a3cdd3a5932e9c095e4c8f620"
+content-hash = "470491bd7e21cc7b7740a33ebc06e943c7cb80e4871a825c60287796f6c993c1"
