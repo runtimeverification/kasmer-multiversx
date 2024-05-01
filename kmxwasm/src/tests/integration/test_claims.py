@@ -76,6 +76,7 @@ def callStateCell() -> KInner:  # noqa: N802
                     KApply('<esdtTransfers>', list_empty()),
                     KApply('<gasProvided>', intToken(0)),
                     KApply('<gasPrice>', intToken(0)),
+                    KApply('<txHash>', bytesToken(b'')),
                 ),
             ),
             wasmCell(),
@@ -141,6 +142,7 @@ def configCell(  # noqa: N802
                     KApply(
                         '<elrond>', (nodeCell(vm_output=vm_output, accounts=accounts), KApply('<logging>', logging))
                     ),
+                    KApply('<txCount>', intToken(0)),
                     KApply('<exit-code>', intToken(0)),
                 ),
             ),
