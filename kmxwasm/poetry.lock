@@ -545,7 +545,7 @@ colors = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "kmultiversx"
-version = "0.1.47"
+version = "0.1.48"
 description = "Python tools for Elrond semantics"
 optional = false
 python-versions = "^3.10"
@@ -555,13 +555,13 @@ develop = false
 [package.dependencies]
 hypothesis = "^6.82.6"
 pycryptodomex = "^3.18.0"
-pykwasm = {git = "https://github.com/runtimeverification/wasm-semantics.git", tag = "v0.1.43", subdirectory = "pykwasm"}
+pykwasm = {git = "https://github.com/runtimeverification/wasm-semantics.git", tag = "v0.1.45", subdirectory = "pykwasm"}
 
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/mx-semantics.git"
-reference = "v0.1.47"
-resolved_reference = "4b4d57e1a5ddc83cf0f43299003b16a0c77eb129"
+reference = "v0.1.48"
+resolved_reference = "fd3eb0bcc699cb7c0f8154260dcbac35b46f71e4"
 subdirectory = "kmultiversx"
 
 [[package]]
@@ -863,7 +863,7 @@ numpy = ">=1.16.0,<2"
 toolz = {version = ">0.9.0,<1", markers = "implementation_name == \"pypy\""}
 
 [package.extras]
-dev = ["bumpversion (>=0.5.3,<1)", "ipython", "pytest-watch (>=4.1.0,<5)", "twine", "wheel"]
+dev = ["Sphinx (>=1.6.5,<2)", "bumpversion (>=0.5.3,<1)", "flake8 (==3.6.0)", "hypothesis (>=6.88.1,<7)", "ipython", "isort (>=4.3.9,<5)", "mypy (==1.6.1)", "pytest (>=7.4.3,<8)", "pytest-watch (>=4.1.0,<5)", "pytest-watch (>=4.2.0,<5)", "pytest-xdist (>=3.2.0,<4)", "sphinx_rtd_theme (>=0.1.9)", "tox (>=4.11.3,<5)", "twine", "wheel"]
 doc = ["Sphinx (>=1.6.5,<2)", "sphinx_rtd_theme (>=0.1.9)"]
 lint = ["flake8 (==3.6.0)", "isort (>=4.3.9,<5)", "mypy (==1.6.1)"]
 test = ["hypothesis (>=6.88.1,<7)", "pytest (>=7.4.3,<8)", "pytest-watch (>=4.2.0,<5)", "pytest-xdist (>=3.2.0,<4)", "tox (>=4.11.3,<5)"]
@@ -968,7 +968,7 @@ windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "pyk"
-version = "7.0.25"
+version = "7.0.32"
 description = ""
 optional = false
 python-versions = "^3.10"
@@ -989,13 +989,13 @@ xdg-base-dirs = "^6.0.1"
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/k.git"
-reference = "v7.0.25"
-resolved_reference = "8c88ad342e70950d71d7dcf32657cee51ae301f1"
+reference = "v7.0.32"
+resolved_reference = "c885ed22e2357cf9855f9a8df0b64683d601b980"
 subdirectory = "pyk"
 
 [[package]]
 name = "pykwasm"
-version = "0.1.43"
+version = "0.1.45"
 description = ""
 optional = false
 python-versions = "^3.10"
@@ -1006,13 +1006,13 @@ develop = false
 cytoolz = "^0.12.1"
 numpy = "^1.24.2"
 py-wasm = {git = "https://github.com/runtimeverification/py-wasm.git", tag = "0.2.1"}
-pyk = {git = "https://github.com/runtimeverification/k.git", tag = "v7.0.25", subdirectory = "pyk"}
+pyk = {git = "https://github.com/runtimeverification/k.git", tag = "v7.0.32", subdirectory = "pyk"}
 
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/wasm-semantics.git"
-reference = "v0.1.43"
-resolved_reference = "2df369205f3ae12825e3cd649836ea88c71ad116"
+reference = "v0.1.45"
+resolved_reference = "582f0c7f2eeb40929941a1e44aa527fb2c8f0350"
 subdirectory = "pykwasm"
 
 [[package]]
@@ -1265,4 +1265,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "470491bd7e21cc7b7740a33ebc06e943c7cb80e4871a825c60287796f6c993c1"
+content-hash = "3d39eb6885c5226fd6d720cb2f96ce81556c1df0e9a7ace46da3fffa0fb260e5"
