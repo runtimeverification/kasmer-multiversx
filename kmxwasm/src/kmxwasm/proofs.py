@@ -340,7 +340,7 @@ def my_step(explorer: LazyExplorer, kcfg: KCFG, node_id: int) -> List[int]:
 
     # Branch
     if len(next_cterms) > 1:
-        branches = [mlAnd(c for c in s.constraints if c not in cterm.constraints) for s in next_cterms]
+        branches = [mlAnd(c for c in s.constraints if c not in cterm.constraints) for s, _ in next_cterms]
         branch_and = mlAnd(branches)
         branch_patterns = [
             mlAnd([mlEqualsTrue(KVariable('B')), mlEqualsTrue(notBool(KVariable('B')))]),
@@ -357,7 +357,7 @@ def my_step(explorer: LazyExplorer, kcfg: KCFG, node_id: int) -> List[int]:
 
         # NDBranch on successor nodes
         else:
-            next_ids = [kcfg.create_node(sort_ac_c_term(explorer.printer().definition, ct)).id for ct in next_cterms]
+            next_ids = [kcfg.create_node(sort_ac_c_term(explorer.printer().definition, ct)).id for ct, _ in next_cterms]
             print(next_node_logs)
             kcfg.create_ndbranch(node.id, next_ids)
         for next_id in next_ids:

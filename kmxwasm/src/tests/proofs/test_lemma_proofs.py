@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import pytest
-from pyk.cterm import CTerm
+from pyk.kast.manip import is_top
 from pyk.prelude.ml import mlOr
 
 from kmxwasm.testing.fixtures import Tools
@@ -24,4 +24,4 @@ PROVE_TEST_DATA = tuple(
 @pytest.mark.parametrize(('test_id', 'test_file'), PROVE_TEST_DATA, ids=[test_id for test_id, _ in PROVE_TEST_DATA])
 def test_success(test_id: str, test_file: Path, lemma_proofs_tools: Tools) -> None:
     result = lemma_proofs_tools.kprove.prove(test_file)
-    assert CTerm._is_top(mlOr([res.kast for res in result]))
+    assert is_top(mlOr([res.kast for res in result]), weak=True)

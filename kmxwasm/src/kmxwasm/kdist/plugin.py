@@ -13,14 +13,11 @@ if TYPE_CHECKING:
     from typing import Any, Final
 
 
-# TODO Distribute plugin files with kmultiversx
-PLUGIN_DIR: Final = Path(__file__).parents[4] / 'deps/mx-semantics/deps/plugin'
-
-
 class SourceTarget(Target):
     SRC_DIR: Final = Path(__file__).parent
 
     def build(self, output_dir: Path, deps: dict[str, Path], args: dict[str, Any], verbose: bool) -> None:
+        shutil.copytree(deps['mx-semantics.source'] / 'plugin', output_dir / 'plugin')
         shutil.copytree(deps['mx-semantics.source'] / 'wasm-semantics', output_dir / 'wasm-semantics')
         shutil.copytree(deps['mx-semantics.source'] / 'mx-semantics', output_dir / 'mx-semantics')
         shutil.copytree(self.SRC_DIR / 'mxwasm-semantics', output_dir / 'mxwasm-semantics')
@@ -52,7 +49,7 @@ class KompileTarget(Target):
 
 def _default_args(src_dir: Path) -> dict[str, Any]:
     return {
-        'include_dirs': [src_dir, PLUGIN_DIR],
+        'include_dirs': [src_dir],
         'md_selector': 'k',
         'warnings_to_errors': True,
     }
