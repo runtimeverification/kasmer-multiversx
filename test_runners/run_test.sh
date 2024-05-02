@@ -23,5 +23,5 @@ K_OPTS=-Xmx12288m time poetry run kdist build mxwasm-semantics.{llvm,llvm-librar
 time poetry run python3 -m src.kmxwasm.property \
     --claim "$CLAIM" --kcfg "$SAVE_DIR" \
     --booster \
-    --bug-report "$1.report"
+    --bug-report "$1.report" \
     2>&1 | tee > "$LOGS_DIR/$1.log"
