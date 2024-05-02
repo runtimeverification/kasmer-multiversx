@@ -1,3 +1,0 @@
-[submodule "kmxwasm/k-src/mx-semantics"]
-	path = deps/mx-semantics
-	url = https://github.com/runtimeverification/mx-semantics
