@@ -179,7 +179,7 @@ module BINARY-SEARCH [symbolic]
   rule evaluate(LtThan(A), _:Int, Max:Int) => true
       requires Max <Int A
   rule evaluate(LeqThan(A), _:Int, Max:Int) => true
-      requires Max <Int A
+      requires Max <=Int A
 endmodule
 
 ```
