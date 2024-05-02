@@ -26,6 +26,9 @@ module SPARSE-BYTES-LEMMAS
     rule merge(SBChunk(#bytes(A)), merge(SBChunk(#bytes(B)), C)) => merge(SBChunk(#bytes(A +Bytes B)), C)
         [simplification]
 
+    rule concat(merge(A, B), C) => merge(A, concat(B, C))
+        [simplification]
+
     rule disjontRanges
           ( (A1:Int modIntTotal M1:Int) +Int B1:Int, Len1:Int
           , (A2:Int modIntTotal M2:Int) +Int B2:Int, Len2:Int

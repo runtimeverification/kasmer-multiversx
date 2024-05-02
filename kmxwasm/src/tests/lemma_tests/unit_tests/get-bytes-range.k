@@ -29,6 +29,8 @@ module GET-BYTES-RANGE
       <commands> .K </commands>
       <instrs> .K </instrs>
 
+    // Lookup in a symbolic empty chunk
+
     claim
       <k>
         runSimplification(
@@ -52,6 +54,31 @@ module GET-BYTES-RANGE
       <commands> .K </commands>
       <instrs> .K </instrs>
       requires 0 <Int A
+
+    claim
+      <k>
+        runSimplification(
+            ListItem(
+                #getBytesRange (
+                    SBChunk ( #empty ( 5 ) )
+                    , 1 , 1
+                )
+            )
+            // TODO: make the symbolic part of this test work.
+            // ListItem(
+            //     #getBytesRange (
+            //         SBChunk ( #empty ( A ) )
+            //         , 1 , 1
+            //     )
+            // )
+        ) => doneSimplification(
+            ListItem(b"\x00")
+            // ListItem(b"\x00")
+        )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+      // requires 0 <Int A
 
     // Skipping chunks
     claim

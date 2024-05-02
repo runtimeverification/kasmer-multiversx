@@ -1,4 +1,4 @@
-K_OPTS     := -Xmx8192m
+K_OPTS     := -Xmx12288m
 POETRY     := poetry -C kmxwasm
 POETRY_RUN := $(POETRY) run
 

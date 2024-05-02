@@ -50,6 +50,9 @@ module SUBSTR-SPARSE-BYTES-LEMMAS
         requires Start +Int Width <=Int SStart
           andBool canSplitSparseBytes(F, SB, SStart, Start, Width)
         [simplification]
+    rule substrSparseBytes(_, Start, End) => .SparseBytes
+        requires End <=Int Start
+        [simplification]
 
     rule extractSparseBytes(substr, SB, 0, Width)
         => SB
