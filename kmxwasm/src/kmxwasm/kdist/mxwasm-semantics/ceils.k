@@ -23,6 +23,12 @@ module CEILS
             andBool (Value <=Int 255)
 
 
+    rule definedPadLeftBytes(_B:Bytes, Length:Int, Value:Int)
+        =>  (0 <=Int Length)
+            andBool (0 <=Int Value)
+            andBool (Value <=Int 255)
+
+
     // ---------------------------------------
 
 
@@ -109,6 +115,34 @@ module CEILS
     rule padRightBytes(Arg0:Bytes, Length:Int, Value:Int)
         => padRightBytesTotal(Arg0, Length, Value)
         requires definedPadRightBytes(Arg0, Length, Value)
+        [symbolic(Value), simplification, preserves-definedness]
+
+
+    rule #Ceil(padLeftBytes(@Arg0:Bytes, @Length:Int, @Value:Int))
+        =>  ((({ definedPadLeftBytes(@Arg0, @Length, @Value)  #Equals true }
+          #And #Ceil(@Arg0))
+          #And #Ceil(@Length))
+          #And #Ceil(@Value))
+        [simplification]
+
+    rule padLeftBytesTotal(Arg0:Bytes, Length:Int, Value:Int)
+        => padLeftBytes(Arg0, Length, Value)
+        requires definedPadLeftBytes(Arg0, Length, Value)
+        [concrete, simplification(10), preserves-definedness]
+
+    rule padLeftBytes(Arg0:Bytes, Length:Int, Value:Int)
+        => padLeftBytesTotal(Arg0, Length, Value)
+        requires definedPadLeftBytes(Arg0, Length, Value)
+        [symbolic(Arg0), simplification, preserves-definedness]
+
+    rule padLeftBytes(Arg0:Bytes, Length:Int, Value:Int)
+        => padLeftBytesTotal(Arg0, Length, Value)
+        requires definedPadLeftBytes(Arg0, Length, Value)
+        [symbolic(Length), simplification, preserves-definedness]
+
+    rule padLeftBytes(Arg0:Bytes, Length:Int, Value:Int)
+        => padLeftBytesTotal(Arg0, Length, Value)
+        requires definedPadLeftBytes(Arg0, Length, Value)
         [symbolic(Value), simplification, preserves-definedness]
 
 

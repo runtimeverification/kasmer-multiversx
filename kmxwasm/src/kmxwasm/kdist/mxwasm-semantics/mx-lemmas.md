@@ -5,7 +5,6 @@ requires "lemmas/int-encoding-lemmas.md"
 requires "lemmas/int-inequalities-lemmas.md"
 requires "lemmas/int-length-lemmas.md"
 requires "lemmas/int-normalization-lemmas.md"
-requires "lemmas/int-inequalities-lemmas.md"
 requires "lemmas/pair-specific-lemmas.md"
 requires "lemmas/sparse-bytes/sparse-bytes-lemmas.md"
 

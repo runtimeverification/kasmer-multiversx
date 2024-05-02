@@ -146,6 +146,7 @@ module WASM-OPCODES
                 }
             => .K
         </instrs>
+        <valstack> S => <i32> 0 : S </valstack>
     requires 0 <Int ARG_0
       andBool 0 <Int ARG_2
       andBool 0 <Int ARG_3

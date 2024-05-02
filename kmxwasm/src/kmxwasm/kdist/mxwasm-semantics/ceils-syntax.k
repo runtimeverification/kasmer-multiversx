@@ -7,6 +7,7 @@ module CEILS-SYNTAX
     syntax Bool ::= definedSubstrBytes(Bytes, startIndex: Int, endIndex: Int)  [function, total]
     syntax Bool ::= definedReplaceAtBytes(dest: Bytes, index: Int, src: Bytes)  [function, total]
     syntax Bool ::= definedPadRightBytes(Bytes, length: Int, value: Int)  [function, total]
+    syntax Bool ::= definedPadLeftBytes(Bytes, length: Int, value: Int)  [function, total]
     syntax Bool ::= definedModInt(Int, Int)  [function, total]
     syntax Bool ::= definedDivInt(Int, Int)  [function, total]
     syntax Bool ::= definedShlInt(Int, Int)  [function, total]
@@ -31,6 +32,8 @@ module CEILS-SYNTAX
         [function, total, symbol(replaceAtBytesTotal), no-evaluators]
     syntax Bytes ::= padRightBytesTotal(Bytes, length: Int, value: Int)
         [function, total, symbol(padRightBytesTotal), no-evaluators]
+    syntax Bytes ::= padLeftBytesTotal(Bytes, length: Int, value: Int)
+        [function, total, symbol(padLeftBytesTotal), no-evaluators]
     syntax Int ::= Int "modIntTotal" Int
         [function, total, symbol(modIntTotal), no-evaluators, smtlib(modIntTotal)]
     syntax Int ::= Int "divIntTotal" Int

@@ -76,6 +76,16 @@ module BYTES-NORMALIZATION-LEMMAS  [symbolic]
             andBool definedPadRightBytes(padRightBytesTotal(B:Bytes, Length1:Int, Value:Int), Length2, Value)
         [simplification]
 
+    rule padLeftBytesTotal (B:Bytes, Length:Int, Value:Int) => B
+        requires Length <=Int lengthBytes(B)
+            andBool definedPadLeftBytes(B, Length, Value)
+    rule padLeftBytesTotal(padLeftBytesTotal(B:Bytes, Length1:Int, Value:Int), Length2:Int, Value:Int)
+        => padLeftBytesTotal(B, maxInt (Length1, Length2), Value:Int)
+        requires definedPadLeftBytes(B, Length1, Value)
+            andBool definedPadLeftBytes(padLeftBytesTotal(B:Bytes, Length1:Int, Value:Int), Length2, Value)
+        [simplification]
+
+
     rule lengthBytes(Int2Bytes(Len:Int, _:Int, _:Endianness)) => Len  [simplification]
     rule lengthBytes(substrBytesTotal(B:Bytes, Start:Int, End:Int)) => End -Int Start
         requires definedSubstrBytes(B, Start, End)
@@ -83,6 +93,10 @@ module BYTES-NORMALIZATION-LEMMAS  [symbolic]
     rule lengthBytes(padRightBytesTotal(B:Bytes, Length:Int, Value:Int))
         => maxInt(lengthBytes(B:Bytes), Length:Int)
         requires definedPadRightBytes(B, Length, Value)
+        [simplification]
+    rule lengthBytes(padLeftBytesTotal(B:Bytes, Length:Int, Value:Int))
+        => maxInt(lengthBytes(B:Bytes), Length:Int)
+        requires definedPadLeftBytes(B, Length, Value)
         [simplification]
     rule lengthBytes(zeros(Len)) => Len  [simplification]
     rule lengthBytes(A +Bytes B) => lengthBytes(A) +Int lengthBytes(B)
