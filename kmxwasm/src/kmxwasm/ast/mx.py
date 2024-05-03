@@ -183,7 +183,7 @@ def instrs_cell_contents(root: KInner) -> KSequence | None:
         return None
     assert len(instrs.args) == 1
     seq = instrs.args[0]
-    assert isinstance(seq, KSequence)
+    assert isinstance(seq, KSequence), [seq, type(seq)]
     return seq
 
 
@@ -272,6 +272,7 @@ def cfg_touches_code(k: str | None, command: str | None, instr: str | None) -> b
         'createAccount',
         'pushWorldState',
         'popWorldState',
+        'determineIsSCCallAfter',
     ]:
         return True
     if not instr:

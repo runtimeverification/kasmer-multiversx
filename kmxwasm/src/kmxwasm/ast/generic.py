@@ -43,7 +43,9 @@ def set_single_argument_kapply_contents(root: KInner, name: str, contents: KInne
             raise ValueError(f'Expected node {name} to have exactly 1 child, found {len(node.args)}.')
         return node.let(args=[contents])
 
-    return bottom_up(replace_contents, root)
+    retv = bottom_up(replace_contents, root)
+    assert already_replaced
+    return retv
 
 
 def set_single_argument_multiple_kapply_contents(

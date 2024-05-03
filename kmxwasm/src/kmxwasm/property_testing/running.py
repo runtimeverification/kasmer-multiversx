@@ -59,6 +59,7 @@ CODE_CUT_POINT_RULES = [
     'ELROND-CONFIG.setAccountCode',
     'ELROND-CONFIG.callContract',
     'ELROND-CONFIG.callContract-not-contract',
+    'ESDT.determineIsSCCallAfter-call',
     'MANDOS.checkAccountCodeAux-no-code',
     'MANDOS.checkAccountCodeAux-code',
     'BASEOPS.checkIsSmartContract-code',
@@ -200,7 +201,10 @@ def run_claim(
         last_time = time.time()
         while to_process and current_iteration < iterations:
             next_current_leaves: set[NodeIdLike] = set()
+            iteration_start_branches = len(to_process)
+            iteration_processed_branches = 0
             while to_process and current_iteration < iterations:
+                iteration_processed_branches += 1
                 current_iteration += 1
                 node = to_process.pop(0)
                 processed.add(node.id)
@@ -211,10 +215,22 @@ def run_claim(
                 last_processed_node = node.id
                 last_time = current_time
 
-                assert len(list(kcfg.edges(source_id=node.id))) == 0
-                assert len(list(kcfg.covers(source_id=node.id))) == 0
-                assert len(list(kcfg.splits(source_id=node.id))) == 0
-                assert len(list(kcfg.successors(node.id))) == 0
+                assert len(list(kcfg.edges(source_id=node.id))) == 0, [
+                    node.id,
+                    [t.id for n in kcfg.edges(source_id=node.id) for t in n.targets],
+                ]
+                assert len(list(kcfg.covers(source_id=node.id))) == 0, [
+                    node.id,
+                    [t.id for n in kcfg.covers(source_id=node.id) for t in n.targets],
+                ]
+                assert len(list(kcfg.splits(source_id=node.id))) == 0, [
+                    node.id,
+                    [t.id for n in kcfg.splits(source_id=node.id) for t in n.targets],
+                ]
+                assert len(list(kcfg.successors(node.id))) == 0, [
+                    node.id,
+                    [t.id for n in kcfg.successors(node.id) for t in n.targets],
+                ]
 
                 try:
                     if command_is_new_wasm_instance(node.cterm.config):
@@ -254,12 +270,18 @@ def run_claim(
                             leaves = set(new_leaves(kcfg, non_final, final_node.id))
                             leaves.add(node.id)
                             t.measure()
+                            print(f'Concretizing: {list(leaves)}')
                             concretize(all_abstracters, kcfg, leaves)
                             t.measure()
                     current_leaves = new_leaves(kcfg, non_final, final_node.id)
                     print('Result: ', current_leaves)
+                    for e in kcfg.edges(source_id=node.id):
+                        print(f'Depth for {e.source.id} -> {e.target.id}: {e.depth}')
                     for node_id in current_leaves:
                         next_current_leaves.add(node_id)
+                    print(
+                        f'Branch count: {iteration_start_branches - iteration_processed_branches + len(next_current_leaves)}'
+                    )
                     t = Timer('  Check final')
                     for node_id in current_leaves:
                         non_final.add(node_id)
@@ -268,6 +290,7 @@ def run_claim(
                             implies_result = tools.explorer.cterm_symbolic.implies(node.cterm, final_node.cterm)
                             if implies_result.csubst:
                                 kcfg.create_cover(node.id, final_node.id, implies_result.csubst)
+                                next_current_leaves.remove(node.id)
                     t.measure()
                 except ValueError:
                     if not kcfg.stuck:
