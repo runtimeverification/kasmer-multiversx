@@ -198,6 +198,9 @@ module INT-INEQUALITIES-LEMMAS
   // rule A <Int B +Int C => A -Int C <Int B
   //     [simplification, concrete(A, C)]
 
+  rule A +Int B <=Int C +Int D => A +Int (B -Int D) <=Int C
+      [simplification, concrete(B, D)]
+
   // Moved to proven-mx-lemmas.md
   // rule A -Int B <=Int C => A <=Int C +Int B
   //     [simplification, concrete(B, C)]
@@ -215,6 +218,35 @@ module INT-INEQUALITIES-LEMMAS
   //     [simplification, concrete(A, B)]
   // rule A <Int B -Int C => C <Int B -Int A
   //     [simplification, concrete(A, B)]
+
+  rule A *Int B <=Int C => B <=Int C /Int A
+      requires 0 <Int A
+      [simplification, concrete(A, C)]
+  rule A *Int B <Int C => B <=Int (C -Int 1) /Int A
+      requires 0 <Int A
+      [simplification, concrete(A, C)]
+  rule A <=Int B *Int C => A /Int B <=Int C
+      requires 0 <Int B andBool A modInt B ==Int 0
+      [simplification, concrete(A, B)]
+  rule A <=Int B *Int C => A /Int B +Int 1 <=Int C
+      requires 0 <Int B andBool A modInt B =/=Int 0
+      [simplification, concrete(A, B)]
+  rule A <Int B *Int C => A /Int B <Int C
+      requires 0 <Int B
+      [simplification, concrete(A, B)]
+
+  rule A *Int B <=Int C => (0 -Int C) <=Int (0 -Int A) *Int B
+      requires A <Int 0
+      [simplification, concrete(A, C)]
+  rule A *Int B <Int C => (0 -Int C) <Int (0 -Int A) *Int B
+      requires A <Int 0
+      [simplification, concrete(A, C)]
+  rule A <=Int B *Int C => (0 -Int B) *Int C <=Int (0 -Int A)
+      requires B <Int 0
+      [simplification, concrete(A, B)]
+  rule A <Int B *Int C => (0 -Int B) *Int C <Int (0 -Int A)
+      requires B <Int 0
+      [simplification, concrete(A, B)]
 
   // if A %Int B == 0 then A /Int B == A / B
   // Has tests
@@ -431,5 +463,13 @@ module INT-INEQUALITIES-LEMMAS
   rule 0 ==Int A divIntTotal B => A <Int B
       requires 0 <=Int A andBool 0 <Int B
       [simplification]
+
+  rule A divIntTotal B =/=Int 0 => B <=Int A
+      requires 0 <=Int A andBool 0 <Int B
+      [simplification]
+  rule A divIntTotal B ==Int 0 => A <Int B
+    requires 0 <=Int A andBool 0 <Int B
+    [simplification]
+
 endmodule
 ```

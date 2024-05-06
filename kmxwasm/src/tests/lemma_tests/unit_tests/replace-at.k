@@ -1,5 +1,6 @@
 module REPLACE-AT
     imports MX-WASM-LEMMA-TESTS
+    imports REPLACE-AT-LEMMAS-BASIC
 
     claim
       <k>
@@ -480,5 +481,29 @@ module REPLACE-AT
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
+
+    claim
+      <k>
+        runSimplification(
+            ListItem(
+                updateSparseBytes
+                  ( replaceAt( Int2Bytes ( A , 1 , LE ) )
+                  , SBChunk ( #bytes ( Int2Bytes ( B , 1 , LE ) ) )
+                    SBChunk ( #empty ( C ) )
+                  , 0, A
+                  )
+            )
+        ) => doneSimplification(
+            ListItem(
+                ( SBChunk ( #bytes ( Int2Bytes ( A , 1 , LE ) ) )
+                  .SparseBytes
+                ):SparseBytes:KItem
+            )
+        )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+      requires A ==Int B +Int C
+          andBool 0 <Int B andBool 0 <Int C
 
 endmodule

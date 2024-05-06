@@ -68,7 +68,7 @@ class RunClaim(Action):
 
     def run(self) -> None:
         with self.make_tools() as tools:
-            t = Timer('Loading the claim')
+            t = Timer('Loading the claim:')
             if self.is_k:
                 claims = tools.kprove.get_claims(self.claim_path)
                 if len(claims) != 1:
@@ -84,7 +84,7 @@ class RunClaim(Action):
 
             kcfg: KCFG | None = None
             if self.restart:
-                t = Timer('Loading kcfg')
+                t = Timer('Loading the kcfg:')
                 kcfg = KCFG.read_cfg_data(self.kcfg_path)
                 to_remove = self.remove
                 while to_remove:
@@ -97,6 +97,7 @@ class RunClaim(Action):
                             to_remove.append(next_id)
                     kcfg.remove_node(current_id)
                 t.measure()
+            t = Timer('Running the claim')
             result = run_claim(
                 tools,
                 WasmKrunInitializer(tools),
@@ -107,7 +108,10 @@ class RunClaim(Action):
                 depth=self.depth,
                 iterations=self.iterations,
             )
+            t.measure()
+            t = Timer('Saving the kcfg')
             result.kcfg.write_cfg_data()
+            t.measure()
 
             if isinstance(result, Stuck):
                 stuck_node = result.kcfg.get_node(result.stuck_node_id)

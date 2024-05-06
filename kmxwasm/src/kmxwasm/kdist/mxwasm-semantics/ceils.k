@@ -8,7 +8,6 @@ module CEILS
 
     rule definedSubstrBytes(B:Bytes, StartIndex:Int, EndIndex:Int)
         => (0 <=Int StartIndex) andBool (0 <=Int EndIndex)
-            andBool (StartIndex <Int lengthBytes(B))
             andBool (EndIndex <=Int lengthBytes(B))
             andBool (StartIndex <=Int EndIndex)
 
@@ -19,6 +18,12 @@ module CEILS
 
 
     rule definedPadRightBytes(_B:Bytes, Length:Int, Value:Int)
+        =>  (0 <=Int Length)
+            andBool (0 <=Int Value)
+            andBool (Value <=Int 255)
+
+
+    rule definedPadLeftBytes(_B:Bytes, Length:Int, Value:Int)
         =>  (0 <=Int Length)
             andBool (0 <=Int Value)
             andBool (Value <=Int 255)
@@ -38,22 +43,22 @@ module CEILS
     rule substrBytesTotal(Arg0:Bytes, StartIndex:Int, EndIndex:Int)
         => substrBytes(Arg0, StartIndex, EndIndex)
         requires definedSubstrBytes(Arg0, StartIndex, EndIndex)
-        [concrete, simplification(10)]
+        [concrete, simplification(10), preserves-definedness]
 
     rule substrBytes(Arg0:Bytes, StartIndex:Int, EndIndex:Int)
         => substrBytesTotal(Arg0, StartIndex, EndIndex)
         requires definedSubstrBytes(Arg0, StartIndex, EndIndex)
-        [symbolic(Arg0), simplification]
+        [symbolic(Arg0), simplification, preserves-definedness]
 
     rule substrBytes(Arg0:Bytes, StartIndex:Int, EndIndex:Int)
         => substrBytesTotal(Arg0, StartIndex, EndIndex)
         requires definedSubstrBytes(Arg0, StartIndex, EndIndex)
-        [symbolic(StartIndex), simplification]
+        [symbolic(StartIndex), simplification, preserves-definedness]
 
     rule substrBytes(Arg0:Bytes, StartIndex:Int, EndIndex:Int)
         => substrBytesTotal(Arg0, StartIndex, EndIndex)
         requires definedSubstrBytes(Arg0, StartIndex, EndIndex)
-        [symbolic(EndIndex), simplification]
+        [symbolic(EndIndex), simplification, preserves-definedness]
 
 
 
@@ -67,22 +72,22 @@ module CEILS
     rule replaceAtBytesTotal(Dest:Bytes, Index:Int, Src:Bytes)
         => replaceAtBytes(Dest, Index, Src)
         requires definedReplaceAtBytes(Dest, Index, Src)
-        [concrete, simplification(10)]
+        [concrete, simplification(10), preserves-definedness]
 
     rule replaceAtBytes(Dest:Bytes, Index:Int, Src:Bytes)
         => replaceAtBytesTotal(Dest, Index, Src)
         requires definedReplaceAtBytes(Dest, Index, Src)
-        [symbolic(Dest), simplification]
+        [symbolic(Dest), simplification, preserves-definedness]
 
     rule replaceAtBytes(Dest:Bytes, Index:Int, Src:Bytes)
         => replaceAtBytesTotal(Dest, Index, Src)
         requires definedReplaceAtBytes(Dest, Index, Src)
-        [symbolic(Index), simplification]
+        [symbolic(Index), simplification, preserves-definedness]
 
     rule replaceAtBytes(Dest:Bytes, Index:Int, Src:Bytes)
         => replaceAtBytesTotal(Dest, Index, Src)
         requires definedReplaceAtBytes(Dest, Index, Src)
-        [symbolic(Src), simplification]
+        [symbolic(Src), simplification, preserves-definedness]
 
 
     rule #Ceil(padRightBytes(@Arg0:Bytes, @Length:Int, @Value:Int))
@@ -95,22 +100,50 @@ module CEILS
     rule padRightBytesTotal(Arg0:Bytes, Length:Int, Value:Int)
         => padRightBytes(Arg0, Length, Value)
         requires definedPadRightBytes(Arg0, Length, Value)
-        [concrete, simplification(10)]
+        [concrete, simplification(10), preserves-definedness]
 
     rule padRightBytes(Arg0:Bytes, Length:Int, Value:Int)
         => padRightBytesTotal(Arg0, Length, Value)
         requires definedPadRightBytes(Arg0, Length, Value)
-        [symbolic(Arg0), simplification]
+        [symbolic(Arg0), simplification, preserves-definedness]
 
     rule padRightBytes(Arg0:Bytes, Length:Int, Value:Int)
         => padRightBytesTotal(Arg0, Length, Value)
         requires definedPadRightBytes(Arg0, Length, Value)
-        [symbolic(Length), simplification]
+        [symbolic(Length), simplification, preserves-definedness]
 
     rule padRightBytes(Arg0:Bytes, Length:Int, Value:Int)
         => padRightBytesTotal(Arg0, Length, Value)
         requires definedPadRightBytes(Arg0, Length, Value)
-        [symbolic(Value), simplification]
+        [symbolic(Value), simplification, preserves-definedness]
+
+
+    rule #Ceil(padLeftBytes(@Arg0:Bytes, @Length:Int, @Value:Int))
+        =>  ((({ definedPadLeftBytes(@Arg0, @Length, @Value)  #Equals true }
+          #And #Ceil(@Arg0))
+          #And #Ceil(@Length))
+          #And #Ceil(@Value))
+        [simplification]
+
+    rule padLeftBytesTotal(Arg0:Bytes, Length:Int, Value:Int)
+        => padLeftBytes(Arg0, Length, Value)
+        requires definedPadLeftBytes(Arg0, Length, Value)
+        [concrete, simplification(10), preserves-definedness]
+
+    rule padLeftBytes(Arg0:Bytes, Length:Int, Value:Int)
+        => padLeftBytesTotal(Arg0, Length, Value)
+        requires definedPadLeftBytes(Arg0, Length, Value)
+        [symbolic(Arg0), simplification, preserves-definedness]
+
+    rule padLeftBytes(Arg0:Bytes, Length:Int, Value:Int)
+        => padLeftBytesTotal(Arg0, Length, Value)
+        requires definedPadLeftBytes(Arg0, Length, Value)
+        [symbolic(Length), simplification, preserves-definedness]
+
+    rule padLeftBytes(Arg0:Bytes, Length:Int, Value:Int)
+        => padLeftBytesTotal(Arg0, Length, Value)
+        requires definedPadLeftBytes(Arg0, Length, Value)
+        [symbolic(Value), simplification, preserves-definedness]
 
 
     //----------------------------------
@@ -129,17 +162,17 @@ module CEILS
     rule Arg0:Int modIntTotal Arg1:Int
         => Arg0 modInt Arg1
         requires definedModInt(Arg0, Arg1)
-        [concrete, simplification(10)]
+        [concrete, simplification(10), preserves-definedness]
 
     rule Arg0:Int modInt Arg1:Int
         => Arg0 modIntTotal Arg1 // Arg0 modIntTotal Arg1
         requires definedModInt(Arg0, Arg1)
-        [symbolic(Arg0), simplification]
+        [symbolic(Arg0), simplification, preserves-definedness]
 
     rule Arg0:Int modInt Arg1:Int
         => Arg0 modIntTotal Arg1 // Arg0 modIntTotal Arg1
         requires definedModInt(Arg0, Arg1)
-        [symbolic(Arg1), simplification]
+        [symbolic(Arg1), simplification, preserves-definedness]
 
     //----------------------------------
 
@@ -150,24 +183,24 @@ module CEILS
         =>  (({ definedDivInt(@Arg0, @Arg1)  #Equals true }
           #And #Ceil(@Arg0))
           #And #Ceil(@Arg1))
-        [simplification]
+        [simplification, preserves-definedness]
 
     rule _ divIntTotal 0 => 0
 
     rule Arg0:Int divIntTotal Arg1:Int
         => Arg0 divInt Arg1
         requires definedDivInt(Arg0, Arg1)
-        [concrete, simplification(10)]
+        [concrete, simplification(10), preserves-definedness]
 
     rule Arg0:Int divInt Arg1:Int
         => Arg0 divIntTotal Arg1
         requires definedDivInt(Arg0, Arg1)
-        [symbolic(Arg0), simplification]
+        [symbolic(Arg0), simplification, preserves-definedness]
 
     rule Arg0:Int divInt Arg1:Int
         => Arg0 divIntTotal Arg1
         requires definedDivInt(Arg0, Arg1)
-        [symbolic(Arg1), simplification]
+        [symbolic(Arg1), simplification, preserves-definedness]
 
     //----------------------------------
 
@@ -176,17 +209,17 @@ module CEILS
     rule Arg0:Int <<IntTotal Arg1:Int
         => Arg0 <<Int Arg1
         requires definedShlInt(Arg0, Arg1)
-        [concrete, simplification(10)]
+        [concrete, simplification(10), preserves-definedness]
 
     rule Arg0:Int <<Int Arg1:Int
         => Arg0 <<IntTotal Arg1
         requires definedShlInt(Arg0, Arg1)
-        [symbolic(Arg0), simplification]
+        [symbolic(Arg0), simplification, preserves-definedness]
 
     rule Arg0:Int <<Int Arg1:Int
         => Arg0 <<IntTotal Arg1
         requires definedShlInt(Arg0, Arg1)
-        [symbolic(Arg1), simplification]
+        [symbolic(Arg1), simplification, preserves-definedness]
 
 
     //-------------------------------------
@@ -197,17 +230,17 @@ module CEILS
     rule Arg0:Int >>IntTotal Arg1:Int
         => Arg0 >>Int Arg1
         requires definedShrInt(Arg0, Arg1)
-        [concrete, simplification(10)]
+        [concrete, simplification(10), preserves-definedness]
 
     rule Arg0:Int >>Int Arg1:Int
         => Arg0 >>IntTotal Arg1
         requires definedShrInt(Arg0, Arg1)
-        [symbolic(Arg0), simplification]
+        [symbolic(Arg0), simplification, preserves-definedness]
 
     rule Arg0:Int >>Int Arg1:Int
         => Arg0 >>IntTotal Arg1
         requires definedShrInt(Arg0, Arg1)
-        [symbolic(Arg1), simplification]
+        [symbolic(Arg1), simplification, preserves-definedness]
 
 
     //-------------------------------------
@@ -222,17 +255,17 @@ module CEILS
     rule Arg0:Int ^IntTotal Arg1:Int
         => Arg0 ^Int Arg1
         requires definedPowInt(Arg0, Arg1)
-        [concrete, simplification(10)]
+        [concrete, simplification(10), preserves-definedness]
 
     rule Arg0:Int ^Int Arg1:Int
         => Arg0 ^IntTotal Arg1
         requires definedPowInt(Arg0, Arg1)
-        [symbolic(Arg0), simplification]
+        [symbolic(Arg0), simplification, preserves-definedness]
 
     rule Arg0:Int ^Int Arg1:Int
         => Arg0 ^IntTotal Arg1
         requires definedPowInt(Arg0, Arg1)
-        [symbolic(Arg1), simplification]
+        [symbolic(Arg1), simplification, preserves-definedness]
 
 
     //-------------------------------------
@@ -249,17 +282,17 @@ module CEILS
     rule Arg0:Int %IntTotal Arg1:Int
         => Arg0 %Int Arg1
         requires definedTModInt(Arg0, Arg1)
-        [concrete, simplification(10)]
+        [concrete, simplification(10), preserves-definedness]
 
     rule Arg0:Int %Int Arg1:Int
         => Arg0 %IntTotal Arg1
         requires definedTModInt(Arg0, Arg1)
-        [symbolic(Arg0), simplification]
+        [symbolic(Arg0), simplification, preserves-definedness]
 
     rule Arg0:Int %Int Arg1:Int
         => Arg0 %IntTotal Arg1
         requires definedTModInt(Arg0, Arg1)
-        [symbolic(Arg1), simplification]
+        [symbolic(Arg1), simplification, preserves-definedness]
 
 
     //-------------------------------------
@@ -276,17 +309,17 @@ module CEILS
     rule Arg0:Int /IntTotal Arg1:Int
         => Arg0 /Int Arg1
         requires definedTDivInt(Arg0, Arg1)
-        [concrete, simplification(10)]
+        [concrete, simplification(10), preserves-definedness]
 
     rule Arg0:Int /Int Arg1:Int
         => Arg0 /IntTotal Arg1
         requires definedTDivInt(Arg0, Arg1)
-        [symbolic(Arg0), simplification]
+        [symbolic(Arg0), simplification, preserves-definedness]
 
     rule Arg0:Int /Int Arg1:Int
         => Arg0 /IntTotal Arg1
         requires definedTDivInt(Arg0, Arg1)
-        [symbolic(Arg1), simplification]
+        [symbolic(Arg1), simplification, preserves-definedness]
 
 
     //-------------------------------------
@@ -301,12 +334,12 @@ module CEILS
     rule log2IntTotal(Arg0:Int)
         => log2Int(Arg0)
         requires definedLog2Int(Arg0)
-        [concrete, simplification(10)]
+        [concrete, simplification(10), preserves-definedness]
 
     rule log2Int(Arg0:Int)
         => log2IntTotal(Arg0)
         requires definedLog2Int(Arg0)
-        [symbolic(Arg0), simplification]
+        [symbolic(Arg0), simplification, preserves-definedness]
 
 
     //-------------------------------------
@@ -323,17 +356,47 @@ module CEILS
     rule #getElemSegmentTotal(Arg0:ElemSegment, Arg1:Int)
         => #getElemSegment(Arg0, Arg1)
         requires definedGetElemSegment(Arg0, Arg1)
-        [concrete, simplification(10)]
+        [concrete, simplification(10), preserves-definedness]
 
     rule #getElemSegment(Arg0:ElemSegment, Arg1:Int)
         => #getElemSegmentTotal(Arg0, Arg1)
         requires definedGetElemSegment(Arg0, Arg1)
-        [symbolic(Arg0), simplification]
+        [symbolic(Arg0), simplification, preserves-definedness]
 
     rule #getElemSegment(Arg0:ElemSegment, Arg1:Int)
         => #getElemSegmentTotal(Arg0, Arg1)
         requires definedGetElemSegment(Arg0, Arg1)
-        [symbolic(Arg1), simplification]
+        [symbolic(Arg1), simplification, preserves-definedness]
+
+
+    //-------------------------------------
+
+    rule definedSignedWidth(W:Int, I:Int)
+        => 0 <=Int I
+          andBool
+            ( ( W ==Int 1 andBool I <Int 256 )
+            orBool (W ==Int 2 andBool I <Int 65536)
+            orBool (W ==Int 4 andBool I <Int 4294967296)
+            )
+
+    rule #Ceil(#signedWidth(Arg0:Int, Arg1:Int))
+        =>  { definedSignedWidth(Arg0, Arg1) #Equals true }
+        [simplification]
+
+    rule #signedWidthTotal(Arg0:Int, Arg1:Int)
+        => #signedWidth(Arg0, Arg1)
+        requires definedSignedWidth(Arg0, Arg1)
+        [concrete, simplification(10), preserves-definedness]
+
+    rule #signedWidth(Arg0:Int, Arg1:Int)
+        => #signedWidthTotal(Arg0, Arg1)
+        requires definedSignedWidth(Arg0, Arg1)
+        [symbolic(Arg0), simplification, preserves-definedness]
+
+    rule #signedWidth(Arg0:Int, Arg1:Int)
+        => #signedWidthTotal(Arg0, Arg1)
+        requires definedSignedWidth(Arg0, Arg1)
+        [symbolic(Arg1), simplification, preserves-definedness]
 
 
     //-------------------------------------
@@ -350,17 +413,17 @@ module CEILS
     rule #getIntsTotal(Arg0:Ints, Arg1:Int)
         => #getInts(Arg0, Arg1)
         requires definedGetInts(Arg0, Arg1)
-        [concrete, simplification(10)]
+        [concrete, simplification(10), preserves-definedness]
 
     rule #getInts(Arg0:Ints, Arg1:Int)
         => #getIntsTotal(Arg0, Arg1)
         requires definedGetInts(Arg0, Arg1)
-        [symbolic(Arg0), simplification]
+        [symbolic(Arg0), simplification, preserves-definedness]
 
     rule #getInts(Arg0:Ints, Arg1:Int)
         => #getIntsTotal(Arg0, Arg1)
         requires definedGetInts(Arg0, Arg1)
-        [symbolic(Arg1), simplification]
+        [symbolic(Arg1), simplification, preserves-definedness]
 
 
     // ------------------------------------
@@ -376,12 +439,12 @@ module CEILS
     rule projectBytesTotal(Arg0:KItem)
         => {Arg0}:>Bytes
         requires definedProjectBytes(Arg0)
-        [concrete, simplification(10)]
+        [concrete, simplification(10), preserves-definedness]
 
     rule {Arg0:KItem}:>Bytes
         => projectBytesTotal(Arg0)
         requires definedProjectBytes(Arg0)
-        [symbolic(Arg0), simplification]
+        [symbolic(Arg0), simplification, preserves-definedness]
 
     rule projectBytesTotal(Arg0:Bytes)
         => Arg0
@@ -400,12 +463,12 @@ module CEILS
     rule projectIntTotal(Arg0:KItem)
         => {Arg0}:>Int
         requires definedProjectInt(Arg0)
-        [concrete, simplification(10)]
+        [concrete, simplification(10), preserves-definedness]
 
     rule {Arg0:KItem}:>Int
         => projectIntTotal(Arg0)
         requires definedProjectInt(Arg0)
-        [symbolic(Arg0), simplification]
+        [symbolic(Arg0), simplification, preserves-definedness]
 
 
     // -----------------------------------
@@ -415,15 +478,15 @@ module CEILS
     rule M:Map[Key:KItem] orDefault _:KItem
         => M[Key]
         requires definedMapLookup(M, Key)
-        [concrete, simplification(10)]
+        [concrete, simplification(10), preserves-definedness]
     rule M:Map[Key:KItem]
         => M[Key] orDefault 0
         requires definedMapLookup(M, Key)
-        [symbolic(M), simplification]
+        [symbolic(M), simplification, preserves-definedness]
     rule M:Map[Key:KItem]
         => M[Key] orDefault 0
         requires definedMapLookup(M, Key)
-        [symbolic(Key), simplification]
+        [symbolic(Key), simplification, preserves-definedness]
 
 
     // -----------------------------------
