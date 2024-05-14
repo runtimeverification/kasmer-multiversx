@@ -545,7 +545,7 @@ colors = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "kmultiversx"
-version = "0.1.56"
+version = "0.1.57"
 description = "Python tools for Elrond semantics"
 optional = false
 python-versions = "^3.10"
@@ -560,8 +560,8 @@ pykwasm = {git = "https://github.com/runtimeverification/wasm-semantics.git", ta
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/mx-semantics.git"
-reference = "v0.1.56"
-resolved_reference = "33ba335ccd817864bc87dcd2f49e80edde846491"
+reference = "v0.1.57"
+resolved_reference = "3a44a2e1f2fa3d69a449735baf0ddcd4b4c2496e"
 subdirectory = "kmultiversx"
 
 [[package]]
@@ -863,7 +863,7 @@ numpy = ">=1.16.0,<2"
 toolz = {version = ">0.9.0,<1", markers = "implementation_name == \"pypy\""}
 
 [package.extras]
-dev = ["Sphinx (>=1.6.5,<2)", "bumpversion (>=0.5.3,<1)", "flake8 (==3.6.0)", "hypothesis (>=6.88.1,<7)", "ipython", "isort (>=4.3.9,<5)", "mypy (==1.6.1)", "pytest (>=7.4.3,<8)", "pytest-watch (>=4.1.0,<5)", "pytest-watch (>=4.2.0,<5)", "pytest-xdist (>=3.2.0,<4)", "sphinx_rtd_theme (>=0.1.9)", "tox (>=4.11.3,<5)", "twine", "wheel"]
+dev = ["bumpversion (>=0.5.3,<1)", "ipython", "pytest-watch (>=4.1.0,<5)", "twine", "wheel"]
 doc = ["Sphinx (>=1.6.5,<2)", "sphinx_rtd_theme (>=0.1.9)"]
 lint = ["flake8 (==3.6.0)", "isort (>=4.3.9,<5)", "mypy (==1.6.1)"]
 test = ["hypothesis (>=6.88.1,<7)", "pytest (>=7.4.3,<8)", "pytest-watch (>=4.2.0,<5)", "pytest-xdist (>=3.2.0,<4)", "tox (>=4.11.3,<5)"]
@@ -1264,4 +1264,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "f0a41032f9170db63ccba0a028cfaab6ac3931015431aed48c53081ec755bf50"
+content-hash = "dbea33698fd43f29d527fb209e697a1929d62ae99c088b9591de040a59b90a99"
