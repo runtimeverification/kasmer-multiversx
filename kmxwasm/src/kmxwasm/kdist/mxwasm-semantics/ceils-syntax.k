@@ -22,7 +22,6 @@ module CEILS-SYNTAX
 
     syntax Bool ::= definedGetInts(Ints, Int)  [function, total]
     syntax Bool ::= definedGetElemSegment(ElemSegment, Int)  [function, total]
-    syntax Bool ::= definedSignedWidth(Int, Int)  [function, total]
 
     // ---------------------------------------
 
@@ -62,7 +61,5 @@ module CEILS-SYNTAX
         [function, total, symbol(#getIntsTotal), no-evaluators/*, smtlib(poundGetInts)*/]
     syntax Index ::= #getElemSegmentTotal(ElemSegment, Int)
         [function, total, symbol(#getElemSegmentTotal), no-evaluators]
-    syntax Int ::= #signedWidthTotal(Int, Int)
-        [ function, total, symbol(#signedWidthTotal), no-evaluators ]
 
 endmodule

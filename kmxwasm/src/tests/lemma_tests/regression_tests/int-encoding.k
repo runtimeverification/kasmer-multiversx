@@ -374,36 +374,6 @@ module INT-ENCODING
     claim
       <k>
         runSimplification(
-          ( #signedWidth
-            ( 1
-            , Bytes2Int
-              ( Int2Bytes
-                ( 1
-                , int64encoding ( A, 0, 1, 2, 3, 4, 5, 6, 7 )
-                  >>Int countConsecutiveZeroBits ( A, 6 )
-                , LE
-                )
-              , LE
-              , Unsigned
-              )
-            )
-          )
-        ) => doneSimplification (
-          ( #signedWidthTotal
-            ( 1
-            , optimizedInt64Encoding(A, true, true, true, true, true, true, true, true)
-              modIntTotal 256
-            )
-          )
-        )
-      </k>
-      <commands> .K </commands>
-      <instrs> .K </instrs>
-      requires 0 <=Int A andBool A <Int 2 ^Int 64
-
-    claim
-      <k>
-        runSimplification(
           Bytes2Int
             ( Int2Bytes
               ( ((-1) *Int (countConsecutiveZeroBytes ( A, 6 ))) +Int (8)
