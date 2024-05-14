@@ -7,7 +7,7 @@ module WASM-OPCODES
         <instrs> 
             load
               { i32
-                1
+                i8
                 131980
                 Unsigned
                 merge
