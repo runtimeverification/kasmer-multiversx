@@ -468,13 +468,13 @@ pyreadline3 = {version = "*", markers = "sys_platform == \"win32\" and python_ve
 
 [[package]]
 name = "hypothesis"
-version = "6.101.0"
+version = "6.102.1"
 description = "A library for property-based testing"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "hypothesis-6.101.0-py3-none-any.whl", hash = "sha256:3aeeda59bc7878aa2ad066f71925ab9296a148f7fb7d5395a47795035283dec2"},
-    {file = "hypothesis-6.101.0.tar.gz", hash = "sha256:b43242fc2b672b26c81688876976c1c2cc44116050ca12f60eb2671b75eacd45"},
+    {file = "hypothesis-6.102.1-py3-none-any.whl", hash = "sha256:90bbdc3aa6d90ca349a9a257793e66cafdea03a44bbb8dad940d2618b92acc5b"},
+    {file = "hypothesis-6.102.1.tar.gz", hash = "sha256:ba1d6fd8369faa9adf19b1bfee60bceaa9eba165d7b3815df6a271cb75d41797"},
 ]
 
 [package.dependencies]
@@ -545,7 +545,7 @@ colors = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "kmultiversx"
-version = "0.1.55"
+version = "0.1.56"
 description = "Python tools for Elrond semantics"
 optional = false
 python-versions = "^3.10"
@@ -555,13 +555,13 @@ develop = false
 [package.dependencies]
 hypothesis = "^6.82.6"
 pycryptodomex = "^3.18.0"
-pykwasm = {git = "https://github.com/runtimeverification/wasm-semantics.git", tag = "v0.1.48", subdirectory = "pykwasm"}
+pykwasm = {git = "https://github.com/runtimeverification/wasm-semantics.git", tag = "v0.1.50", subdirectory = "pykwasm"}
 
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/mx-semantics.git"
-reference = "v0.1.55"
-resolved_reference = "00c95fce1756cbee53094f9b5bbae6e77446e247"
+reference = "v0.1.56"
+resolved_reference = "33ba335ccd817864bc87dcd2f49e80edde846491"
 subdirectory = "kmultiversx"
 
 [[package]]
@@ -863,7 +863,7 @@ numpy = ">=1.16.0,<2"
 toolz = {version = ">0.9.0,<1", markers = "implementation_name == \"pypy\""}
 
 [package.extras]
-dev = ["Sphinx (>=1.6.5,<2)", "bumpversion (>=0.5.3,<1)", "flake8 (==3.6.0)", "hypothesis (>=6.88.1,<7)", "ipython", "isort (>=4.3.9,<5)", "mypy (==1.6.1)", "pytest (>=7.4.3,<8)", "pytest-watch (>=4.1.0,<5)", "pytest-watch (>=4.2.0,<5)", "pytest-xdist (>=3.2.0,<4)", "sphinx_rtd_theme (>=0.1.9)", "tox (>=4.11.3,<5)", "twine", "wheel"]
+dev = ["bumpversion (>=0.5.3,<1)", "ipython", "pytest-watch (>=4.1.0,<5)", "twine", "wheel"]
 doc = ["Sphinx (>=1.6.5,<2)", "sphinx_rtd_theme (>=0.1.9)"]
 lint = ["flake8 (==3.6.0)", "isort (>=4.3.9,<5)", "mypy (==1.6.1)"]
 test = ["hypothesis (>=6.88.1,<7)", "pytest (>=7.4.3,<8)", "pytest-watch (>=4.2.0,<5)", "pytest-xdist (>=3.2.0,<4)", "tox (>=4.11.3,<5)"]
@@ -967,7 +967,7 @@ windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "pyk"
-version = "7.0.52"
+version = "7.0.56"
 description = ""
 optional = false
 python-versions = "^3.10"
@@ -988,13 +988,13 @@ xdg-base-dirs = "^6.0.1"
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/k.git"
-reference = "v7.0.52"
-resolved_reference = "0c8355930f56b2a6dff68756b1cedc0a9c333103"
+reference = "v7.0.56"
+resolved_reference = "5e0c6e00d4925d0c0eab3b579fe378dc14ef2878"
 subdirectory = "pyk"
 
 [[package]]
 name = "pykwasm"
-version = "0.1.48"
+version = "0.1.50"
 description = ""
 optional = false
 python-versions = "^3.10"
@@ -1005,13 +1005,13 @@ develop = false
 cytoolz = "^0.12.1"
 numpy = "^1.24.2"
 py-wasm = {git = "https://github.com/runtimeverification/py-wasm.git", tag = "0.2.1"}
-pyk = {git = "https://github.com/runtimeverification/k.git", tag = "v7.0.52", subdirectory = "pyk"}
+pyk = {git = "https://github.com/runtimeverification/k.git", tag = "v7.0.56", subdirectory = "pyk"}
 
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/wasm-semantics.git"
-reference = "v0.1.48"
-resolved_reference = "6c46531268f254695b92fd8c19e8b48aba717777"
+reference = "v0.1.50"
+resolved_reference = "d52eabe8190a244fd799751f3c54d66f4c80ba14"
 subdirectory = "pykwasm"
 
 [[package]]
@@ -1264,4 +1264,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "52cf062994753c9f07c154174efba03034abf3b390cf298307d5aeb9e8e1ec3a"
+content-hash = "f0a41032f9170db63ccba0a028cfaab6ac3931015431aed48c53081ec755bf50"
