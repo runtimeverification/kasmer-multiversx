@@ -6,6 +6,29 @@ module SUBSTR-SPARSE-BYTES
       <k>
         runSimplification(
             substrSparseBytes
+              ( updateSparseBytes
+                ( setRange
+                  ( ... value: (((log2IntTotal ( ARG_0:Int )) +Int (8)) divIntTotal (8)) +Int (114) )
+                , SBChunk ( #bytes ( Int2Bytes ( 8 , (ARG_1:Int) +Int (ARG_2:Int) , LE ) ) )
+                  .SparseBytes
+                , 4 , 4
+                )
+              , 4 , 8
+              )
+        ) => doneSimplification(
+            ( SBChunk ( #bytes ( Int2Bytes ( 4 , ( ( log2IntTotal ( ARG_0 ) +Int 8 ) divIntTotal 8 ) +Int 114 , LE ) ) )
+              .SparseBytes
+            )::SparseBytes:KItem
+        )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+      requires 0 <Int ARG_0 andBool 0 <Int ARG_1 andBool 0 <Int ARG_2
+
+    claim
+      <k>
+        runSimplification(
+            substrSparseBytes
               ( merge
                 ( SBChunk ( #empty ( 584 ) )
                 , merge
