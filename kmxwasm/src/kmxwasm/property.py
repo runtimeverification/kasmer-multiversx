@@ -661,10 +661,10 @@ def read_flags() -> Action:
     )
 
 
-def main(args: list[str]) -> None:
+def main() -> None:
     action = read_flags()
     action.run()
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()
