@@ -30,6 +30,9 @@ module BYTES-NORMALIZATION-LEMMAS  [symbolic]
         => Value
         requires 0 <=Int Value
         [simplification]
+    rule Bytes2Int(A +Bytes B, LE, Unsigned)
+        => Bytes2Int(A, LE, Unsigned) +Int Bytes2Int(B, LE, Unsigned) <<Int (8 *Int lengthBytes(A))
+        [simplification, concrete(A)]
 
     rule substrBytesTotal(A:Bytes +Bytes _B:Bytes, Start:Int, End:Int)
         => substrBytesTotal(A, Start, End)

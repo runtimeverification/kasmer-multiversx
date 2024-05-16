@@ -38,6 +38,8 @@ of the bytes corresponding to `B<N>` values that are `>= 0`, placed on the
       requires 0 <=Int A andBool A <Int (1 <<Int 64)
   rule int64encoding(A, -1, -1, -1, -1, 3, 2, 1, 0) => A
       requires 0 <=Int A andBool A <Int (1 <<Int 32)
+  rule int64encoding(A, -1, -1, -1, -1, -1, -1, -1, 0) => A
+      requires 0 <=Int A andBool A <Int (1 <<Int 8)
 
   rule int64encoding(A, B8, B7, B6, B5, B4, B3, B2, B1)
       => (((A &Int (255 <<Int 56)) >>Int 56) <<Int (B8 *Int 8)) |Int int64encoding(A, -1, B7, B6, B5, B4, B3, B2, B1)
@@ -357,6 +359,11 @@ module INT-ENCODING-LEMMAS  [symbolic]
 
   rule int64encoding(A >>IntTotal B, -1, A7, A6, A5, A4, A3, A2, A1)
         => int64encoding(A >>IntTotal (B -Int 8), A7, A6, A5, A4, A3, A2, A1, -1)
+        requires 8 <=Int B
+        [simplification]
+
+  rule int64encoding(A <<IntTotal B, A8, A7, A6, A5, A4, A3, A2, _A1)
+        => int64encoding(A <<Int (B -Int 8), -1, A8, A7, A6, A5, A4, A3, A2)
         requires 8 <=Int B
         [simplification]
 
