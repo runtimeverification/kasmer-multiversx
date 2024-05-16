@@ -20,7 +20,7 @@ poetry install
 
 K_OPTS=-Xmx12288m time poetry run kdist build mxwasm-semantics.{llvm,llvm-library,haskell} -j3
 
-time poetry run python3 -m src.kmxwasm.property \
+time poetry run kmxwasm-property \
     --claim "$CLAIM" --kcfg "$SAVE_DIR" \
     --booster \
     --bug-report "$1.report" \
