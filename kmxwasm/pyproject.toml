@@ -4,11 +4,14 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "kmxwasm"
-version = "0.1.29"
+version = "0.1.30"
 description = "Symbolic execution for the MultiversX blockchain with the Wasm semantics, using pyk."
 authors = [
     "Runtime Verification, Inc. <contact@runtimeverification.com>",
 ]
+
+[tool.poetry.scripts]
+kmxwasm-property = "kmxwasm.property:main"
 
 [tool.poetry.plugins.kdist]
 mxwasm-semantics = "kmxwasm.kdist.plugin"

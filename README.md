@@ -7,7 +7,7 @@ Example:
 
 ```
 cd kmxwasm
-time poetry run python3 -m src.kmxwasm.property \
+time poetry run kmxwasm-property \
     --claim tmp2/test_change_quorum-spec-1k.json \
     --kcfg=../.property/kcfg.json
 ```
@@ -19,7 +19,7 @@ Example:
 * Run a contract normally:
 ```
 cd kmxwasm
-time poetry run python3 -m src.kmxwasm.property \
+time poetry run kmxwasm-property \
     --claim tmp2/test_change_quorum-spec-1k.json \
     --kcfg=../.property/kcfg.json
 ```
@@ -27,7 +27,7 @@ time poetry run python3 -m src.kmxwasm.property \
 * List all configurations:
 ```
 cd kmxwasm
-time poetry run python3 -m src.kmxwasm.property \
+time poetry run kmxwasm-property \
     --claim tmp2/test_change_quorum-spec-1k.json \
     --kcfg=../.property/kcfg.json \
     --tree
@@ -36,7 +36,7 @@ time poetry run python3 -m src.kmxwasm.property \
 * Look at configurations and pick one (example for configuration 48):
 ```
 cd kmxwasm
-time poetry run python3 -m src.kmxwasm.property \
+time poetry run kmxwasm-property \
     --claim tmp2/test_change_quorum-spec-1k.json \
     --kcfg=../.property/kcfg.json \
     --show-node 48
@@ -46,7 +46,7 @@ time poetry run python3 -m src.kmxwasm.property \
 * Run profiling using that configuration as a base; also, pick an instruction from PROFILE_INSTRUCTIONS:
 ```
 cd kmxwasm
-time poetry run python3 -m src.kmxwasm.property \
+time poetry run kmxwasm-property \
     --claim tmp2/test_change_quorum-spec-1k.json \
     --kcfg=../.property/kcfg.json \
     --profile 48
