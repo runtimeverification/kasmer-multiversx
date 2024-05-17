@@ -545,7 +545,7 @@ colors = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "kmultiversx"
-version = "0.1.58"
+version = "0.1.59"
 description = "Python tools for Elrond semantics"
 optional = false
 python-versions = "^3.10"
@@ -555,13 +555,13 @@ develop = false
 [package.dependencies]
 hypothesis = "^6.82.6"
 pycryptodomex = "^3.18.0"
-pykwasm = {git = "https://github.com/runtimeverification/wasm-semantics.git", tag = "v0.1.50", subdirectory = "pykwasm"}
+pykwasm = {git = "https://github.com/runtimeverification/wasm-semantics.git", tag = "v0.1.53", subdirectory = "pykwasm"}
 
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/mx-semantics.git"
-reference = "v0.1.58"
-resolved_reference = "4836f817df1e259e82c4beb80d72f25c98935029"
+reference = "v0.1.59"
+resolved_reference = "f18262e1a50ef7c580b93ce37289a79dbd542f56"
 subdirectory = "kmultiversx"
 
 [[package]]
@@ -778,13 +778,13 @@ files = [
 
 [[package]]
 name = "pep8-naming"
-version = "0.13.3"
+version = "0.14.1"
 description = "Check PEP-8 naming conventions, plugin for flake8"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "pep8-naming-0.13.3.tar.gz", hash = "sha256:1705f046dfcd851378aac3be1cd1551c7c1e5ff363bacad707d43007877fa971"},
-    {file = "pep8_naming-0.13.3-py3-none-any.whl", hash = "sha256:1a86b8c71a03337c97181917e2b472f0f5e4ccb06844a0d6f0a33522549e7a80"},
+    {file = "pep8-naming-0.14.1.tar.gz", hash = "sha256:1ef228ae80875557eb6c1549deafed4dabbf3261cfcafa12f773fe0db9be8a36"},
+    {file = "pep8_naming-0.14.1-py3-none-any.whl", hash = "sha256:63f514fc777d715f935faf185dedd679ab99526a7f2f503abb61587877f7b1c5"},
 ]
 
 [package.dependencies]
@@ -863,7 +863,7 @@ numpy = ">=1.16.0,<2"
 toolz = {version = ">0.9.0,<1", markers = "implementation_name == \"pypy\""}
 
 [package.extras]
-dev = ["Sphinx (>=1.6.5,<2)", "bumpversion (>=0.5.3,<1)", "flake8 (==3.6.0)", "hypothesis (>=6.88.1,<7)", "ipython", "isort (>=4.3.9,<5)", "mypy (==1.6.1)", "pytest (>=7.4.3,<8)", "pytest-watch (>=4.1.0,<5)", "pytest-watch (>=4.2.0,<5)", "pytest-xdist (>=3.2.0,<4)", "sphinx_rtd_theme (>=0.1.9)", "tox (>=4.11.3,<5)", "twine", "wheel"]
+dev = ["bumpversion (>=0.5.3,<1)", "ipython", "pytest-watch (>=4.1.0,<5)", "twine", "wheel"]
 doc = ["Sphinx (>=1.6.5,<2)", "sphinx_rtd_theme (>=0.1.9)"]
 lint = ["flake8 (==3.6.0)", "isort (>=4.3.9,<5)", "mypy (==1.6.1)"]
 test = ["hypothesis (>=6.88.1,<7)", "pytest (>=7.4.3,<8)", "pytest-watch (>=4.2.0,<5)", "pytest-xdist (>=3.2.0,<4)", "tox (>=4.11.3,<5)"]
@@ -967,7 +967,7 @@ windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "pyk"
-version = "7.0.56"
+version = "7.0.70"
 description = ""
 optional = false
 python-versions = "^3.10"
@@ -988,13 +988,13 @@ xdg-base-dirs = "^6.0.1"
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/k.git"
-reference = "v7.0.56"
-resolved_reference = "5e0c6e00d4925d0c0eab3b579fe378dc14ef2878"
+reference = "v7.0.70"
+resolved_reference = "b8ec37891c2e3e68afe5c5a0c14e2d2d17ef2daf"
 subdirectory = "pyk"
 
 [[package]]
 name = "pykwasm"
-version = "0.1.50"
+version = "0.1.53"
 description = ""
 optional = false
 python-versions = "^3.10"
@@ -1005,13 +1005,13 @@ develop = false
 cytoolz = "^0.12.1"
 numpy = "^1.24.2"
 py-wasm = {git = "https://github.com/runtimeverification/py-wasm.git", tag = "0.2.1"}
-pyk = {git = "https://github.com/runtimeverification/k.git", tag = "v7.0.56", subdirectory = "pyk"}
+pyk = {git = "https://github.com/runtimeverification/k.git", tag = "v7.0.70", subdirectory = "pyk"}
 
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/wasm-semantics.git"
-reference = "v0.1.50"
-resolved_reference = "d52eabe8190a244fd799751f3c54d66f4c80ba14"
+reference = "v0.1.53"
+resolved_reference = "bbc3567be6e1984be45b1aeae1dfb8b2a6671f21"
 subdirectory = "pykwasm"
 
 [[package]]
@@ -1248,20 +1248,20 @@ files = [
 
 [[package]]
 name = "zipp"
-version = "3.18.1"
+version = "3.18.2"
 description = "Backport of pathlib-compatible object wrapper for zip files"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "zipp-3.18.1-py3-none-any.whl", hash = "sha256:206f5a15f2af3dbaee80769fb7dc6f249695e940acca08dfb2a4769fe61e538b"},
-    {file = "zipp-3.18.1.tar.gz", hash = "sha256:2884ed22e7d8961de1c9a05142eb69a247f120291bc0206a00a7642f09b5b715"},
+    {file = "zipp-3.18.2-py3-none-any.whl", hash = "sha256:dce197b859eb796242b0622af1b8beb0a722d52aa2f57133ead08edd5bf5374e"},
+    {file = "zipp-3.18.2.tar.gz", hash = "sha256:6278d9ddbcfb1f1089a88fde84481528b07b0e10474e09dcfe53dad4069fa059"},
 ]
 
 [package.extras]
 docs = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "rst.linker (>=1.9)", "sphinx (>=3.5)", "sphinx-lint"]
-testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-ignore-flaky", "pytest-mypy", "pytest-ruff (>=0.2.1)"]
+testing = ["big-O", "jaraco.functools", "jaraco.itertools", "jaraco.test", "more-itertools", "pytest (>=6,!=8.1.*)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-ignore-flaky", "pytest-mypy", "pytest-ruff (>=0.2.1)"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "469273bffeaaea1bd963807b01ac89e1bb84dcca0427d198483249f84ebf5583"
+content-hash = "940bccbda3955390174e9641180e7b438bf5271175416c6843baa28720c8498b"
