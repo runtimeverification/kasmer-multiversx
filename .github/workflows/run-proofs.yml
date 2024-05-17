@@ -1,0 +1,50 @@
+name: 'Run Proofs'
+on:
+  schedule:
+    cron: '0 0 * * 6' # run every saturday 
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  proof:
+    name: 'Proof: ${{ matrix.name }}'
+    runs-on: [self-hosted, linux, normal]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Pair Add Liquidity
+            claim: test_add_liquidity-spec.json
+            timeout: 300
+          - name: Pair Swap
+            claim: test_swap-spec.json
+            timeout: 300
+          - name: Multisig Change Quorum
+            claim: test_change_quorum-spec.json
+            timeout: 300
+    timeout-minutes: ${{ matrix.timeout }}
+    steps:
+      - name: 'Check out code'
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.JENKINS_GITHUB_PAT }}
+          submodules: recursive
+      - name: 'Set up Docker'
+        uses: ./.github/actions/with-docker
+        with:
+          container-name: mx-wasm-ci-${{ github.sha }}
+      - name: 'Build kmxwasm'
+        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make kmxwasm
+      - name: 'Build semantics'
+        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make build
+      - name: 'Run proof'
+        run: |
+          CLAIMS_DIR=kmxwasm/src/tests/integration/data
+          CLAIM_PATH=$CLAIMS_DIR/${{ matrix.claim }}
+          docker exec --user user mx-wasm-ci-${GITHUB_SHA} poetry -C kmxwasm run kmxwasm-property --claim $CLAIM_PATH
+      - name: 'Tear down Docker'
+        if: always()
+        run: docker stop --time 0 mx-wasm-ci-${GITHUB_SHA}

@@ -37,12 +37,12 @@ sys.setrecursionlimit(16000)
 def usage_error() -> None:
     print('Usage:')
     print(
-        '  python3 -m src.kmxwasm.property [--restart [--remove <node-id-csv>] [--run <node-id>]] [--step <number>] [-k] --claim <claim-file>'
+        '  kmxwasm-property [--restart [--remove <node-id-csv>] [--run <node-id>]] [--step <number>] [-k] --claim <claim-file>'
     )
-    print('  python3 -m src.kmxwasm.property --tree')
-    print('  python3 -m src.kmxwasm.property --bisect-after <id>')
-    print('  python3 -m src.kmxwasm.property --show-node <id>')
-    print('  python3 -m src.kmxwasm.property --profile <node-id> [--remove <node-id-csv>] [--step <number>]')
+    print('  kmxwasm-property --tree')
+    print('  kmxwasm-property --bisect-after <id>')
+    print('  kmxwasm-property --show-node <id>')
+    print('  kmxwasm-property --profile <node-id> [--remove <node-id-csv>] [--step <number>]')
     sys.exit(-1)
 
 
@@ -661,10 +661,6 @@ def read_flags() -> Action:
     )
 
 
-def main(args: list[str]) -> None:
+def main() -> None:
     action = read_flags()
     action.run()
-
-
-if __name__ == '__main__':
-    main(sys.argv[1:])
