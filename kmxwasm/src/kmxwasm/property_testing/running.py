@@ -55,17 +55,20 @@ INTERIM_STATES_CUT_POINT_RULES = [
 
 CODE_CUT_POINT_RULES = [
     # These use the <code> cell
-    'ELROND-CONFIG.setAccountFields',
-    'ELROND-CONFIG.setAccountCode',
-    'ELROND-CONFIG.callContract',
-    'ELROND-CONFIG.callContract-not-contract',
+    'ELROND-CONFIG.setAccountFields-instrs-empty',
+    'ELROND-CONFIG.setAccountFields-instrs-wait',
+    'ELROND-CONFIG.setAccountCode-instrs-empty',
+    'ELROND-CONFIG.setAccountCode-instrs-wait',
+    'ELROND-CONFIG.callContractAux',
+    'ELROND-CONFIG.callContractAux-not-contract',
     'ESDT.determineIsSCCallAfter-call',
     'MANDOS.checkAccountCodeAux-no-code',
     'MANDOS.checkAccountCodeAux-code',
     'BASEOPS.checkIsSmartContract-code',
     'BASEOPS.checkIsSmartContract-no-code',
     # Additional <code> cell use through generic <account> and <accounts> use.
-    'ELROND-CONFIG.createAccount-new',
+    'ELROND-CONFIG.createAccount-new-instrs-empty',
+    'ELROND-CONFIG.createAccount-new-instrs-wait',
     'ELROND-NODE.pushWorldState',
     'ELROND-NODE.popWorldState',
 ]
