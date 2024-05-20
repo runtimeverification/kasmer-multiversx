@@ -7,6 +7,7 @@ module INT-LENGTH-LEMMAS-BASIC
 
   syntax Int ::= lengthInBytes(Int)  [function]
   rule lengthInBytes(A) => (log2Int(A) +Int 8) divInt 8
+    requires 0 <Int A
 
   syntax Int ::= maxForLength(Int)  [function]
   // We want the largest X for which
