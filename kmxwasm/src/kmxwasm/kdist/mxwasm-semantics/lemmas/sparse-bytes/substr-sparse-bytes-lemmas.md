@@ -55,7 +55,7 @@ module SUBSTR-SPARSE-BYTES-LEMMAS
             getReplacementSparseBytes(F, Start, Width),
             SStart -Int Start, SEnd -Int Start
         )
-        requires SStart <=Int Start andBool Start +Int Width <=Int SEnd
+        requires Start <=Int SStart andBool SEnd <=Int Start +Int Width
         [simplification]
     rule substrSparseBytes(_, Start, End) => .SparseBytes
         requires End <=Int Start
