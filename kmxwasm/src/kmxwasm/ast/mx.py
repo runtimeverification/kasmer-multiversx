@@ -268,7 +268,7 @@ def cfg_touches_code(k: str | None, command: str | None, instr: str | None) -> b
     if command in [
         'setAccountFields',
         'setAccountCode',
-        'callContractWasmString',
+        'callContractAux',
         'createAccount',
         'pushWorldState',
         'popWorldState',
