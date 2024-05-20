@@ -663,3 +663,7 @@ def read_flags() -> Action:
 def main() -> None:
     action = read_flags()
     action.run()
+
+
+if __name__ == '__main__':
+    main()
