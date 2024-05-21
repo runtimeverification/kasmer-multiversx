@@ -4,6 +4,18 @@ module BYTES-TO-INT
     claim
       <k>
         runSimplification(
+            Bytes2Int ( Int2Bytes ( 1 , ARG_0 , LE ) , BE , Unsigned )
+        ) => doneSimplification( 
+            ARG_0
+        )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+      requires 0 <=Int ARG_0 andBool ARG_0 <Int 256
+
+    claim
+      <k>
+        runSimplification(
             Bytes2Int
               ( padRightBytesTotal
                 ( substrBytesTotal

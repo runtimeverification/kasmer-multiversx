@@ -23,6 +23,10 @@ module BYTES-NORMALIZATION-LEMMAS  [symbolic]
         => Value modInt (2 ^Int (Length *Int 8))
         requires 0 <=Int Value
         [simplification]
+    rule Bytes2Int(Int2Bytes(1, Value:Int, _:Endianness), _:Endianness, Unsigned)
+        => Value modInt 256
+        requires 0 <=Int Value
+        [simplification]
     rule Bytes2Int(Int2Bytes(Value:Int, E, S), E:Endianness, S:Signedness)
         => Value
         [simplification]
