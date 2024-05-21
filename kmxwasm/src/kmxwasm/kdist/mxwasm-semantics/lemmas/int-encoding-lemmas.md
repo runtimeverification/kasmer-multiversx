@@ -365,7 +365,7 @@ module INT-ENCODING-LEMMAS  [symbolic]
   rule int64encoding(A <<IntTotal B, A8, A7, A6, A5, A4, A3, A2, _A1)
         => int64encoding(A <<Int (B -Int 8), -1, A8, A7, A6, A5, A4, A3, A2)
         requires 8 <=Int B
-        [simplification]
+        [simplification, preserves-definedness]
 
   rule int64encoding(A, A8, A7, A6, A5, A4, A3, A2, A1) modIntTotal 256
         => int64encoding(
