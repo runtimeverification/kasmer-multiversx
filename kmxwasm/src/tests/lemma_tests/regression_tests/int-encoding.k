@@ -4,6 +4,27 @@ module INT-ENCODING
     claim
       <k>
         runSimplification(
+            int64encoding
+              ( ... value: Bytes2Int
+                ( b"\x00\x00\x00"
+                  +Bytes Int2Bytes
+                    ( 1 , ((log2IntTotal ( ARG_0:Int )) +Int (8)) divIntTotal (8) , LE )
+                , LE
+                , Unsigned
+                )
+              , b8pos: -1 , b7pos: -1 , b6pos: -1 , b5pos: -1 , b4pos: 0 , b3pos: 1 , b2pos: 2 , b1pos: 3
+              )
+        ) => doneSimplification(
+            ((log2IntTotal ( ARG_0:Int )) +Int (8)) divIntTotal (8)
+        )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+      requires 0 <Int ARG_0 andBool ARG_0 <=Int (1 <<Int 64)
+
+    claim
+      <k>
+        runSimplification(
             ( ( ( ( ( ( ( (A &Int 255) <<IntTotal 56)
                       |Int ((A &Int 65280) <<IntTotal 40)
                       )

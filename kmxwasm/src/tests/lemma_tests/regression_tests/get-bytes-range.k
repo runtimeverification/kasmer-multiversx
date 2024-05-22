@@ -6,6 +6,48 @@ module GET-BYTES-RANGE
       <k>
         runSimplification(
             extractSparseBytes
+              ( substr
+              , SBChunk
+                ( #bytes
+                  ( b"\x00\x00\x00\x00\x00\x00\x00\x01\x95\xff\xff\xff"
+                  +Bytes Int2Bytes
+                    ( 4
+                    , (((log2IntTotal ( ARG_0:Int )) +Int (8)) divIntTotal (8))
+                      +Int (114)
+                    , LE
+                    )
+                  +Bytes b"\x01\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x008\x03\x02\x00"
+                  +Bytes Int2Bytes
+                    ( 4
+                    , (((log2IntTotal ( ARG_0:Int )) +Int (8)) divIntTotal (8)) +Int (114)
+                    , LE
+                    )
+                  +Bytes Int2Bytes
+                    ( 8
+                    , (((ARG_1:Int) +Int (ARG_2:Int)) +Int (ARG_3:Int)) +Int (ARG_4:Int)
+                    , LE
+                    )
+                  )
+                )
+              .SparseBytes
+              , 0 , 8
+              )
+        ) => doneSimplification(
+            ( SBChunk ( #bytes ( b"\x00\x00\x00\x00\x00\x00\x00\x01" ) )
+              .SparseBytes
+            )::SparseBytes:KItem
+        )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+      requires 0 <Int ARG_0 andBool 0 <Int ARG_1 andBool 0 <Int ARG_2
+          andBool 0 <Int ARG_3 andBool 0 <Int ARG_4
+
+
+    claim
+      <k>
+        runSimplification(
+            extractSparseBytes
               ( getBytesRange
               , SBChunk
                 ( #bytes
