@@ -20,7 +20,7 @@ module INT-INEQUALITIES-LEMMAS
   //     [simplification]
 
   rule (A |Int B) <Int M => true
-      requires 0 <=Int M
+      requires 0 <Int M
         andBool A <Int 2 ^Int log2Int(M)
         andBool B <Int 2 ^Int log2Int(M)
       [simplification, concrete(M)]
@@ -29,7 +29,7 @@ module INT-INEQUALITIES-LEMMAS
         andBool (M <=Int A orBool M <=Int B)
       [simplification, concrete(M)]
   rule (A |Int B) <=Int M => true
-      requires 0 <=Int M
+      requires 0 <Int M
         andBool A <Int 2 ^Int log2Int(M)
         andBool B <Int 2 ^Int log2Int(M)
       [simplification, concrete(M)]
@@ -58,7 +58,7 @@ module INT-INEQUALITIES-LEMMAS
         andBool (M <Int A orBool M <Int B)
       [simplification]
   rule M <Int A |Int B => false
-      requires 0 <=Int M
+      requires 0 <Int M
         andBool A <Int 2 ^Int log2Int(M)
         andBool B <Int 2 ^Int log2Int(M)
       [simplification, concrete(M)]
@@ -73,7 +73,7 @@ module INT-INEQUALITIES-LEMMAS
         andBool (M <=Int A orBool M <=Int B)
       [simplification]
   rule M <=Int A |Int B => false
-      requires 0 <=Int M
+      requires 0 <Int M
         andBool A <Int 2 ^Int log2Int(M)
         andBool B <Int 2 ^Int log2Int(M)
       [simplification, concrete(M)]

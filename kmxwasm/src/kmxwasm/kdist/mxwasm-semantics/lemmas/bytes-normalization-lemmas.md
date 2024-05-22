@@ -21,8 +21,16 @@ module BYTES-NORMALIZATION-LEMMAS  [symbolic]
 
     rule Bytes2Int(Int2Bytes(Length:Int, Value:Int, E), E:Endianness, Unsigned)
         => Value modInt (2 ^Int (Length *Int 8))
+        requires 0 <=Int Value andBool 0 <=Int Length
+        [simplification, preserves-definedness]
+        // The ^Int arguments are >= 0. The modInt argument is >= 1
+
+    rule Bytes2Int(Int2Bytes(1, Value:Int, _:Endianness), _:Endianness, Unsigned)
+        => Value modInt 256
         requires 0 <=Int Value
-        [simplification]
+        [simplification, preserves-definedness]
+        // The modInt argument is > 0
+
     rule Bytes2Int(Int2Bytes(Value:Int, E, S), E:Endianness, S:Signedness)
         => Value
         [simplification]
@@ -30,6 +38,10 @@ module BYTES-NORMALIZATION-LEMMAS  [symbolic]
         => Value
         requires 0 <=Int Value
         [simplification]
+    rule Bytes2Int(A +Bytes B, LE, Unsigned)
+        => Bytes2Int(A, LE, Unsigned) +Int Bytes2Int(B, LE, Unsigned) <<Int (8 *Int lengthBytes(A))
+        [simplification, concrete(A), preserves-definedness]
+        // The <<Int argument is >= 0.
 
     rule substrBytesTotal(A:Bytes +Bytes _B:Bytes, Start:Int, End:Int)
         => substrBytesTotal(A, Start, End)

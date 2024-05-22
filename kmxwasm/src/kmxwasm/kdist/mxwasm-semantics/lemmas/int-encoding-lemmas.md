@@ -38,39 +38,41 @@ of the bytes corresponding to `B<N>` values that are `>= 0`, placed on the
       requires 0 <=Int A andBool A <Int (1 <<Int 64)
   rule int64encoding(A, -1, -1, -1, -1, 3, 2, 1, 0) => A
       requires 0 <=Int A andBool A <Int (1 <<Int 32)
+  rule int64encoding(A, -1, -1, -1, -1, -1, -1, -1, 0) => A
+      requires 0 <=Int A andBool A <Int (1 <<Int 8)
 
   rule int64encoding(A, B8, B7, B6, B5, B4, B3, B2, B1)
       => (((A &Int (255 <<Int 56)) >>Int 56) <<Int (B8 *Int 8)) |Int int64encoding(A, -1, B7, B6, B5, B4, B3, B2, B1)
       requires 0 <=Int B8 andBool B8 <=Int 7
-      [simplification, concrete]
+      [simplification, concrete, preserves-definedness]  // All <<Int and >>Int arguments are >= 0
   rule int64encoding(A, -1, B7, B6, B5, B4, B3, B2, B1)
       => (((A &Int (255 <<Int 48)) >>Int 48) <<Int (B7 *Int 8)) |Int int64encoding(A, -1, -1, B6, B5, B4, B3, B2, B1)
       requires 0 <=Int B7 andBool B7 <=Int 7
-      [simplification, concrete]
+      [simplification, concrete, preserves-definedness]  // All <<Int and >>Int arguments are >= 0
   rule int64encoding(A, -1, -1, B6, B5, B4, B3, B2, B1)
       => (((A &Int (255 <<Int 40)) >>Int 40) <<Int (B6 *Int 8)) |Int int64encoding(A, -1, -1, -1, B5, B4, B3, B2, B1)
       requires 0 <=Int B6 andBool B6 <=Int 7
-      [simplification, concrete]
+      [simplification, concrete, preserves-definedness]  // All <<Int and >>Int arguments are >= 0
   rule int64encoding(A, -1, -1, -1, B5, B4, B3, B2, B1)
       => (((A &Int (255 <<Int 32)) >>Int 32) <<Int (B5 *Int 8)) |Int int64encoding(A, -1, -1, -1, -1, B4, B3, B2, B1)
       requires 0 <=Int B5 andBool B5 <=Int 7
-      [simplification, concrete]
+      [simplification, concrete, preserves-definedness]  // All <<Int and >>Int arguments are >= 0
   rule int64encoding(A, -1, -1, -1, -1, B4, B3, B2, B1)
       => (((A &Int (255 <<Int 24)) >>Int 24) <<Int (B4 *Int 8)) |Int int64encoding(A, -1, -1, -1, -1, -1, B3, B2, B1)
       requires 0 <=Int B4 andBool B4 <=Int 7
-      [simplification, concrete]
+      [simplification, concrete, preserves-definedness]  // All <<Int and >>Int arguments are >= 0
   rule int64encoding(A, -1, -1, -1, -1, -1, B3, B2, B1)
       => (((A &Int (255 <<Int 16)) >>Int 16) <<Int (B3 *Int 8)) |Int int64encoding(A, -1, -1, -1, -1, -1, -1, B2, B1)
       requires 0 <=Int B3 andBool B3 <=Int 7
-      [simplification, concrete]
+      [simplification, concrete, preserves-definedness]  // All <<Int and >>Int arguments are >= 0
   rule int64encoding(A, -1, -1, -1, -1, -1, -1, B2, B1)
       => (((A &Int (255 <<Int  8)) >>Int  8) <<Int (B2 *Int 8)) |Int int64encoding(A, -1, -1, -1, -1, -1, -1, -1, B1)
       requires 0 <=Int B2 andBool B2 <=Int 7
-      [simplification, concrete]
+      [simplification, concrete, preserves-definedness]  // All <<Int and >>Int arguments are >= 0
   rule int64encoding(A, -1, -1, -1, -1, -1, -1, -1, B1)
       => (((A &Int (255 <<Int  0)) >>Int  0) <<Int (B1 *Int 8))
       requires 0 <=Int B1 andBool B1 <=Int 7
-      [simplification, concrete]
+      [simplification, concrete, preserves-definedness]  // All <<Int and >>Int arguments are >= 0
 
 ```
 int64BytesAre0
@@ -230,12 +232,12 @@ module INT-ENCODING-LEMMAS  [symbolic]
   rule int64encoding(A, B8, B7, B6, B5, B4, B3, B2, B1) >>IntTotal X
       => int64encoding(A, sbr(B8, X >>Int 3), sbr(B7, X >>Int 3), sbr(B6, X >>Int 3), sbr(B5, X >>Int 3), sbr(B4, X >>Int 3), sbr(B3, X >>Int 3), sbr(B2, X >>Int 3), sbr(B1, X >>Int 3))
       requires (0 <=Int X) andBool (X <=Int 56) andBool (X &Int 7 ==Int 0)
-      [simplification, concrete(X)]
+      [simplification, concrete(X), preserves-definedness]  // All >>Int arguments are >= 0
 
   rule int64encoding(A, B8, B7, B6, B5, B4, B3, B2, B1) <<IntTotal X
       => int64encoding(A, sbl(B8, X >>Int 3), sbl(B7, X >>Int 3), sbl(B6, X >>Int 3), sbl(B5, X >>Int 3), sbl(B4, X >>Int 3), sbl(B3, X >>Int 3), sbl(B2, X >>Int 3), sbl(B1, X >>Int 3))
       requires (0 <=Int X) andBool (X <=Int 56) andBool (X &Int 7 ==Int 0)
-      [simplification, concrete(X)]
+      [simplification, concrete(X), preserves-definedness]  // All >>Int arguments are >= 0
 
   rule int64encoding(A, -1, A7, A6, A5, A4, A3, A2, A1) |Int int64encoding(A, B8, B7, B6, B5, B4, B3, B2, B1)
       => int64encoding(A, B8, A7, A6, A5, A4, A3, A2, A1) |Int int64encoding(A, -1, B7, B6, B5, B4, B3, B2, B1)
@@ -356,9 +358,15 @@ module INT-ENCODING-LEMMAS  [symbolic]
       [simplification]
 
   rule int64encoding(A >>IntTotal B, -1, A7, A6, A5, A4, A3, A2, A1)
+        // TODO: Use >>Int on the RHS
         => int64encoding(A >>IntTotal (B -Int 8), A7, A6, A5, A4, A3, A2, A1, -1)
         requires 8 <=Int B
-        [simplification]
+        [simplification, preserves-definedness]  // All >>Int(Total) arguments are >= 0
+
+  rule int64encoding(A <<IntTotal B, A8, A7, A6, A5, A4, A3, A2, _A1)
+        => int64encoding(A <<Int (B -Int 8), -1, A8, A7, A6, A5, A4, A3, A2)
+        requires 8 <=Int B
+        [simplification, preserves-definedness]  // All <<Int arguments are >= 0
 
   rule int64encoding(A, A8, A7, A6, A5, A4, A3, A2, A1) modIntTotal 256
         => int64encoding(
@@ -504,9 +512,10 @@ module INT-ENCODING-LEMMAS  [symbolic]
   //     [simplification]
 
   rule int64BytesAre0(A >>IntTotal B, _, A7, A6, A5, A4, A3, A2, A1)
+      // TODO: Use >>Int on the RHS
       => int64BytesAre0(A >>IntTotal (B -Int 8), A7, A6, A5, A4, A3, A2, A1, false)
       requires 0 <=Int A andBool A <Int 1 <<Int 64 andBool 8 <=Int B
-      [simplification]
+      [simplification, preserves-definedness]  // All >>Int(Total) arguments are >= 0
 
   rule 8 *Int int64BytesAre0 ( A, true, false, false, false, false, false, false, false )
       => countConsecutiveZeroBits(A, 0)

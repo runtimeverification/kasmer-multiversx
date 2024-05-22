@@ -23,7 +23,7 @@ from .ast.mx import (
     set_interim_states_cell_content,
 )
 from .build import HASKELL, semantics
-from .json import load_json_kclaim
+from .json import load_json_kclaim, load_kcfg_node
 from .property_testing.paths import ROOT
 from .property_testing.printers import print_node
 from .property_testing.running import RunException, Stuck, Success, profile_step, run_claim, split_edge
@@ -474,11 +474,10 @@ class ShowNode(Action):
     def run(self) -> None:
         tools = semantics(target=HASKELL, booster=False, llvm=False, bug_report=None)
 
-        t = Timer('Loading kcfg')
-        kcfg = KCFG.read_cfg_data(self.kcfg_path)
+        t = Timer('Loading node')
+        node = load_kcfg_node(self.kcfg_path, self.node_id)
         t.measure()
         print('Printing: ', self.node_id)
-        node = kcfg.get_node(self.node_id)
         if node:
             print_node(tools.printer, node)
         else:
@@ -664,3 +663,7 @@ def read_flags() -> Action:
 def main() -> None:
     action = read_flags()
     action.run()
+
+
+if __name__ == '__main__':
+    main()
