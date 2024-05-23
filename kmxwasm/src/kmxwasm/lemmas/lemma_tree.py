@@ -243,10 +243,12 @@ def split_int_vs_0(value:KInner, when_less: SplitTree, when_eq: SplitTree, when_
 def result(rhs: KInner, priority: int = -1) -> SplitTree:
     return ResultSplitTree(result=rhs, priority=priority)
 
-def not_implemented() -> SplitTree:
+def not_implemented(explanation: str = '') -> SplitTree:
     return NotHandledSplitTree()
 
-def split_concrete(variable:KVariable, when_concrete: SplitTree, when_ignored: SplitTree = not_implemented()) -> SplitTree:
+NOT_IMPLEMENTED = not_implemented()
+
+def split_concrete(variable:KVariable, when_concrete: SplitTree, when_ignored: SplitTree = NOT_IMPLEMENTED) -> SplitTree:
     return ConcreteSplitTree(variable=variable, when_concrete=when_concrete, when_ignored=when_ignored)
 
 def chunk(sbitem: KInner) -> KApply:
@@ -267,25 +269,25 @@ def bytes_chunk(value:KInner) -> KApply:
 def function_commutes_at_start(f:KInner) -> KApply:
     return KApply('functionCommutesAtStart', f)
 
-def sizeSparseBytesItem(item:KInner) -> KApply:
+def sizeSparseBytesItem(item:KInner) -> KApply:  # noqa: N802
     return KApply('SBItem:size', item)
 
-def sizeSparseBytes(sparse_bytes:KInner) -> KApply:
+def sizeSparseBytes(sparse_bytes:KInner) -> KApply:  # noqa: N802
     return KApply('SparseBytes:size', sparse_bytes)
 
-def concatSparseBytes(first: KInner, second: KInner) -> KApply:
+def concatSparseBytes(first: KInner, second: KInner) -> KApply:  # noqa: N802
     return KApply('concatSparseBytes', first, second)
 
-def splitSparseBytes(split_point: KInner, prefix: KInner, sufix: KInner) -> KApply:
+def splitSparseBytes(split_point: KInner, prefix: KInner, sufix: KInner) -> KApply:  # noqa: N802
     return KApply('splitSparseBytes', sufix, prefix, split_point)
 
-def canSplitSparseBytesSimple(function:KInner, sparse_bytes: KInner, position: KInner) -> KApply:
+def canSplitSparseBytesSimple(function:KInner, sparse_bytes: KInner, position: KInner) -> KApply:  # noqa: N802
     return KApply('canSplitSparseBytesSimple', function, sparse_bytes, position)
 
-def canSplitSparseBytesUpdate(function:KInner, sparse_bytes: KInner, position: KInner, update_start: KInner, update_width: KInner) -> KApply:
+def canSplitSparseBytesUpdate(function:KInner, sparse_bytes: KInner, position: KInner, update_start: KInner, update_width: KInner) -> KApply:  # noqa: N802
     return KApply('canSplitSparseBytes', function, sparse_bytes, position, update_start, update_width)
 
-def splitSparseBytesUpdateTail(
+def splitSparseBytesUpdateTail(  # noqa: N802
         function: KInner,
         sparse_bytes: KInner,
         start: KInner,
@@ -293,6 +295,15 @@ def splitSparseBytesUpdateTail(
         position: KInner
     ) -> KApply:
     return KApply('splitSparseBytesUpdateTail', function, sparse_bytes, start, width, position)
+
+def splitSparseBytesHeadUpdate(  # noqa: N802
+        function: KInner,
+        sparse_bytes: KInner,
+        start: KInner,
+        width: KInner,
+        position: KInner
+    ) -> KApply:
+    return KApply('splitSparseBytesHeadUpdate', function, sparse_bytes, start, width, position)
 
 def update_tree() -> SplitTree:
     update_base_term = sparse_bytes_update(
@@ -324,7 +335,7 @@ def update_tree() -> SplitTree:
                         sparse_bytes=KVariable('SB'),
                         start=KVariable('Start'),
                         width=KVariable('Width'),
-                        position=KVariable('Width')
+                        position=addInt(KVariable('Start'), KVariable('Width')),
                     )
                 ),
                 when_eq=not_implemented(),
@@ -334,7 +345,8 @@ def update_tree() -> SplitTree:
                 sparse_bytes=KVariable('SB'),
                 function=KVariable('F'),
                 start=KVariable('Start'),
-                width=KVariable('Width')
+                width=KVariable('Width'),
+                position=KVariable('Start')
             )
         ),
         when_eq=split_int_comparison(
@@ -350,7 +362,8 @@ def update_tree() -> SplitTree:
                     sparse_bytes=KVariable('SB'),
                     function=KVariable('F'),
                     start=token(0),
-                    width=KVariable('Width')
+                    width=KVariable('Width'),
+                    position=KVariable('Width')
                 )
             ),
             when_eq=not_implemented('Should be handled by function-specific rules'),
