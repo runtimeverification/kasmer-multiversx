@@ -237,6 +237,14 @@ module INT-ENCODING-LEMMAS  [symbolic]
   rule int64encoding(A, B8, B7, B6, B5, B4, B3, B2, B1) <<IntTotal X
       => int64encoding(A, sbl(B8, X >>Int 3), sbl(B7, X >>Int 3), sbl(B6, X >>Int 3), sbl(B5, X >>Int 3), sbl(B4, X >>Int 3), sbl(B3, X >>Int 3), sbl(B2, X >>Int 3), sbl(B1, X >>Int 3))
       requires (0 <=Int X) andBool (X <=Int 56) andBool (X &Int 7 ==Int 0)
+        andBool ((((((((B8 +Int (X >>Int 3) <=Int 7)
+        andBool (B7 +Int (X >>Int 3) <=Int 7))
+        andBool (B6 +Int (X >>Int 3) <=Int 7))
+        andBool (B5 +Int (X >>Int 3) <=Int 7))
+        andBool (B4 +Int (X >>Int 3) <=Int 7))
+        andBool (B3 +Int (X >>Int 3) <=Int 7))
+        andBool (B2 +Int (X >>Int 3) <=Int 7))
+        andBool (B1 +Int (X >>Int 3) <=Int 7))
       [simplification, concrete(X), preserves-definedness]  // All >>Int arguments are >= 0
 
   rule int64encoding(A, -1, A7, A6, A5, A4, A3, A2, A1) |Int int64encoding(A, B8, B7, B6, B5, B4, B3, B2, B1)
@@ -386,13 +394,29 @@ module INT-ENCODING-LEMMAS  [symbolic]
         => int64encoding(A, A8, A7, A6, A5, A4, A3, A2, A1)
         [simplification]
 
-  rule int64encoding(_, _, _, _, _, _, _, _, _) <=Int 18446744073709551615
+  rule int64encoding(_, A8, A7, A6, A5, A4, A3, A2, A1) <=Int 18446744073709551615
         => true
-        [simplification, smt-lemma]
+      requires A8 <=Int 7
+        andBool ((((((A7 <=Int 7)
+        andBool (A6 <=Int 7))
+        andBool (A5 <=Int 7))
+        andBool (A4 <=Int 7))
+        andBool (A3 <=Int 7))
+        andBool (A2 <=Int 7))
+        andBool (A1 <=Int 7)
+      [simplification, smt-lemma]
 
-  rule int64encoding(_, _, _, _, _, _, _, _, _) <Int 18446744073709551616
+  rule int64encoding(_, A8, A7, A6, A5, A4, A3, A2, A1) <Int 18446744073709551616
         => true
-        [simplification]
+      requires A8 <=Int 7
+        andBool ((((((A7 <=Int 7)
+        andBool (A6 <=Int 7))
+        andBool (A5 <=Int 7))
+        andBool (A4 <=Int 7))
+        andBool (A3 <=Int 7))
+        andBool (A2 <=Int 7))
+        andBool (A1 <=Int 7)
+      [simplification]
 
   rule int64encoding(_, A8, A7, A6, A5, A4, A3, A2, A1) <=Int 4294967295 => true
       requires A8 <=Int 3
