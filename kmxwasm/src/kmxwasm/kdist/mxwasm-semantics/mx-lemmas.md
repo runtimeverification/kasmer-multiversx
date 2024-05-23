@@ -6,6 +6,7 @@ requires "lemmas/int-inequalities-lemmas.md"
 requires "lemmas/int-length-lemmas.md"
 requires "lemmas/int-normalization-lemmas.md"
 requires "lemmas/pair-specific-lemmas.md"
+requires "lemmas/coindrip-specific-lemmas.md"
 requires "lemmas/sparse-bytes/sparse-bytes-lemmas.md"
 
 module MX-LEMMAS-BASIC
@@ -42,6 +43,7 @@ endmodule
 module MX-LEMMAS  [symbolic]
   imports private BYTES-NORMALIZATION-LEMMAS
   imports private CEILS
+  imports private COINDRIP-SPECIFIC-LEMMAS
   imports private ELROND
   imports private INT-ENCODING-LEMMAS
   imports private INT-INEQUALITIES-LEMMAS

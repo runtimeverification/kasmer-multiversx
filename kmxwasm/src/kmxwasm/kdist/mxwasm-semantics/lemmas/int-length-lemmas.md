@@ -136,6 +136,15 @@ module INT-LENGTH-LEMMAS  [symbolic]
 
   rule 0 <Int ((log2IntTotal(B) +Int 8) divIntTotal 8) => true requires 0 <Int B
       [simplification, smt-lemma]
+  rule A <Int B +Int (((log2IntTotal(C) +Int 8) divIntTotal 8)) => true
+      requires A <=Int B
+        andBool 0 <Int C
+      [simplification]
+  rule A <=Int B +Int (((log2IntTotal(C) +Int 8) divIntTotal 8)) => true
+      requires A <=Int B +Int 1
+        andBool 0 <Int C
+      [simplification]
+
 endmodule
 
 module BINARY-SEARCH-SYNTAX

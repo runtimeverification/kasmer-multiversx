@@ -219,6 +219,24 @@ module INT-INEQUALITIES-LEMMAS
   // rule A <Int B -Int C => C <Int B -Int A
   //     [simplification, concrete(A, B)]
 
+  rule A <=Int A +Int B => 0 <=Int B  [simplification]
+  rule A <=Int B +Int A => 0 <=Int B  [simplification]
+  rule A +Int B <=Int A => B <=Int 0  [simplification]
+  rule B +Int A <=Int A => B <=Int 0  [simplification]
+  rule A +Int B <=Int A +Int C => B <=Int C  [simplification]
+  rule B +Int A <=Int A +Int C => B <=Int C  [simplification]
+  rule A +Int B <=Int C +Int A => B <=Int C  [simplification]
+  rule B +Int A <=Int C +Int A => B <=Int C  [simplification]
+
+  rule A <Int A +Int B => 0 <Int B  [simplification]
+  rule A <Int B +Int A => 0 <Int B  [simplification]
+  rule A +Int B <Int A => B <Int 0  [simplification]
+  rule B +Int A <Int A => B <Int 0  [simplification]
+  rule A +Int B <Int A +Int C => B <Int C  [simplification]
+  rule B +Int A <Int A +Int C => B <Int C  [simplification]
+  rule A +Int B <Int C +Int A => B <Int C  [simplification]
+  rule B +Int A <Int C +Int A => B <Int C  [simplification]
+
   rule A *Int B <=Int C => B <=Int C /Int A
       requires 0 <Int A
       [simplification, concrete(A, C)]
