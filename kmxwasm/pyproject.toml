@@ -21,7 +21,7 @@ pytest-kmxwasm = "kmxwasm.testing.fixtures"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-kmultiversx = { git = "https://github.com/runtimeverification/mx-semantics.git", tag = "v0.1.62", subdirectory = "kmultiversx" }
+kmultiversx = { git = "https://github.com/runtimeverification/mx-semantics.git", tag = "v0.1.63", subdirectory = "kmultiversx" }
 
 [tool.poetry.group.dev.dependencies]
 autoflake = "*"
