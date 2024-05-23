@@ -4,6 +4,63 @@ module GET-RANGE
     claim
       <k>
         runSimplification(
+            #getRange
+              ( merge
+                ( SBChunk ( #empty ( 130904 ) )
+                , merge
+                  ( SBChunk
+                    ( #bytes ( b"\x81\x05\x02\x00\x04\x00\x00\x00" ) )
+                  , merge
+                    ( SBChunk ( #empty ( 8 ) )
+                    , merge
+                      ( SBChunk ( #bytes ( b"\x81\x05\x02\x00\x04\x00\x00\x00" ) )
+                      , concat
+                        ( extractSparseBytes
+                          ( substr
+                          , SBChunk
+                            ( #bytes
+                              ( b"\x01\x00\x00\x00x\xff\x01\x00\x00\x00\x00\x00\x80\x05\x02\x00"
+                              +Bytes Int2Bytes ( 4 , (ARG_0:Int) <<IntTotal (24) , LE )
+                              )
+                            )
+                            .SparseBytes
+                          , 4 , 16
+                          )
+                        , SBChunk ( #empty ( 24 ) )
+                          SBChunk ( #bytes ( b"\x94\xff\xff\xff\x01" ) )
+                          SBChunk ( #empty ( 35 ) )
+                          SBChunk ( #bytes ( b"\x96\xff\xff\xff\x08\x00\x00\x00\x01\x00\x00\x00\x02" ) )
+                          SBChunk ( #empty ( 7 ) )
+                          SBChunk ( #bytes ( b"\x94\xff\xff\xff\x01" ) )
+                          SBChunk ( #empty ( 19 ) )
+                          SBChunk ( #bytes ( b"\x04\x00" ) )
+                          SBChunk ( #empty ( 2 ) )
+                          SBChunk ( #bytes ( Int2Bytes ( 4 , ARG_0:Int , LE ) ) )
+                          SBChunk ( #empty ( 12 ) )
+                          SBChunk ( #bytes ( b"invalid valueinput too longrecipient address not setserializer decode error: argument decode error (): function does not accept ESDT paymenttoo few argumentstoo many argumentswrong number of argumentsCB_CLOSUREinput too short.item_address_to_id_count_id_to_address.indexstorage decode error: .lenbad array lengthdns_addressregisteruseraction_datanum_proposersuser_roleaction_signer_idsnum_board_membersquorumperformAsyncCallperformChangeUserstartPerformActionperformChangeQuorumperformTransferExecuteperformDeployFromSourceperformUpgradeFromSourceasyncCallErrorasyncCallSuccessduplicate board memberaction_idno callback function with that name exists in contractboardperform_async_call_callbackcall_resultquorum cannot exceed board sizecannot remove all board members and proposersinsufficient gas for callonly board members and proposers can perform actionsquorum has not been reachedargumentsopt_functiontouser_addressproposer_addressnew_quorumboard_member_addresscode_metadatasourcesc_addressonly board members and proposers can proposeproposed action has no effectonly board members and proposers can discard actionscannot discard action with valid signaturesboard cannot be empty on init, no-one would be able to proposeonly board members can signaction does not existonly board members can un-signEndpoint can only be called by ownerindex out of range\x00\x00\x00transferValueExecute failedpanic occurred" ) )
+                          SBChunk ( #empty ( 3 ) )
+                          SBChunk ( #bytes ( b"\x94\xff\xff\xff\x04" ) )
+                          SBChunk ( #empty ( 9999 ) )
+                          SBChunk ( #bytes ( b"\x01\x00\x00\x00" ) )
+                          SBChunk ( #bytes ( b"\x01" ) )
+                          .SparseBytes
+                        )
+                      )
+                    )
+                  )
+                )
+              , 130924 , 4
+              )
+        ) => doneSimplification(4)
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+    requires 0 <Int ARG_0
+      andBool ARG_0 <Int 6668014432879854274079851790721257797144758322315908160396257811764037237817632071521432200871554290742929910593433240445888801654119365080363356052330830046095157579514014558463078285911814024728965016135886601981690748037476461291163877376
+
+    claim
+      <k>
+        runSimplification(
             #getRange (
                 merge
                   ( SBChunk ( #empty ( 130824 ) )
