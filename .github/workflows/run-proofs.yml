@@ -44,7 +44,7 @@ jobs:
         run: |
           CLAIMS_DIR=kmxwasm/src/tests/integration/data
           CLAIM_PATH=$CLAIMS_DIR/${{ matrix.claim }}
-          docker exec --user user mx-wasm-ci-${GITHUB_SHA} poetry -C kmxwasm run kmxwasm-property --claim $CLAIM_PATH
+          docker exec --user user mx-wasm-ci-${GITHUB_SHA} poetry -C kmxwasm run kmxwasm-property --claim $CLAIM_PATH --booster
       - name: 'Tear down Docker'
         if: always()
         run: docker stop --time 0 mx-wasm-ci-${GITHUB_SHA}
