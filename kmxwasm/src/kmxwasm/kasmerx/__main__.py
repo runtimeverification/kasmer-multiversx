@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from argparse import ArgumentParser
 from dataclasses import dataclass
 from pathlib import Path
@@ -7,8 +8,15 @@ from typing import TYPE_CHECKING
 
 from pyk.utils import check_dir_path
 
+from .build import kasmerx_build
+from .utils import load_project
+
 if TYPE_CHECKING:
     from collections.abc import Sequence
+    from typing import Final
+
+
+logger: Final = logging.getLogger(__name__)
 
 
 @dataclass
@@ -30,6 +38,8 @@ def main() -> None:
 
 
 def kasmerx(args: Sequence[str]) -> None:
+    logging.basicConfig(level=logging.INFO)
+
     opts = _parse_args(args)
     match opts:
         case BuildOpts():
@@ -38,7 +48,19 @@ def kasmerx(args: Sequence[str]) -> None:
             raise AssertionError()
 
 
-def _kasmerx_build(opts: BuildOpts) -> None: ...
+# --------
+# Commands
+# --------
+
+
+def _kasmerx_build(opts: BuildOpts) -> None:
+    project = load_project(opts.project_dir)
+    kasmerx_build(project)
+
+
+# ----------------------
+# Command line arguments
+# ----------------------
 
 
 def _parse_args(args: Sequence[str]) -> KasmerxOpts:
@@ -57,7 +79,7 @@ def _arg_parser() -> ArgumentParser:
 
     command_parser = parser.add_subparsers(dest='command', required=True)
 
-    command_parser.add_parser('build', help='build main and test contracts')
+    command_parser.add_parser('build', help='build main and test contracts, and generate claims')
 
     return parser
 
