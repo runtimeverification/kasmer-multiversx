@@ -9,7 +9,7 @@ from pyk.kcfg import KCFGExplore
 from pyk.konvert import krule_to_kore
 from pyk.kore.rpc import KoreClient, KoreServer, kore_server
 from pyk.kore.syntax import Import, Module, Sentence
-from pyk.ktool.kompile import KompileBackend, kompile
+from pyk.ktool.kompile import PykBackend, kompile
 from pyk.ktool.kprint import KPrint
 from pyk.ktool.kprove import KProve
 from pyk.utils import BugReport
@@ -119,7 +119,7 @@ def kompile_semantics(k_dir: Path, definition_dir: Path) -> None:
     _ = kompile(
         k_dir / 'mx-wasm.md',
         output_dir=definition_dir,
-        backend=KompileBackend.HASKELL,
+        backend=PykBackend.HASKELL,
         main_module='MX-WASM',
         syntax_module='MX-WASM-SYNTAX',
         include_dirs=[k_dir, mx_dir, wasm_dir],

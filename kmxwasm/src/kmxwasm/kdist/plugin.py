@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from pyk.kbuild.utils import k_version
 from pyk.kdist.api import Target
-from pyk.ktool.kompile import KompileBackend, LLVMKompileType, kompile
+from pyk.ktool.kompile import LLVMKompileType, PykBackend, kompile
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
@@ -60,14 +60,14 @@ __TARGETS__: Final = {
     'llvm': KompileTarget(
         lambda src_dir: {
             'main_file': src_dir / 'mxwasm-semantics/mx-wasm.md',
-            'backend': KompileBackend.LLVM,
+            'backend': PykBackend.LLVM,
             **_default_args(src_dir),
         },
     ),
     'llvm-library': KompileTarget(
         lambda src_dir: {
             'main_file': src_dir / 'mxwasm-semantics/mx-wasm.md',
-            'backend': KompileBackend.LLVM,
+            'backend': PykBackend.LLVM,
             'llvm_kompile_type': LLVMKompileType.C,
             **_default_args(src_dir),
         },
@@ -75,21 +75,21 @@ __TARGETS__: Final = {
     'haskell': KompileTarget(
         lambda src_dir: {
             'main_file': src_dir / 'mxwasm-semantics/mx-wasm.md',
-            'backend': KompileBackend.HASKELL,
+            'backend': PykBackend.HASKELL,
             **_default_args(src_dir),
         },
     ),
     'lemma-proofs': KompileTarget(
         lambda src_dir: {
             'main_file': src_dir / 'mxwasm-semantics/lemmas/semantics/mx-wasm-lemma-proofs.md',
-            'backend': KompileBackend.HASKELL,
+            'backend': PykBackend.HASKELL,
             **_default_args(src_dir),
         },
     ),
     'lemma-tests': KompileTarget(
         lambda src_dir: {
             'main_file': src_dir / 'mxwasm-semantics/lemmas/semantics/mx-wasm-lemma-tests.md',
-            'backend': KompileBackend.HASKELL,
+            'backend': PykBackend.HASKELL,
             **_default_args(src_dir),
         },
     ),
