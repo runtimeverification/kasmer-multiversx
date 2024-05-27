@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from pyk.utils import check_dir_path
 
 from .build import kasmerx_build
+from .fuzz import kasmerx_fuzz
 from .utils import load_project
 
 if TYPE_CHECKING:
@@ -31,6 +32,9 @@ class KasmerxOpts:
 class BuildOpts(KasmerxOpts): ...
 
 
+class FuzzOpts(KasmerxOpts): ...
+
+
 def main() -> None:
     import sys
 
@@ -44,6 +48,8 @@ def kasmerx(args: Sequence[str]) -> None:
     match opts:
         case BuildOpts():
             return _kasmerx_build(opts)
+        case FuzzOpts():
+            return _kasmerx_fuzz(opts)
         case _:
             raise AssertionError()
 
@@ -58,6 +64,11 @@ def _kasmerx_build(opts: BuildOpts) -> None:
     kasmerx_build(project)
 
 
+def _kasmerx_fuzz(opts: FuzzOpts) -> None:
+    project = load_project(opts.project_dir)
+    kasmerx_fuzz(project)
+
+
 # ----------------------
 # Command line arguments
 # ----------------------
@@ -70,6 +81,7 @@ def _parse_args(args: Sequence[str]) -> KasmerxOpts:
 
     return {
         'build': BuildOpts(project_dir=project_dir),
+        'fuzz': FuzzOpts(project_dir=project_dir),
     }[ns.command]
 
 
@@ -80,6 +92,7 @@ def _arg_parser() -> ArgumentParser:
     command_parser = parser.add_subparsers(dest='command', required=True)
 
     command_parser.add_parser('build', help='build main and test contracts, and generate claims')
+    command_parser.add_parser('fuzz', help='fuzz test contract')
 
     return parser
 
