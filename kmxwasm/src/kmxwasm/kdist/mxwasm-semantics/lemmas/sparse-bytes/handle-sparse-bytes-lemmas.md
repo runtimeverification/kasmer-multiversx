@@ -777,6 +777,21 @@ module UPDATE-SPARSE-BYTES-LEMMAS
             andBool lengthBytes(B) <Int Start +Int Width
             andBool lengthBytes(B) +Int A <=Int Start +Int Width
         [simplification]
+    rule updateSparseBytes(
+              F:SBSetFunction,
+              merge(SBChunk(#bytes(A +Bytes B)), SB:SparseBytes),
+              Start:Int, Width:Int)
+        => merge(
+              SBChunk(#bytes(A)),
+              updateSparseBytes(
+                  F:SBSetFunction,
+                  merge(SBChunk(#bytes(B)), SB),
+                  Start -Int lengthBytes(A), Width))
+        requires functionSparseBytesWellDefined(F, Start, Width)
+            andBool functionCommutesAtStart(F)
+            andBool lengthBytes(A) <=Int Start
+            andBool Start <Int lengthBytes(A) +Int lengthBytes(B)
+        [simplification]
 
     // ----------------------------
     //      Disjoint ranges
