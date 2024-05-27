@@ -32,7 +32,7 @@ def test_unit(test_id: str, test_file: Path, lemma_tests_tools: Tools) -> None:
     ('test_id', 'test_file'), REGRESSION_TEST_DATA, ids=[test_id for test_id, _ in REGRESSION_TEST_DATA]
 )
 def test_regression(test_id: str, test_file: Path, lemma_tests_tools: Tools) -> None:
-    result = lemma_tests_tools.kprove.prove(test_file)
+    result = lemma_tests_tools.kprove.prove(test_file, haskell_args=['--smt-timeout', '1000'])
     result_or = mlOr([res.kast for res in result])
     if not is_top(result_or, weak=True):
         print(lemma_tests_tools.printer.pretty_print(result_or))
