@@ -3,7 +3,6 @@ POETRY     := poetry -C kmxwasm
 POETRY_RUN := $(POETRY) run
 
 
-.PHONY: default
 default: build
 
 .PHONY: plugin-deps
@@ -14,6 +13,8 @@ plugin-deps:
 kmxwasm:
 	$(POETRY) install
 
-.PHONY: build
 build: kmxwasm
 	K_OPTS='$(K_OPTS)' $(POETRY) run kdist -v build mxwasm-semantics.\* -j4
+
+build-kasmer: kmxwasm
+	K_OPTS='-Xmx8G -Xss512m' $(POETRY) run kdist -v build mx-semantics.llvm-kasmer
