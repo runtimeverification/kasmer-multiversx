@@ -4,6 +4,89 @@ module SET-RANGE
     claim
       <k>
         runSimplification(
+            updateSparseBytes
+              ( setRange ( ... value: ARG_0 )
+              , merge
+                ( SBChunk
+                  ( #bytes
+                    ( b"\r\x00\x00\x00\x94\xff\xff\xff"
+                    +Bytes Int2Bytes ( 4 , ARG_0:Int , LE )
+                    +Bytes b"\x00\x00\x00\f\x90\xff\xff\xff"
+                    +Bytes Int2Bytes ( 4 , ARG_0:Int , LE )
+                    +Bytes b"\x00\x00\x00\x00"
+                    )
+                  )
+                , concat
+                  ( updateSparseBytes
+                    ( setRange ( ... value: 1 )
+                    , SBChunk ( #bytes ( Int2Bytes ( 4 , ARG_0 , LE ) ) )
+                      .SparseBytes
+                    , 3 , 1
+                    )
+                  , SBChunk
+                    ( #bytes
+                      ( b"\x00\x00\x00\x00\x00\x00\x00\x00"
+                      +Bytes Int2Bytes ( 8 , ARG_0 , LE ) +Bytes Int2Bytes ( 8 , ARG_0 , LE )
+                      +Bytes b"\x03\x00\x00\x00\x04\x00\x00\x00\x05\x00\x00\x00\x99\xff\xff\xff\x98\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x9a\xff\xff\xff\x01"
+                      )
+                    )
+                    SBChunk ( #empty ( 7 ) )
+                    SBChunk
+                      ( #bytes
+                        ( b"\x00\x00\x00\x00\x00\x00\x00\x00"
+                        +Bytes Int2Bytes ( 8 , ARG_0 , LE ) 
+                        +Bytes Int2Bytes ( 8 , ARG_0 , LE )
+                        +Bytes b"\x12\x00\x00\x00\x13\x00\x00\x00\x14\x00\x00\x00\x8f\xff\xff\xff\x8e\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x90\xff\xff\xff\x01"
+                        )
+                      )
+                    SBChunk ( #empty ( 7 ) )
+                    SBChunk ( #bytes ( b"input too longincorrect number of ESDT transfersargument decode error (): too few argumentstoo many argumentswrong number of argumentscannot subtract because result would be negativeinput too shortcast to i64 errorManagedVec index out of rangeEGLD.item.indexstorage decode error: .lenbad array lengthinvalid valueinput out of rangecancelStreamcreateStreamclaimFromStreamstreamByIdstreamsListlastStreamId_with_claim_can_cancelrecipientaddressStream does not existThis stream is cancelledthis stream can't be canceledOnly recipient or sender can cancel streamstream to the current smart contractstream to the callerdeposit is zerostart time before current timeend time before the start timeonly recipient can claimamount is zeroThis stream is not cancelledOnly recipient or sender can claimindex out of rangepanic occurred" ) )
+                    .SparseBytes
+                  )
+                )
+              , 24 , 8
+              )
+        ) => doneSimplification(
+            ( SBChunk
+                ( #bytes
+                  ( b"\r\x00\x00\x00\x94\xff\xff\xff"
+                  +Bytes Int2Bytes ( 4 , ARG_0 , LE )
+                  +Bytes b"\x00\x00\x00\f\x90\xff\xff\xff"
+                  +Bytes Int2Bytes ( 4 , ARG_0 , LE )
+                  +Bytes Int2Bytes ( 8 , ARG_0 , LE )
+                  )
+                )
+              SBChunk
+                ( #bytes
+                  ( b"\x00\x00\x00\x00\x00\x00\x00\x00"
+                  +Bytes Int2Bytes ( 8 , ARG_0 , LE )
+                  +Bytes Int2Bytes ( 8 , ARG_0 , LE )
+                  +Bytes b"\x03\x00\x00\x00\x04\x00\x00\x00\x05\x00\x00\x00\x99\xff\xff\xff\x98\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x9a\xff\xff\xff\x01"
+                  )
+                )
+              SBChunk ( #empty ( 7 ) )
+              SBChunk
+                ( #bytes
+                  ( b"\x00\x00\x00\x00\x00\x00\x00\x00"
+                  +Bytes Int2Bytes ( 8 , ARG_0 , LE )
+                  +Bytes Int2Bytes ( 8 , ARG_0 , LE )
+                  +Bytes b"\x12\x00\x00\x00\x13\x00\x00\x00\x14\x00\x00\x00\x8f\xff\xff\xff\x8e\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x90\xff\xff\xff\x01"
+                  )
+                )
+              SBChunk ( #empty ( 7 ) )
+              SBChunk ( #bytes ( b"input too longincorrect number of ESDT transfersargument decode error (): too few argumentstoo many argumentswrong number of argumentscannot subtract because result would be negativeinput too shortcast to i64 errorManagedVec index out of rangeEGLD.item.indexstorage decode error: .lenbad array lengthinvalid valueinput out of rangecancelStreamcreateStreamclaimFromStreamstreamByIdstreamsListlastStreamId_with_claim_can_cancelrecipientaddressStream does not existThis stream is cancelledthis stream can't be canceledOnly recipient or sender can cancel streamstream to the current smart contractstream to the callerdeposit is zerostart time before current timeend time before the start timeonly recipient can claimamount is zeroThis stream is not cancelledOnly recipient or sender can claimindex out of rangepanic occurred" ) )
+              .SparseBytes
+            ):SparseBytes:KItem
+        )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+      requires 1000 <Int ARG_0
+        andBool ARG_0:Int <Int 6668014432879854274079851790721257797144758322315908160396257811764037237817632071521432200871554290742929910593433240445888801654119365080363356052330830046095157579514014558463078285911814024728965016135886601981690748037476461291163877376
+
+    claim
+      <k>
+        runSimplification(
             #setRange
               ( SBChunk
                 ( #bytes

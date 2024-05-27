@@ -1,6 +1,18 @@
 module INT-INEQUALITIES-LOG2INT
     imports MX-WASM-LEMMA-TESTS
 
+    claim
+      <k>
+        runSimplification(
+          -82 <=Int ((log2IntTotal(A) +Int 8) divIntTotal 8) +Int ((log2IntTotal(B) +Int 8) divIntTotal 8)
+        ) => doneSimplification(
+          true
+        )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+      requires 0 <Int A andBool 0 <Int B
+
     // rule 0 <=Int log2IntTotal(_:Int) => true
     //   [simplification, smt-lemma]
     claim
