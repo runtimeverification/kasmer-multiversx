@@ -11,6 +11,7 @@ from pyk.utils import check_dir_path
 from .build import kasmerx_build
 from .fuzz import kasmerx_fuzz
 from .utils import load_project
+from .verify import kasmerx_verify
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -35,6 +36,11 @@ class BuildOpts(KasmerxOpts): ...
 class FuzzOpts(KasmerxOpts): ...
 
 
+@dataclass
+class VerifyOpts(KasmerxOpts):
+    test: str
+
+
 def main() -> None:
     import sys
 
@@ -50,6 +56,8 @@ def kasmerx(args: Sequence[str]) -> None:
             return _kasmerx_build(opts)
         case FuzzOpts():
             return _kasmerx_fuzz(opts)
+        case VerifyOpts():
+            return _kasmerx_verify(opts)
         case _:
             raise AssertionError()
 
@@ -69,6 +77,11 @@ def _kasmerx_fuzz(opts: FuzzOpts) -> None:
     kasmerx_fuzz(project)
 
 
+def _kasmerx_verify(opts: VerifyOpts) -> None:
+    project = load_project(opts.project_dir)
+    kasmerx_verify(project, opts.test)
+
+
 # ----------------------
 # Command line arguments
 # ----------------------
@@ -82,6 +95,7 @@ def _parse_args(args: Sequence[str]) -> KasmerxOpts:
     return {
         'build': BuildOpts(project_dir=project_dir),
         'fuzz': FuzzOpts(project_dir=project_dir),
+        'verify': VerifyOpts(project_dir=project_dir, test=ns.test),
     }[ns.command]
 
 
@@ -93,6 +107,9 @@ def _arg_parser() -> ArgumentParser:
 
     command_parser.add_parser('build', help='build main and test contracts, and generate claims')
     command_parser.add_parser('fuzz', help='fuzz test contract')
+
+    verify_parser = command_parser.add_parser('verify', help='verify test contract')
+    verify_parser.add_argument('test', metavar='TEST', help='name of test function')
 
     return parser
 
