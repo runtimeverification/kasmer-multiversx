@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from pyk.kast.att import _ANY, _NONE, EMPTY_ATT, AttKey, Atts, KAtt
+from pyk.kast.att import _NONE, EMPTY_ATT, AttKey, Atts, KAtt
 from pyk.kast.inner import KInner, KRewrite, KSequence, KVariable, Subst
 from pyk.kast.manip import count_vars, free_vars
 from pyk.kast.outer import KClaim, KDefinition, KFlatModule, KImport, KRequire, KRule
@@ -25,7 +25,6 @@ class Attribute:
 
 
 SMT_LEMMA = AttKey('smt-lemma', type=_NONE)
-CONCRETE = AttKey('concrete', type=_ANY)
 
 
 @dataclass(frozen=True)

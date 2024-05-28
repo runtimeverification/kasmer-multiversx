@@ -2,9 +2,13 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 
-from pyk.kast.inner import KApply, KInner, KVariable, Subst, var_occurrences
-from pyk.prelude.kbool import notBool
+from pyk.kast.att import Atts, KAtt
+from pyk.kast.inner import KApply, KInner, KRewrite, KVariable, Subst, var_occurrences
+from pyk.kast.manip import count_vars, free_vars
+from pyk.kast.outer import KDefinition, KRule
+from pyk.prelude.kbool import andBool, notBool
 from pyk.prelude.kint import eqInt, leInt, ltInt
+from pyk.prelude.ml import mlAnd
 from pyk.prelude.utils import token
 
 from ..ast.collections import simple_list
@@ -70,6 +74,36 @@ class SplitRule:
 
     def append_to(self, lines: list[str]) -> None:
         pass
+
+    def make_rule(self, kast_defn: KDefinition) -> KRule:
+        # TODO: consider using or refactoring pyx.cterm.build_rule
+        requires = andBool(self.requires)
+        lhs_vars = free_vars(self.lhs)
+        rhs_vars = free_vars(self.rhs)
+        var_occurrences = count_vars(mlAnd([KRewrite(self.lhs, self.rhs), requires]))
+        v_subst: dict[str, KVariable] = {}
+        for v in var_occurrences:
+            new_v = v
+            if var_occurrences[v] == 1:
+                new_v = '_' + new_v
+            if v in rhs_vars and v not in lhs_vars:
+                new_v = '?' + new_v
+            if new_v != v:
+                v_subst[v] = KVariable(new_v)  # noqa: B909
+
+        lhs = Subst(v_subst)(self.lhs)
+        rhs = self.rhs  # apply_existential_substitutions(Subst(v_subst)(self.rhs))
+
+        lhs = kast_defn.sort_vars(lhs)
+        rhs = kast_defn.sort_vars(rhs)
+
+        attributes = [Atts.SIMPLIFICATION('')]
+        if self.concrete:
+            attributes.append(Atts.CONCRETE(','.join([v.name for v in self.concrete])))
+        if self.priority > 0:
+            attributes.append(Atts.PRIORITY(str(self.priority)))
+
+        return KRule(body=KRewrite(lhs, rhs), requires=requires, att=KAtt(attributes))
 
 
 class SplitTree(ABC):

@@ -3,7 +3,7 @@
 import sys
 from pathlib import Path
 
-from pyk.kast.att import KAtt
+from pyk.kast.att import Atts, KAtt
 from pyk.prelude.collections import LIST
 from pyk.prelude.kbool import BOOL, FALSE, TRUE, andBool, notBool, orBool
 from pyk.prelude.kint import INT, eqInt, gtInt, leInt, ltInt
@@ -34,15 +34,7 @@ from .expression import (
     v,
     var,
 )
-from .lemmas import (
-    CONCRETE,
-    SMT_LEMMA,
-    HelperLemma,
-    Lemma,
-    LemmaProof,
-    make_helper_lemmas_module,
-    make_proven_lemmas_module,
-)
+from .lemmas import SMT_LEMMA, HelperLemma, Lemma, LemmaProof, make_helper_lemmas_module, make_proven_lemmas_module
 from .proof import basicListInduction, proofSplit, proofVar
 
 K_DIR = Path(__file__).parents[1] / 'kdist/mxwasm-semantics'
@@ -226,18 +218,18 @@ LEMMAS = [
             Lemma(ltInt(X, addInt(Y, X)), ltInt(v(0), Y)),
             Lemma(notBool(leInt(X, Y)), ltInt(Y, X)),
             Lemma(notBool(ltInt(X, Y)), leInt(Y, X)),
-            Lemma(leInt(addInt(X, Y), Z), leInt(X, subInt(Z, Y)), att=KAtt([CONCRETE('Y, Z')])),
-            Lemma(ltInt(addInt(X, Y), Z), ltInt(X, subInt(Z, Y)), att=KAtt([CONCRETE('Y, Z')])),
-            Lemma(leInt(X, addInt(Y, Z)), leInt(subInt(X, Z), Y), att=KAtt([CONCRETE('X, Z')])),
-            Lemma(ltInt(X, addInt(Y, Z)), ltInt(subInt(X, Z), Y), att=KAtt([CONCRETE('X, Z')])),
-            Lemma(leInt(subInt(X, Y), Z), leInt(X, addInt(Y, Z)), att=KAtt([CONCRETE('Y, Z')])),
-            Lemma(ltInt(subInt(X, Y), Z), ltInt(X, addInt(Y, Z)), att=KAtt([CONCRETE('Y, Z')])),
-            Lemma(leInt(subInt(X, Y), Z), leInt(subInt(X, Z), Y), att=KAtt([CONCRETE('X, Z')])),
-            Lemma(ltInt(subInt(X, Y), Z), ltInt(subInt(X, Z), Y), att=KAtt([CONCRETE('X, Z')])),
-            Lemma(leInt(X, subInt(Y, Z)), leInt(addInt(X, Z), Y), att=KAtt([CONCRETE('X, Z')])),
-            Lemma(ltInt(X, subInt(Y, Z)), ltInt(addInt(X, Z), Y), att=KAtt([CONCRETE('X, Z')])),
-            Lemma(leInt(X, subInt(Y, Z)), leInt(Z, subInt(Y, X)), att=KAtt([CONCRETE('X, Y')])),
-            Lemma(ltInt(X, subInt(Y, Z)), ltInt(Z, subInt(Y, X)), att=KAtt([CONCRETE('X, Y')])),
+            Lemma(leInt(addInt(X, Y), Z), leInt(X, subInt(Z, Y)), att=KAtt([Atts.CONCRETE('Y, Z')])),
+            Lemma(ltInt(addInt(X, Y), Z), ltInt(X, subInt(Z, Y)), att=KAtt([Atts.CONCRETE('Y, Z')])),
+            Lemma(leInt(X, addInt(Y, Z)), leInt(subInt(X, Z), Y), att=KAtt([Atts.CONCRETE('X, Z')])),
+            Lemma(ltInt(X, addInt(Y, Z)), ltInt(subInt(X, Z), Y), att=KAtt([Atts.CONCRETE('X, Z')])),
+            Lemma(leInt(subInt(X, Y), Z), leInt(X, addInt(Y, Z)), att=KAtt([Atts.CONCRETE('Y, Z')])),
+            Lemma(ltInt(subInt(X, Y), Z), ltInt(X, addInt(Y, Z)), att=KAtt([Atts.CONCRETE('Y, Z')])),
+            Lemma(leInt(subInt(X, Y), Z), leInt(subInt(X, Z), Y), att=KAtt([Atts.CONCRETE('X, Z')])),
+            Lemma(ltInt(subInt(X, Y), Z), ltInt(subInt(X, Z), Y), att=KAtt([Atts.CONCRETE('X, Z')])),
+            Lemma(leInt(X, subInt(Y, Z)), leInt(addInt(X, Z), Y), att=KAtt([Atts.CONCRETE('X, Z')])),
+            Lemma(ltInt(X, subInt(Y, Z)), ltInt(addInt(X, Z), Y), att=KAtt([Atts.CONCRETE('X, Z')])),
+            Lemma(leInt(X, subInt(Y, Z)), leInt(Z, subInt(Y, X)), att=KAtt([Atts.CONCRETE('X, Y')])),
+            Lemma(ltInt(X, subInt(Y, Z)), ltInt(Z, subInt(Y, X)), att=KAtt([Atts.CONCRETE('X, Y')])),
         ],
     ),
     LemmaProof(
@@ -271,7 +263,7 @@ LEMMAS = [
                 modIntTotal(addInt(X, Y), Z),
                 modIntTotal(addInt(X, modInt(Y, Z)), Z),
                 requires=andBool([notBool(eqInt(Z, v(0))), geInt(Y, Z)]),
-                att=KAtt([CONCRETE('Y,Z')]),
+                att=KAtt([Atts.CONCRETE('Y,Z')]),
             ),
             Lemma(
                 mlEquals(modIntTotal(addInt(X, Y), M), modIntTotal(addInt(X, Z), M)),
