@@ -6,6 +6,7 @@ from pyk.kast.att import Atts, KAtt
 from pyk.kast.inner import KApply, KInner, KRewrite, KVariable, Subst, var_occurrences
 from pyk.kast.manip import count_vars, free_vars
 from pyk.kast.outer import KDefinition, KRule
+from pyk.ktool.kprint import KPrint
 from pyk.prelude.kbool import andBool, notBool
 from pyk.prelude.kint import eqInt, leInt, ltInt
 from pyk.prelude.ml import mlAnd
@@ -13,6 +14,7 @@ from pyk.prelude.utils import token
 
 from ..ast.collections import simple_list
 from ..ast.domains import addInt, concatBytes, int2BytesLen, int2BytesNoLen, lengthBytes, subInt, substrBytes
+from ..build import HASKELL, semantics
 
 
 def get_unique_var(vars: dict[str, list[KVariable]], name: str) -> KVariable:
@@ -43,7 +45,6 @@ def check_term_contains_all_variables_from(containing: KInner, contained: KInner
     contained_vars = var_occurrences(contained)
     containing_vars = var_occurrences(containing)
     for var_name in contained_vars.keys():
-        print(contained)
         var = get_unique_var(contained_vars, var_name)
         if not var_dict_contains_variable(containing_vars, var):
             raise ValueError(f'{var} in {containing} but not in {contained}')
@@ -71,9 +72,24 @@ class SplitRule:
     concrete: list[KVariable]
     priority: int = -1
     enabled: bool = True
+    disabled_explanation: str = ''
 
-    def append_to(self, lines: list[str]) -> None:
-        pass
+    def append_to(self, lines: list[str], printer: KPrint) -> None:
+        rule = self.make_rule(printer.definition)
+        rule_str = printer.pretty_print(rule)
+        rule_lines = rule_str.splitlines()
+        if not self.enabled:
+            min_len = len(rule_lines[0])
+            pairs = [(line, line.lstrip()) for line in rule_lines]
+            for l, ls in pairs:
+                prefix_len = len(l) - len(ls)
+                if prefix_len < min_len:
+                    min_len = prefix_len
+            comment = (' ' * min_len) + '// '
+            rule_lines = [comment + ls for (_, ls) in pairs]
+            if self.disabled_explanation:
+                rule_lines.insert(0, comment + self.disabled_explanation)
+        lines += rule_lines
 
     def make_rule(self, kast_defn: KDefinition) -> KRule:
         # TODO: consider using or refactoring pyx.cterm.build_rule
@@ -118,11 +134,9 @@ class VariableConcretizeSplitTree(SplitTree):
     owise: SplitTree | None
 
     def generate(self, base_formula: KInner, requires: list[KInner], concrete: list[KVariable]) -> list[SplitRule]:
-        print('***** base_formula:', base_formula)
         check_term_contains_variable(base_formula, self.variable)
         retv = []
         for concretization, tree in self.concretizations:
-            print(concretization)
             check_disinct_variables(base_formula, concretization)
             subst = Subst({self.variable.name: concretization})
             new_base_formula = subst.apply(base_formula)
@@ -395,10 +409,10 @@ def splitSparseBytesHeadUpdate(  # noqa: N802
     return KApply('splitSparseBytesHeadUpdate', function, sparse_bytes, start, width, position)
 
 
-def print_lemmas(lemmas: list[SplitRule], module_name: str, file_name: Path) -> None:
+def print_lemmas(lemmas: list[SplitRule], module_name: str, file_name: Path, printer: KPrint) -> None:
     lines: list[str] = []
     for lemma in lemmas:
-        lemma.append_to(lines)
+        lemma.append_to(lines, printer)
         lines.append('')
     file_name.write_text('\n'.join(lines))
 
@@ -737,15 +751,18 @@ def split_rules() -> list[SplitRule]:
 
 
 def main() -> None:
+    tools = semantics(HASKELL, booster=False, llvm=False, bug_report=None)
     print_lemmas(
         lemmas=update_rules(),
         module_name='UPDATE-SPARSE-BYTES-LEMMAS',
         file_name=Path('/mnt/data/runtime-verification/elrond-wasm-2/kmxwasm/tmp/update-lemmas.md'),
+        printer=tools.printer,
     )
     print_lemmas(
         lemmas=split_rules(),
-        module_name='UPDATE-SPARSE-BYTES-LEMMAS',
-        file_name=Path('/mnt/data/runtime-verification/elrond-wasm-2/kmxwasm/tmp/update-lemmas.md'),
+        module_name='SPLIT-SPARSE-BYTES-LEMMAS',
+        file_name=Path('/mnt/data/runtime-verification/elrond-wasm-2/kmxwasm/tmp/split-lemmas.md'),
+        printer=tools.printer,
     )
 
 
