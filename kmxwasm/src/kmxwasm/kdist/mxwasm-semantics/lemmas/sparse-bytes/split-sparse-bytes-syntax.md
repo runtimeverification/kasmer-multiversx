@@ -1,0 +1,6 @@
+```k
+module SPLIT-SPARSE-BYTES-SYNTAX
+    imports HANDLE-SPARSE-BYTES-LEMMAS-SYNTAX
+
+endmodule
+````

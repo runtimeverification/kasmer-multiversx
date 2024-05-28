@@ -6,6 +6,7 @@ requires "replace-at-b-lemmas.md"
 requires "replace-at-lemmas.md"
 requires "set-range-lemmas.md"
 requires "sparse-bytes-lemmas-basic.md"
+requires "split-sparse-bytes-syntax.md"
 requires "substr-sparse-bytes-lemmas.md"
 
 module SPARSE-BYTES-LEMMAS
@@ -17,6 +18,7 @@ module SPARSE-BYTES-LEMMAS
     imports private SET-RANGE-LEMMAS
     imports private SPARSE-BYTES-LEMMAS-BASIC
     imports private SUBSTR-SPARSE-BYTES-LEMMAS
+    imports private SPLIT-SPARSE-BYTES-SYNTAX
 
     rule concat(A, .SparseBytes) => A
         [simplification]

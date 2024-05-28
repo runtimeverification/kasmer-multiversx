@@ -47,7 +47,7 @@ def check_term_contains_all_variables_from(containing: KInner, contained: KInner
     for var_name in contained_vars.keys():
         var = get_unique_var(contained_vars, var_name)
         if not var_dict_contains_variable(containing_vars, var):
-            raise ValueError(f'{var} in {containing} but not in {contained}')
+            raise ValueError(f'{var} in {contained} but not in {containing}')
 
 
 def check_disinct_variables(containing: KInner, contained: KInner) -> None:
@@ -140,8 +140,16 @@ class VariableConcretizeSplitTree(SplitTree):
             check_disinct_variables(base_formula, concretization)
             subst = Subst({self.variable.name: concretization})
             new_base_formula = subst.apply(base_formula)
+            print('(')
+            print(' ', subst)
+            print('  ****')
+            print(' ', base_formula)
+            print('  ****')
+            print(' ', new_base_formula)
             new_requires = [subst.apply(r) for r in requires]
             retv += tree.generate(new_base_formula, new_requires, concrete)
+            print(')')
+            print()
         return retv
 
 
@@ -239,7 +247,7 @@ def sparse_bytes_update(function: KInner, sb: KInner, start: KInner, width: KInn
 def list_sparse_bytes(elements: list[KInner]) -> KInner:
     return simple_list(
         concat_label='___SPARSE-BYTES_SparseBytes_SBItemChunk_SparseBytes',
-        empty_label='.List{"___SPARSE-BYTES"}',
+        empty_label='.List{"___SPARSE-BYTES_SparseBytes_SBItemChunk_SparseBytes"}_SparseBytes',
         items=elements,
     )
 
@@ -510,6 +518,7 @@ def split_rules() -> list[SplitRule]:
     dummy_2_var = KVariable('_2')
 
     def split_sb_merge_tree(sbi: KVariable, sbtail: KVariable, position: KVariable) -> SplitTree:
+        print(sbi)
         return split_bool(
             condition=ltInt(position, sizeSparseBytesItem(sbi)),
             when_true=split_sparse_bytes_item(
@@ -629,8 +638,8 @@ def split_rules() -> list[SplitRule]:
             ),
             when_false=result(
                 splitSparseBytes(
-                    split_point=subInt(position_var, empty_size_var),
-                    prefix=concatSparseBytes(prefix_var, sbi_var),
+                    split_point=subInt(position_var, sizeSparseBytesItem(sbi)),
+                    prefix=concatSparseBytes(prefix_var, sbi),
                     suffix=sbtail,
                 )
             ),

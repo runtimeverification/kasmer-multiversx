@@ -211,7 +211,7 @@ See the `SPLIT-SPARSE-BYTES` module for details on how this is implemented.
     syntax SparseBytes ::= splitSparseBytes(
             toSplit:SparseBytes, prefix:SparseBytes, addr:Int
         )
-        [function, total, no-evaluators]
+        [function, total, no-evaluators, symbol(splitSparseBytes)]
 
     syntax Bool ::= canSplitSparseBytesSimple(
                         SBSetFunction, SparseBytes,
@@ -228,18 +228,20 @@ See the `SPLIT-SPARSE-BYTES` module for details on how this is implemented.
             addr:Int, innerAddr:Int, innerWidth:Int
         )
         [function, total, no-evaluators]
-        | splitSparseBytesUpdateTail(
+    syntax SparseBytes ::= splitSparseBytesUpdateTail(
             SBSetFunction, toSplit:SparseBytes,
             start:Int, width:Int, position:Int
         ) [function, total, no-evaluators, symbol(splitSparseBytesUpdateTail)]
-        | splitSparseBytesHeadUpdate(
+    syntax SparseBytes ::= splitSparseBytesHeadUpdate(
             SBSetFunction, toSplit:SparseBytes,
             start:Int, width:Int, position:Int
         ) [function, total, no-evaluators, symbol(splitSparseBytesHeadUpdate)]
     syntax SparseBytes ::= #splitSparseBytesUpdateTail(
             function:SparseBytes, toSplit:SparseBytes, splitter:SparseBytes, addr:Int
-        )
-        [function, total, no-evaluators]
+        ) [function, total, no-evaluators, symbol(splitSparseBytesUpdateTailHelper)]
+    syntax SparseBytes ::= #splitSparseBytesHeadUpdate(
+            function:SparseBytes, toSplit:SparseBytes, splitter:SparseBytes, addr:Int
+        ) [function, total, no-evaluators, symbol(splitSparseBytesHeadUpdateHelper)]
 
     syntax Bool ::= empty(SparseBytes)  [function, total]
     rule empty(.SparseBytes) => true
@@ -327,10 +329,10 @@ clause that is more restrictive for `canSplitSparseBytes` ensures that
         => #splitSparseBytesUpdateTail(
             updateSparseBytes(Function, ToSplit, Start, Width),
             ToSplit,
-            splitSparseBytes(ToSplit, .SparseBytes, Position -Int startOffset(F)),
+            splitSparseBytes(ToSplit, .SparseBytes, Position -Int startOffset(Function)),
             Position
         )
-        requires InnerAddr +Int InnerWidth <=Int Addr
+        requires Start +Int Width <=Int Position
     rule splitSparseBytesHeadUpdate(
             Function:SBSetFunction,
             ToSplit:SparseBytes,
@@ -338,10 +340,10 @@ clause that is more restrictive for `canSplitSparseBytes` ensures that
         => #splitSparseBytesHeadUpdate(
             updateSparseBytes(Function, ToSplit, Start, Width),
             ToSplit,
-            splitSparseBytes(ToSplit, .SparseBytes, Position -Int startOffset(F)),
+            splitSparseBytes(ToSplit, .SparseBytes, Position -Int startOffset(Function)),
             Position
         )
-        requires InnerAddr +Int InnerWidth <=Int Addr
+        requires Start +Int Width <=Int Position
     rule splitSparseBytesFunction(Function:SparseBytes, F:SBSetFunction, ToSplit:SparseBytes, Addr:Int, InnerAddr:Int, InnerWidth:Int)
         => #splitSparseBytesUpdateTail(
             Function, ToSplit, splitSparseBytes(ToSplit, .SparseBytes, Addr -Int startOffset(F)), Addr
