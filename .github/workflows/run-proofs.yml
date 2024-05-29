@@ -1,7 +1,7 @@
 name: 'Run Proofs'
 on:
   schedule:
-    - cron: '0 0 * * 6' # run every saturday 
+    - cron: '0 0 * * 6' # run every saturday
   workflow_dispatch:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -26,6 +26,8 @@ jobs:
             claim: test_change_quorum-spec.json
             timeout: 300
     timeout-minutes: ${{ matrix.timeout }}
+    env:
+      CONTAINER: mx-wasm-proof-${{ github.sha }}
     steps:
       - name: 'Check out code'
         uses: actions/checkout@v3
@@ -35,16 +37,16 @@ jobs:
       - name: 'Set up Docker'
         uses: ./.github/actions/with-docker
         with:
-          container-name: mx-wasm-ci-${{ github.sha }}
+          container-name: ${CONTAINER}
       - name: 'Build kmxwasm'
-        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make kmxwasm
+        run: docker exec --user user ${CONTAINER} make kmxwasm
       - name: 'Build semantics'
-        run: docker exec --user user mx-wasm-ci-${GITHUB_SHA} make build
+        run: docker exec --user user ${CONTAINER} make build
       - name: 'Run proof'
         run: |
           CLAIMS_DIR=kmxwasm/src/tests/integration/data
           CLAIM_PATH=$CLAIMS_DIR/${{ matrix.claim }}
-          docker exec --user user mx-wasm-ci-${GITHUB_SHA} poetry -C kmxwasm run kmxwasm-property --claim $CLAIM_PATH --booster
+          docker exec --user user ${CONTAINER} poetry -C kmxwasm run kmxwasm-property --claim $CLAIM_PATH --booster
       - name: 'Tear down Docker'
         if: always()
-        run: docker stop --time 0 mx-wasm-ci-${GITHUB_SHA}
+        run: docker stop --time 0 ${CONTAINER}
