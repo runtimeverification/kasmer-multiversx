@@ -17,6 +17,7 @@ bug-report.tar
 .bashrc
 .profile
 .local/
+/generated_claims/
 
 # User-specific files
 *.rsuser
