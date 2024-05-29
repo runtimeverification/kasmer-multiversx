@@ -32,7 +32,7 @@ jobs:
         run: |
           KMULTIVERSX_VERSION=$(cat deps/mx-semantics_release)
           sed -i 's!kmultiversx = { git = "https://github.com/runtimeverification/mx-semantics.git", tag = "[v0-9\.]*", subdirectory = "kmultiversx" }!kmultiversx = { git = "https://github.com/runtimeverification/mx-semantics.git", tag = "v'${KMULTIVERSX_VERSION}'", subdirectory = "kmultiversx" }!' kmxwasm/pyproject.toml
-          poetry -C kmxwasm update
+          poetry -vvv -C kmxwasm update
           git add kmxwasm/pyproject.toml kmxwasm/poetry.lock && git commit -m 'kmxwasm/{pyproject.toml,poetry.lock}: sync Poetry files' || true
       - name: 'Update K release'
         run: |
