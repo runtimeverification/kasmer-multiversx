@@ -22,6 +22,7 @@ runs:
         --interactive            \
         --tty                    \
         --detach                 \
+        --user root              \
         --workdir /home/user     \
         ${TAG}
       docker cp . ${CONTAINER_NAME}:/home/user
