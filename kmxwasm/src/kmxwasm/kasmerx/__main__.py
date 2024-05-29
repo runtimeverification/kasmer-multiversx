@@ -108,19 +108,23 @@ def _parse_args(args: Sequence[str]) -> KasmerxOpts:
 
     project_dir = Path(ns.directory)
 
-    return {
-        'build': BuildOpts(project_dir=project_dir),
-        'fuzz': FuzzOpts(project_dir=project_dir),
-        'verify': VerifyOpts(
-            project_dir=project_dir,
-            test=ns.test,
-            step=ns.step,
-            iterations=ns.iterations,
-            restart=ns.restart,
-            booster=ns.booster,
-            bug_report=ns.bug_report,
-        ),
-    }[ns.command]
+    match ns.command:
+        case 'build':
+            return BuildOpts(project_dir=project_dir)
+        case 'fuzz':
+            return FuzzOpts(project_dir=project_dir)
+        case 'verify':
+            return VerifyOpts(
+                project_dir=project_dir,
+                test=ns.test,
+                step=ns.step,
+                iterations=ns.iterations,
+                restart=ns.restart,
+                booster=ns.booster,
+                bug_report=ns.bug_report,
+            )
+        case _:
+            raise AssertionError()
 
 
 def _arg_parser() -> ArgumentParser:
