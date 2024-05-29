@@ -4,6 +4,48 @@ module INT-ENCODING
     claim
       <k>
         runSimplification(
+            ( ( ((-1) *Int (countConsecutiveZeroBytes ( ... value: (ARG_1:Int) +Int (ARG_2:Int) , processed: 5 )))
+              +Int ((-1) *Int (int64BytesAre0 ( ... value: (ARG_1:Int) +Int (ARG_2:Int) , b8Is0: true , b7Is0: true , b6Is0: true , b5Is0: true , b4Is0: true , b3Is0: true , b2Is0: true , b1Is0: false )))
+              )
+            +Int (8)
+            ) modIntTotal (4294967296)
+        ) => doneSimplification(
+            -1 *Int countConsecutiveZeroBytes (... value: ARG_1 +Int ARG_2 , processed: 6 ) +Int 8
+        )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+      requires 0 <Int ARG_1
+        andBool ARG_1 <Int 18446744056529682435
+        andBool 0 <Int ARG_2
+        andBool ARG_2 <=Int 4294967295
+
+    claim
+      <k>
+        runSimplification(
+            ( ( ( ( (int64BytesAre0 ( ... value: ((ARG_1:Int) +Int (ARG_2:Int)) modIntTotal (4294967296) , b8Is0: false , b7Is0: false , b6Is0: false , b5Is0: false , b4Is0: true , b3Is0: false , b2Is0: false , b1Is0: false ))
+                  &Int (int64BytesAre0 ( ... value: (ARG_1:Int) +Int (ARG_2:Int) , b8Is0: false , b7Is0: false , b6Is0: false , b5Is0: true , b4Is0: false , b3Is0: false , b2Is0: false , b1Is0: false ))
+                  )
+                &Int (int64BytesAre0 ( ... value: (ARG_1:Int) +Int (ARG_2:Int) , b8Is0: false , b7Is0: false , b6Is0: true , b5Is0: false , b4Is0: false , b3Is0: false , b2Is0: false , b1Is0: false ))
+                )
+              &Int (int64BytesAre0 ( ... value: (ARG_1:Int) +Int (ARG_2:Int) , b8Is0: true , b7Is0: false , b6Is0: false , b5Is0: false , b4Is0: false , b3Is0: false , b2Is0: false , b1Is0: false ))
+              )
+            &Int (int64BytesAre0 ( ... value: (ARG_1:Int) +Int (ARG_2:Int) , b8Is0: false , b7Is0: true , b6Is0: false , b5Is0: false , b4Is0: false , b3Is0: false , b2Is0: false , b1Is0: false ))
+            )
+        ) => doneSimplification(
+            int64BytesAre0 (... value: ARG_1 +Int ARG_2 , b8Is0: true , b7Is0: true , b6Is0: true , b5Is0: true , b4Is0: true , b3Is0: false , b2Is0: false , b1Is0: false )
+        )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+      requires 0 <Int ARG_1
+        andBool ARG_1 <Int 18446744056529682435
+        andBool 0 <Int ARG_2
+        andBool ARG_2 <=Int 4294967295
+
+    claim
+      <k>
+        runSimplification(
             int64encoding
               ( ... value: Bytes2Int
                 ( b"\x00\x00\x00"
