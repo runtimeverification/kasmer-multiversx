@@ -140,16 +140,8 @@ class VariableConcretizeSplitTree(SplitTree):
             check_disinct_variables(base_formula, concretization)
             subst = Subst({self.variable.name: concretization})
             new_base_formula = subst.apply(base_formula)
-            print('(')
-            print(' ', subst)
-            print('  ****')
-            print(' ', base_formula)
-            print('  ****')
-            print(' ', new_base_formula)
             new_requires = [subst.apply(r) for r in requires]
             retv += tree.generate(new_base_formula, new_requires, concrete)
-            print(')')
-            print()
         return retv
 
 
@@ -199,6 +191,7 @@ class ResultSplitTree(SplitTree):
 
 @dataclass
 class NotHandledSplitTree(SplitTree):
+    explanation: str|None
     def generate(self, base_formula: KInner, requires: list[KInner], concrete: list[KVariable]) -> list[SplitRule]:
         return [
             SplitRule(
@@ -208,6 +201,7 @@ class NotHandledSplitTree(SplitTree):
                 concrete=concrete,
                 priority=-1,
                 enabled=False,
+                disabled_explanation=self.explanation
             )
         ]
 
@@ -232,15 +226,15 @@ def bytesConcat(first: KInner, second: KInner) -> KApply:  # noqa: N802
     return KApply('_+Bytes__BYTES-HOOKED_Bytes_Bytes_Bytes', first, second)
 
 
-def sparse_bytes_concat(first: KInner, second: KInner) -> KApply:
+def concatSparseBytes(first: KInner, second: KInner) -> KApply:  # noqa: N802
     return KApply('concatSparseBytes', first, second)
 
 
-def sparse_bytes_merge(first: KInner, second: KInner) -> KApply:
+def mergeSparseBytes(first: KInner, second: KInner) -> KApply:  # noqa: N802
     return KApply('mergeSparseBytes', first, second)
 
 
-def sparse_bytes_update(function: KInner, sb: KInner, start: KInner, width: KInner) -> KApply:
+def updateSparseBytes(function: KInner, sb: KInner, start: KInner, width: KInner) -> KApply:  # noqa: N802
     return KApply('updateSparseBytes', function, sb, start, width)
 
 
@@ -250,6 +244,14 @@ def list_sparse_bytes(elements: list[KInner]) -> KInner:
         empty_label='.List{"___SPARSE-BYTES_SparseBytes_SBItemChunk_SparseBytes"}_SparseBytes',
         items=elements,
     )
+
+
+def sbChunk(item: KInner) -> KApply:  # noqa: N802
+    return KApply('SBChunk(_)_SPARSE-BYTES_SBItemChunk_SBItem', item)
+
+
+def list_from_sb_item(item: KInner) -> KInner:
+    return list_sparse_bytes([sbChunk(item)])
 
 
 def split_sparse_bytes(
@@ -265,9 +267,9 @@ def split_sparse_bytes(
         concretizations=[
             (list_sparse_bytes([]), empty),
             (list_sparse_bytes([element_list[0], element_list[1]]), element_list[2]),
-            (sparse_bytes_concat(concat[0], concat[1]), concat[2]),
-            (sparse_bytes_merge(merge[0], merge[1]), merge[2]),
-            (sparse_bytes_update(update[0], update[1], update[2], update[3]), update[4]),
+            (concatSparseBytes(concat[0], concat[1]), concat[2]),
+            (mergeSparseBytes(merge[0], merge[1]), merge[2]),
+            (updateSparseBytes(update[0], update[1], update[2], update[3]), update[4]),
         ],
         owise=not_implemented(),
     )
@@ -343,7 +345,7 @@ def result(rhs: KInner, priority: int = -1) -> SplitTree:
 
 
 def not_implemented(explanation: str = '') -> SplitTree:
-    return NotHandledSplitTree()
+    return NotHandledSplitTree(explanation)
 
 
 NOT_IMPLEMENTED = not_implemented()
@@ -387,10 +389,6 @@ def sizeSparseBytes(sparse_bytes: KInner) -> KApply:  # noqa: N802
     return KApply('SparseBytes:size', sparse_bytes)
 
 
-def concatSparseBytes(first: KInner, second: KInner) -> KApply:  # noqa: N802
-    return KApply('concatSparseBytes', first, second)
-
-
 def splitSparseBytes(split_point: KInner, prefix: KInner, suffix: KInner) -> KApply:  # noqa: N802
     return KApply('splitSparseBytes', suffix, prefix, split_point)
 
@@ -417,16 +415,22 @@ def splitSparseBytesHeadUpdate(  # noqa: N802
     return KApply('splitSparseBytesHeadUpdate', function, sparse_bytes, start, width, position)
 
 
+def indent(lines: list[str]) -> list[str]:
+    return ['    ' + l for l in lines]
+
+
 def print_lemmas(lemmas: list[SplitRule], module_name: str, file_name: Path, printer: KPrint) -> None:
-    lines: list[str] = []
+    lines: list[str] = ['imports private SPARSE-BYTES-LEMMAS-SYNTAX', '']
     for lemma in lemmas:
         lemma.append_to(lines, printer)
         lines.append('')
+    lines = indent(lines)
+    lines = ['```k', 'requires "sparse-bytes-lemmas-syntax.md"', '', f'module {module_name}'] + lines + ['endmodule', '```']
     file_name.write_text('\n'.join(lines))
 
 
 def update_rules() -> list[SplitRule]:
-    update_base_term = sparse_bytes_update(
+    update_base_term = updateSparseBytes(
         function=KVariable('F'), sb=KVariable('SB'), start=KVariable('Start'), width=KVariable('Width')
     )
     update_tree = split_int_vs_0(
@@ -518,7 +522,6 @@ def split_rules() -> list[SplitRule]:
     dummy_2_var = KVariable('_2')
 
     def split_sb_merge_tree(sbi: KVariable, sbtail: KVariable, position: KVariable) -> SplitTree:
-        print(sbi)
         return split_bool(
             condition=ltInt(position, sizeSparseBytesItem(sbi)),
             when_true=split_sparse_bytes_item(
@@ -528,8 +531,10 @@ def split_rules() -> list[SplitRule]:
                     result(
                         splitSparseBytes(
                             split_point=token(0),
-                            prefix=concatSparseBytes(prefix_var, empty_chunk(position)),
-                            suffix=concatSparseBytes(empty_chunk(subInt(empty_size_var, position)), sbtail),
+                            prefix=concatSparseBytes(prefix_var, list_from_sb_item([empty_chunk(position)])),
+                            suffix=concatSparseBytes(
+                                list_from_sb_item([empty_chunk(subInt(empty_size_var, position))]), sbtail
+                            ),
                         )
                     ),
                 ),
@@ -545,10 +550,19 @@ def split_rules() -> list[SplitRule]:
                                     splitSparseBytes(
                                         split_point=token(0),
                                         prefix=concatSparseBytes(
-                                            prefix_var, bytes_chunk(substrBytes(bytes_b_var, token(0), position))
+                                            prefix_var,
+                                            list_from_sb_item(
+                                                [bytes_chunk(substrBytes(bytes_b_var, token(0), position))]
+                                            ),
                                         ),
                                         suffix=concatSparseBytes(
-                                            bytes_chunk(substrBytes(bytes_b_var, position, lengthBytes(bytes_b_var))),
+                                            list_from_sb_item(
+                                                [
+                                                    bytes_chunk(
+                                                        substrBytes(bytes_b_var, position, lengthBytes(bytes_b_var))
+                                                    )
+                                                ]
+                                            ),
                                             sbtail,
                                         ),
                                     )
@@ -571,16 +585,28 @@ def split_rules() -> list[SplitRule]:
                                                     split_point=token(0),
                                                     prefix=concatSparseBytes(
                                                         prefix_var,
-                                                        bytes_chunk(substrBytes(bytes_d_var, token(0), position_var)),
+                                                        list_from_sb_item(
+                                                            [
+                                                                bytes_chunk(
+                                                                    substrBytes(bytes_d_var, token(0), position_var)
+                                                                )
+                                                            ]
+                                                        ),
                                                     ),
                                                     suffix=concatSparseBytes(
-                                                        bytes_chunk(
-                                                            concatBytes(
-                                                                substrBytes(
-                                                                    bytes_d_var, position, lengthBytes(bytes_d_var)
-                                                                ),
-                                                                bytes_c_var,
-                                                            )
+                                                        list_from_sb_item(
+                                                            [
+                                                                bytes_chunk(
+                                                                    concatBytes(
+                                                                        substrBytes(
+                                                                            bytes_d_var,
+                                                                            position,
+                                                                            lengthBytes(bytes_d_var),
+                                                                        ),
+                                                                        bytes_c_var,
+                                                                    )
+                                                                )
+                                                            ]
                                                         ),
                                                         sbtail,
                                                     ),
@@ -615,8 +641,10 @@ def split_rules() -> list[SplitRule]:
                                 when_false=result(
                                     splitSparseBytes(
                                         split_point=token(0),
-                                        prefix=concatSparseBytes(prefix_var, bytes_chunk(bytes_b_var)),
-                                        suffix=concatSparseBytes(bytes_chunk(bytes_c_var), sbtail),
+                                        prefix=concatSparseBytes(
+                                            prefix_var, list_from_sb_item([bytes_chunk(bytes_b_var)])
+                                        ),
+                                        suffix=concatSparseBytes(list_from_sb_item([bytes_chunk(bytes_c_var)]), sbtail),
                                     )
                                 ),
                             ),
@@ -639,7 +667,7 @@ def split_rules() -> list[SplitRule]:
             when_false=result(
                 splitSparseBytes(
                     split_point=subInt(position_var, sizeSparseBytesItem(sbi)),
-                    prefix=concatSparseBytes(prefix_var, sbi),
+                    prefix=concatSparseBytes(prefix_var, list_from_sb_item([sbi])),
                     suffix=sbtail,
                 )
             ),
@@ -647,12 +675,12 @@ def split_rules() -> list[SplitRule]:
 
     split_sb_tree = split_bool(
         condition=leInt(position_var, token(0)),
-        when_true=not_implemented('Nothing to do.'),
+        when_true=not_implemented('Unsure what to do.'),
         when_false=split_bool(
             condition=ltInt(position_var, sizeSparseBytes(suffix_var)),
             when_true=split_sparse_bytes(
                 var=suffix_var,
-                empty=not_implemented('Nothing to do.'),
+                empty=not_implemented('Non-existent branch.'),
                 element_list=(
                     sbi_var,
                     sbtail_var,
@@ -770,7 +798,7 @@ def main() -> None:
     print_lemmas(
         lemmas=split_rules(),
         module_name='SPLIT-SPARSE-BYTES-LEMMAS',
-        file_name=Path('/mnt/data/runtime-verification/elrond-wasm-2/kmxwasm/tmp/split-lemmas.md'),
+        file_name=Path('/mnt/data/runtime-verification/elrond-wasm-2/kmxwasm/tmp/split-sparse-bytes-lemmas.md'),
         printer=tools.printer,
     )
 
