@@ -60,6 +60,10 @@ module SUBSTR-SPARSE-BYTES-LEMMAS
     rule substrSparseBytes(_, Start, End) => .SparseBytes
         requires End <=Int Start
         [simplification]
+    rule substrSparseBytes(updateSparseBytes(_F, _SB, _Start, _Width) #as Update, 0, SEnd)
+        => Update
+        requires SEnd ==Int size(Update)
+        [simplification]
 
     rule extractSparseBytes(substr, SB, 0, Width)
         => SB
