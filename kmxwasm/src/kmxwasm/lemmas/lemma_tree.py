@@ -667,7 +667,7 @@ def split_rules() -> list[SplitRule]:
             when_false=result(
                 splitSparseBytes(
                     split_point=subInt(position_var, sizeSparseBytesItem(sbi)),
-                    prefix=concatSparseBytes(prefix_var, list_from_sb_item([sbi])),
+                    prefix=concatSparseBytes(prefix_var, list_sparse_bytes([sbi])),
                     suffix=sbtail,
                 )
             ),
