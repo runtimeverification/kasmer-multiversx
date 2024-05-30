@@ -17,13 +17,16 @@ jobs:
       matrix:
         include:
           - name: Pair Add Liquidity
-            claim: test_add_liquidity-spec.json
+            contract: tests/contracts/test_pair
+            test: test_add_liquidity
             timeout: 480
           - name: Pair Swap
-            claim: test_swap-spec.json
+            contract: tests/contracts/test_pair
+            test: test_swap
             timeout: 300
           - name: Multisig Change Quorum
-            claim: test_change_quorum-spec.json
+            contract: tests/contracts/test_multisig
+            test: test_change_quorum
             timeout: 300
     timeout-minutes: ${{ matrix.timeout }}
     env:
@@ -42,11 +45,14 @@ jobs:
         run: docker exec --user user ${CONTAINER} make kmxwasm
       - name: 'Build semantics'
         run: docker exec --user user ${CONTAINER} make build
-      - name: 'Run proof'
+      - name: 'Build kasmer semantics'
+        run: docker exec --user user ${CONTAINER} make build-kasmer
+      - name: 'kasmerx build'
         run: |
-          CLAIMS_DIR=kmxwasm/src/tests/integration/data
-          CLAIM_PATH=$CLAIMS_DIR/${{ matrix.claim }}
-          docker exec --user user ${CONTAINER} poetry -C kmxwasm run kmxwasm-property --claim $CLAIM_PATH --booster
+          docker exec --user user ${CONTAINER} poetry -C kmxwasm run -- kasmerx -C ${{ matrix.contract }} build
+      - name: 'kasmerx verify'
+        run: |
+          docker exec --user user ${CONTAINER} poetry -C kmxwasm run -- kasmerx -C ${{ matrix.contract }} verify ${{ matrix.test }} --booster
       - name: 'Tear down Docker'
         if: always()
         run: docker stop --time 0 ${CONTAINER}
