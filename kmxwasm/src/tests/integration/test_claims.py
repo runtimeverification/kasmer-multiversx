@@ -131,7 +131,7 @@ def configCell(  # noqa: N802
     k_cell: KInner, vm_output: KInner, addresses: dict[KInner, KInner], accounts: list[KInner], logging: KVariable
 ) -> KInner:
     return KApply(
-        '<foundry>',
+        '<kasmer>',
         (
             KApply(
                 '<mandos>',

@@ -23,7 +23,7 @@ CALLEE_CELL_NAME = '<callee>'
 MAIN_STORE_CELL_NAME = '<mainStore>'
 FUNCS_CELL_NAME = '<funcs>'
 
-MANDOS_CELL_PATH = ['<foundry>', '<mandos>']
+MANDOS_CELL_PATH = ['<kasmer>', '<mandos>']
 ELROND_CELL_PATH = MANDOS_CELL_PATH + ['<elrond>']
 LOGGING_CELL_PATH = ELROND_CELL_PATH + ['<logging>']
 NODE_CELL_PATH = ELROND_CELL_PATH + ['<node>']
