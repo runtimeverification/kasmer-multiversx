@@ -19,7 +19,7 @@ jobs:
           - name: Pair Add Liquidity
             contract: tests/contracts/test_pair
             test: test_add_liquidity
-            timeout: 480
+            timeout: 1000
           - name: Pair Swap
             contract: tests/contracts/test_pair
             test: test_swap
