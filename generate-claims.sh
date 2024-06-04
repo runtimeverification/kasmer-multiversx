@@ -18,7 +18,7 @@ poetry -C kmxwasm run -- kasmer --directory "tests/contracts/foundrylike" --gen-
 
 for f in $(find deps/coindrip-protocol-sc/ -name 'Cargo.toml')
 do
-  cat $f | sed 's/0.39.2/0.48.0/'  | sed 's/0.47.4/0.48.0/' > tmp.rs
+  cat $f | sed 's/0.39.2/0.50.3/'  | sed 's/0.47.4/0.50.3/' > tmp.rs
   mv tmp.rs $f
 done
 sc-meta all build --path deps/coindrip-protocol-sc --wasm-symbols --no-wasm-opt
