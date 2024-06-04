@@ -35,7 +35,7 @@ jobs:
 
   python-code-quality-checks:
     name: 'Code Quality Checks'
-    runs-on: [self-hosted, linux, flyweight]
+    runs-on: [self-hosted, linux, github-runner-22]
     steps:
       - name: 'Check out code'
         uses: actions/checkout@v3
@@ -46,7 +46,11 @@ jobs:
         with:
           python-version: '3.10'
       - name: 'Install Poetry'
-        uses: Gr1N/setup-poetry@v8
+        uses: Gr1N/setup-poetry@v9
+      - uses: actions/cache@v4.0.2
+        with:
+          path: ~/.cache/pypoetry/virtualenvs
+          key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
       - name: 'Build kmxwasm'
         run: poetry -C kmxwasm install
       - name: 'Run code quality checks'
