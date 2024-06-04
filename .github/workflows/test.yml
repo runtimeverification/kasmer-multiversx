@@ -35,7 +35,7 @@ jobs:
 
   python-code-quality-checks:
     name: 'Code Quality Checks'
-    runs-on: [self-hosted, linux, github-runner-22]
+    runs-on: [self-hosted, linux, flyweight]
     steps:
       - name: 'Check out code'
         uses: actions/checkout@v3
