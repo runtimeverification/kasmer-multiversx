@@ -86,6 +86,7 @@ class Tools:
                         '1000',
                         '--equation-max-recursion',
                         '100',
+                        '--interim-simplification', '2000',
                         # '--no-smt',
                         # '-l', 'Rewrite',
                         # '-l', 'SimplifySuccess',
