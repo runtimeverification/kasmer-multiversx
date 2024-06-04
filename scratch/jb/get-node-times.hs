@@ -35,6 +35,7 @@ data Line
 data NodeRequest
     = Execute Int
     | ExecuteImplies Int Int
+    | ProofFailed Int Int Int
     | NewWasm
     deriving (Eq, Show)
 
@@ -71,6 +72,10 @@ recognise = \case
               Result n (ExecuteImplies r r') t : recognise rest
         | otherwise ->
               error $ "Node mismatch: " <> show (take 4 input)
+    -- this can sometimes happen at the end.
+    input@( NodeStart n : NodeRequest (Just r) "execute" : NodeRequest (Just r') "implies" : NodeRequest (Just r'') "implies" : [])
+        -> Result n (ProofFailed r r' r'') 0 : []
+
     [x1] -> []
     [x1, x2] -> []
     other ->
