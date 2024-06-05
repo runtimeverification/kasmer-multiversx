@@ -87,6 +87,8 @@ class Tools:
                         '1000',
                         '--equation-max-recursion',
                         '100',
+                        '--interim-simplification',
+                        '2000',
                         # Other options can be added by setting env.var KORE_RPC_OPTS
                     ),
                     bug_report=self.__bug_report,
