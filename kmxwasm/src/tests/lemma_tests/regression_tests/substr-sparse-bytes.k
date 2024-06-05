@@ -7,6 +7,33 @@ module SUBSTR-SPARSE-BYTES
         runSimplification(
             substrSparseBytes
               ( updateSparseBytes
+                ( setRange (... value: 0 )
+                , SBChunk ( #bytes ( Int2Bytes ( 8 , int64encoding (... value: ARG_1 +Int ARG_2 +Int ARG_3 +Int ARG_4 , b8pos: 0 , b7pos: 1 , b6pos: 2 , b5pos: 3 , b4pos: 4 , b3pos: 5 , b2pos: 6 , b1pos: 7 ) , LE ) ) )
+                  .SparseBytes
+                , 7 , 1
+                )
+              , 0 , 8
+              )
+        ) => doneSimplification(
+            ( updateSparseBytes
+                ( setRange (... value: 0 )
+                , SBChunk ( #bytes ( Int2Bytes ( 8 , int64encoding (... value: ARG_1 +Int ARG_2 +Int ARG_3 +Int ARG_4 , b8pos: 0 , b7pos: 1 , b6pos: 2 , b5pos: 3 , b4pos: 4 , b3pos: 5 , b2pos: 6 , b1pos: 7 ) , LE ) ) )
+                  .SparseBytes
+                , 7 , 1
+                )
+            )::SparseBytes:KItem
+        )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+      requires 0 <Int ARG_1 andBool 0 <Int ARG_2 andBool 0 <Int ARG_3 andBool 0 <Int ARG_4
+
+
+    claim
+      <k>
+        runSimplification(
+            substrSparseBytes
+              ( updateSparseBytes
                 ( setRange
                   ( ... value: (((log2IntTotal ( ARG_0:Int )) +Int (8)) divIntTotal (8)) +Int (114) )
                 , SBChunk ( #bytes ( Int2Bytes ( 8 , (ARG_1:Int) +Int (ARG_2:Int) , LE ) ) )

@@ -389,7 +389,7 @@ module UPDATE-SPARSE-BYTES-LEMMAS
 ```
     Evaluation schema for simplifying the basic SB representation
     Arguments: F, SB, Start, Len
-    
+
     *This is not fully implemented.*
 
     * SB = .SparseBytes
@@ -400,7 +400,7 @@ module UPDATE-SPARSE-BYTES-LEMMAS
         * start < size(chunk)
             * SB' = .SparseBytes
                 * size(chunk) < start + width
-                    - add zeros at the end of the SB / 
+                    - add zeros at the end of the SB /
                 * start + width <= size(chunk)
                     * 0 < start
                         * chunk = #bytes(A)
@@ -745,6 +745,25 @@ module UPDATE-SPARSE-BYTES-LEMMAS
 
     rule updateSparseBytes(
               F:SBSetFunction,
+              merge(SBChunk(#empty(B)), SB2:SparseBytes),
+              Start:Int, Width:Int)
+        => concat(
+            SBChunk(#empty(Start)),
+            updateSparseBytes(
+              F:SBSetFunction,
+              merge(
+                  SBChunk(#empty(B -Int Start)),
+                  SB2:SparseBytes
+              ),
+              0, Width)
+          )
+        requires functionSparseBytesWellDefined(F, Start, Width)
+            andBool functionCommutesAtStart(F)
+            andBool Start <Int B
+            andBool 0 <Int Start
+        [simplification]
+    rule updateSparseBytes(
+              F:SBSetFunction,
               merge(SBChunk(#bytes(B)), merge(SBChunk(#empty(A)), SB2:SparseBytes)),
               Start:Int, Width:Int)
         => updateSparseBytes(
@@ -752,7 +771,7 @@ module UPDATE-SPARSE-BYTES-LEMMAS
               merge(
                   SBChunk(#bytes(B +Bytes zeros(Start +Int Width -Int lengthBytes(B)))),
                   merge(
-                    SBChunk(#empty(A +Int lengthBytes(B) -Int Start -Int Width)), 
+                    SBChunk(#empty(A +Int lengthBytes(B) -Int Start -Int Width)),
                     SB2:SparseBytes
                   )
               ),

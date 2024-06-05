@@ -25,6 +25,12 @@ module SPARSE-BYTES-LEMMAS
 
     rule merge(SBChunk(#bytes(A)), merge(SBChunk(#bytes(B)), C)) => merge(SBChunk(#bytes(A +Bytes B)), C)
         [simplification]
+    rule merge(SBChunk(#bytes(A)), merge(SBChunk(#empty(B)), C)) => SBChunk(#bytes(A)) merge(SBChunk(#empty(B)), C)
+        [simplification]
+    rule merge(SBChunk(#empty(A)), merge(SBChunk(#bytes(B)), C)) => SBChunk(#empty(A)) merge(SBChunk(#bytes(B)), C)
+        [simplification]
+    rule merge(SBChunk(#empty(A)), merge(SBChunk(#empty(B)), C)) => merge(SBChunk(#empty(A +Int B)), C)
+        [simplification]
 
     rule concat(merge(A, B), C) => merge(A, concat(B, C))
         [simplification]

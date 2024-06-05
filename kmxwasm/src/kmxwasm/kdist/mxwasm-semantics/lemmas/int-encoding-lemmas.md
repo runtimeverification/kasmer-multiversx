@@ -505,6 +505,9 @@ module INT-ENCODING-LEMMAS  [symbolic]
   rule int64BytesAre0(A &Int 4294967295, _, _, _, _, B4, B3, B2, B1)
       => int64BytesAre0(A, false, false, false, false, B4, B3, B2, B1)
       [simplification]
+  rule int64BytesAre0(A modIntTotal 4294967296, _, _, _, _, B4, B3, B2, B1)
+      => int64BytesAre0(A, false, false, false, false, B4, B3, B2, B1)
+      [simplification]
 
   rule int64BytesAre0(A, B8, B7, B6, B5, B4, B3, B2, B1) &Int 1
       => int64BytesAre0(A, B8, B7, B6, B5, B4, B3, B2, B1)
@@ -622,6 +625,31 @@ module INT-ENCODING-LEMMAS  [symbolic]
   rule countConsecutiveZeroBytes(A, 5)
       +Int int64BytesAre0 ( A, true, true, true, true, true, true, true, false )
       => countConsecutiveZeroBytes(A, 6)
+      [simplification]
+
+  rule -1 *Int int64BytesAre0 ( A, true, true, false, false, false, false, false, false )
+      +Int -1 *Int int64BytesAre0 ( A, true, false, false, false, false, false, false, false )
+      => -1 *Int countConsecutiveZeroBytes(A, 1)
+      [simplification]
+  rule -1 *Int countConsecutiveZeroBytes(A, 1)
+      +Int -1 *Int int64BytesAre0 ( A, true, true, true, false, false, false, false, false )
+      => -1 *Int countConsecutiveZeroBytes(A, 2)
+      [simplification]
+  rule -1 *Int countConsecutiveZeroBytes(A, 2)
+      +Int -1 *Int int64BytesAre0 ( A, true, true, true, true, false, false, false, false )
+      => -1 *Int countConsecutiveZeroBytes(A, 3)
+      [simplification]
+  rule -1 *Int countConsecutiveZeroBytes(A, 3)
+      +Int -1 *Int int64BytesAre0 ( A, true, true, true, true, true, false, false, false )
+      => -1 *Int countConsecutiveZeroBytes(A, 4)
+      [simplification]
+  rule -1 *Int countConsecutiveZeroBytes(A, 4)
+      +Int -1 *Int int64BytesAre0 ( A, true, true, true, true, true, true, false, false )
+      => -1 *Int countConsecutiveZeroBytes(A, 5)
+      [simplification]
+  rule -1 *Int countConsecutiveZeroBytes(A, 5)
+      +Int -1 *Int int64BytesAre0 ( A, true, true, true, true, true, true, true, false )
+      => -1 *Int countConsecutiveZeroBytes(A, 6)
       [simplification]
 
   rule ( X +Int -1 *Int int64BytesAre0 ( A, true, true, false, false, false, false, false, false ) )
