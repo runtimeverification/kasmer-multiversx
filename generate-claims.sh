@@ -10,9 +10,11 @@ make build-kasmer
 
 sc-meta all build --path deps/mx-sdk-rs/contracts/examples/adder --wasm-symbols --no-wasm-opt
 sc-meta all build --path tests/contracts/foundrylike --wasm-symbols --no-wasm-opt
-wasm2wat deps/mx-sdk-rs/contracts/examples/adder/output/adder.wasm -o generated_claims/w-adder.wat
-wasm2wat tests/contracts/foundrylike/output/foundrylike.wasm -o generated_claims/w-foundrylike.wat
-poetry -C kmxwasm run -- kasmer --directory "tests/contracts/foundrylike" --gen-claims 2>&1 | tee kasmer.log
+poetry -C kmxwasm run -- kasmerx -C tests/contracts/foundrylike build 2>&1 | tee kasmer.log
+wasm2wat deps/mx-sdk-rs/contracts/examples/adder/output/adder.wasm \
+         -o tests/contracts/foundrylike/generated_claims/w-adder.wat
+wasm2wat tests/contracts/foundrylike/output/foundrylike.wasm \
+         -o tests/contracts/foundrylike/generated_claims/w-foundrylike.wat
 
 # Coindrip
 
@@ -23,30 +25,35 @@ do
 done
 sc-meta all build --path deps/coindrip-protocol-sc --wasm-symbols --no-wasm-opt
 sc-meta all build --path tests/contracts/test_coindrip --wasm-symbols --no-wasm-opt
-wasm2wat deps/coindrip-protocol-sc/output/coindrip.wasm -o generated_claims/w-coindrip.wat
-wasm2wat tests/contracts/test_coindrip/output/test_coindrip.wasm -o generated_claims/w-test_coindrip.wat
-poetry -C kmxwasm run -- kasmer --directory "tests/contracts/test_coindrip" --gen-claims 2>&1 | tee kasmer.log
+poetry -C kmxwasm run -- kasmerx -C tests/contracts/test_coindrip build 2>&1 | tee kasmer.log
+wasm2wat deps/coindrip-protocol-sc/output/coindrip.wasm -o tests/contracts/test_coindrip/generated_claims/w-coindrip.wat
+wasm2wat tests/contracts/test_coindrip/output/test_coindrip.wasm \
+         -o tests/contracts/test_coindrip/generated_claims/w-test_coindrip.wat
 
 # Crowdfunding
 
 sc-meta all build --path deps/mx-sdk-rs/contracts/examples/crowdfunding-esdt --wasm-symbols --no-wasm-opt
 sc-meta all build --path tests/contracts/test_crowdfunding-esdt --wasm-symbols --no-wasm-opt
-wasm2wat deps/mx-sdk-rs/contracts/examples/crowdfunding-esdt/output/crowdfunding-esdt.wasm -o generated_claims/w-crowdfunding-esdt.wat
-wasm2wat tests/contracts/test_crowdfunding-esdt/output/test_crowdfunding-esdt.wasm -o generated_claims/w-test_crowdfunding-esdt.wat
-poetry -C kmxwasm run -- kasmer --directory "tests/contracts/test_crowdfunding-esdt" --gen-claims 2>&1 | tee kasmer.log
+poetry -C kmxwasm run -- kasmerx -C tests/contracts/test_crowdfunding-esdt build 2>&1 | tee kasmer.log
+wasm2wat deps/mx-sdk-rs/contracts/examples/crowdfunding-esdt/output/crowdfunding-esdt.wasm \
+         -o tests/contracts/test_crowdfunding-esdt/generated_claims/w-crowdfunding-esdt.wat
+wasm2wat tests/contracts/test_crowdfunding-esdt/output/test_crowdfunding-esdt.wasm \
+         -o tests/contracts/test_crowdfunding-esdt/generated_claims/w-test_crowdfunding-esdt.wat
 
 # Pair
 
 sc-meta all build --path deps/mx-exchange-sc/dex/pair --wasm-symbols --no-wasm-opt
 sc-meta all build --path tests/contracts/test_pair --wasm-symbols --no-wasm-opt
-wasm2wat deps/mx-exchange-sc/dex/pair/output/pair.wasm -o generated_claims/w-pair.wat
-wasm2wat tests/contracts/test_pair/output/test_pair.wasm -o generated_claims/w-test_pair.wat
-poetry -C kmxwasm run -- kasmer --directory "tests/contracts/test_pair" --gen-claims 2>&1 | tee kasmer.log
+poetry -C kmxwasm run -- kasmerx -C tests/contracts/test_pair build 2>&1 | tee kasmer.log
+wasm2wat deps/mx-exchange-sc/dex/pair/output/pair.wasm -o tests/contracts/test_pair/generated_claims/w-pair.wat
+wasm2wat tests/contracts/test_pair/output/test_pair.wasm -o tests/contracts/test_pair/generated_claims/w-test_pair.wat
 
 # Multisig
 
 sc-meta all build --path deps/mx-sdk-rs/contracts/examples/multisig --wasm-symbols --no-wasm-opt
 sc-meta all build --path tests/contracts/test_multisig --wasm-symbols --no-wasm-opt
-wasm2wat deps/mx-sdk-rs/contracts/examples/multisig/output/multisig.wasm -o generated_claims/w-multisig.wat
-wasm2wat tests/contracts/test_multisig/output/test_multisig.wasm -o generated_claims/w-test_multisig.wat
-poetry -C kmxwasm run -- kasmer --directory "tests/contracts/test_multisig" --gen-claims 2>&1 | tee kasmer.log
+poetry -C kmxwasm run -- kasmerx -C tests/contracts/test_multisig build 2>&1 | tee kasmer.log
+wasm2wat deps/mx-sdk-rs/contracts/examples/multisig/output/multisig.wasm \
+         -o tests/contracts/test_multisig/generated_claims/w-multisig.wat
+wasm2wat tests/contracts/test_multisig/output/test_multisig.wasm \
+         -o tests/contracts/test_multisig/generated_claims/w-test_multisig.wat
