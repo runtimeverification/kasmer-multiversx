@@ -8,11 +8,11 @@ from pyk.utils import BugReport
 from ..property import RunClaim
 
 if TYPE_CHECKING:
-    from .utils import KasmerxProject
+    from .utils import KasmerProject
 
 
-def kasmerx_verify(
-    project: KasmerxProject,
+def kasmer_verify(
+    project: KasmerProject,
     test: str,
     *,
     step: int | None = None,

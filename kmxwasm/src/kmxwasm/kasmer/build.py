@@ -11,13 +11,13 @@ from .utils import KasmerSetup
 if TYPE_CHECKING:
     from typing import Final
 
-    from .utils import KasmerxProject
+    from .utils import KasmerProject
 
 
 logger: Final = logging.getLogger(__name__)
 
 
-def kasmerx_build(project: KasmerxProject) -> None:
+def kasmer_build(project: KasmerProject) -> None:
     sc_meta(project.test_dir)
     for contract_dir in project.contract_dirs:
         sc_meta(contract_dir)
@@ -29,7 +29,7 @@ def sc_meta(path: Path) -> None:
     run_process(['sc-meta', 'all', 'build', '--path', str(path), '--wasm-symbols', '--no-wasm-opt'])
 
 
-def gen_claims(project: KasmerxProject) -> None:
+def gen_claims(project: KasmerProject) -> None:
     from kmultiversx import kasmer
 
     krun, test_endpoints, sym_conf, init_subst = KasmerSetup.load_from_project(project)

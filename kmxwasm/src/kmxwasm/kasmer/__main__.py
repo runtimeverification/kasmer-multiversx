@@ -9,10 +9,10 @@ from typing import TYPE_CHECKING
 import pyk
 from pyk.utils import check_dir_path
 
-from .build import kasmerx_build
-from .fuzz import kasmerx_fuzz
+from .build import kasmer_build
+from .fuzz import kasmer_fuzz
 from .utils import load_project
-from .verify import kasmerx_verify
+from .verify import kasmer_verify
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -25,7 +25,7 @@ logger: Final = logging.getLogger(__name__)
 
 
 @dataclass
-class KasmerxOpts:
+class KasmerOpts:
     project_dir: Path
 
     def __init__(self, *, project_dir: Path):
@@ -33,14 +33,14 @@ class KasmerxOpts:
         self.project_dir = project_dir.resolve()
 
 
-class BuildOpts(KasmerxOpts): ...
+class BuildOpts(KasmerOpts): ...
 
 
-class FuzzOpts(KasmerxOpts): ...
+class FuzzOpts(KasmerOpts): ...
 
 
 @dataclass
-class VerifyOpts(KasmerxOpts):
+class VerifyOpts(KasmerOpts):
     test: str
     step: int | None
     iterations: int | None
@@ -52,20 +52,20 @@ class VerifyOpts(KasmerxOpts):
 def main() -> None:
     import sys
 
-    kasmerx(sys.argv[1:])
+    kasmer(sys.argv[1:])
 
 
-def kasmerx(args: Sequence[str]) -> None:
+def kasmer(args: Sequence[str]) -> None:
     logging.basicConfig(level=logging.INFO)
 
     opts = _parse_args(args)
     match opts:
         case BuildOpts():
-            return _kasmerx_build(opts)
+            return _kasmer_build(opts)
         case FuzzOpts():
-            return _kasmerx_fuzz(opts)
+            return _kasmer_fuzz(opts)
         case VerifyOpts():
-            return _kasmerx_verify(opts)
+            return _kasmer_verify(opts)
         case _:
             raise AssertionError()
 
@@ -75,19 +75,19 @@ def kasmerx(args: Sequence[str]) -> None:
 # --------
 
 
-def _kasmerx_build(opts: BuildOpts) -> None:
+def _kasmer_build(opts: BuildOpts) -> None:
     project = load_project(opts.project_dir)
-    kasmerx_build(project)
+    kasmer_build(project)
 
 
-def _kasmerx_fuzz(opts: FuzzOpts) -> None:
+def _kasmer_fuzz(opts: FuzzOpts) -> None:
     project = load_project(opts.project_dir)
-    kasmerx_fuzz(project)
+    kasmer_fuzz(project)
 
 
-def _kasmerx_verify(opts: VerifyOpts) -> None:
+def _kasmer_verify(opts: VerifyOpts) -> None:
     project = load_project(opts.project_dir)
-    kasmerx_verify(
+    kasmer_verify(
         project=project,
         test=opts.test,
         step=opts.step,
@@ -103,7 +103,7 @@ def _kasmerx_verify(opts: VerifyOpts) -> None:
 # ----------------------
 
 
-def _parse_args(args: Sequence[str]) -> KasmerxOpts:
+def _parse_args(args: Sequence[str]) -> KasmerOpts:
     ns = _arg_parser().parse_args(args)
 
     project_dir = Path(ns.directory)
@@ -128,7 +128,7 @@ def _parse_args(args: Sequence[str]) -> KasmerxOpts:
 
 
 def _arg_parser() -> ArgumentParser:
-    parser = ArgumentParser(prog='kasmerx')
+    parser = ArgumentParser(prog='kasmer')
     parser.add_argument('-C', '--directory', default='.', help='path to test contract (default: CWD)')
 
     command_parser = parser.add_subparsers(dest='command', required=True)

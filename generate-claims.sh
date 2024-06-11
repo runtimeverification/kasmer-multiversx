@@ -10,7 +10,7 @@ make build-kasmer
 
 sc-meta all build --path deps/mx-sdk-rs/contracts/examples/adder --wasm-symbols --no-wasm-opt
 sc-meta all build --path tests/contracts/foundrylike --wasm-symbols --no-wasm-opt
-poetry -C kmxwasm run -- kasmerx -C tests/contracts/foundrylike build 2>&1 | tee kasmer.log
+poetry -C kmxwasm run -- kasmer -C tests/contracts/foundrylike build 2>&1 | tee kasmer.log
 wasm2wat deps/mx-sdk-rs/contracts/examples/adder/output/adder.wasm \
          -o tests/contracts/foundrylike/generated_claims/w-adder.wat
 wasm2wat tests/contracts/foundrylike/output/foundrylike.wasm \
@@ -25,7 +25,7 @@ do
 done
 sc-meta all build --path deps/coindrip-protocol-sc --wasm-symbols --no-wasm-opt
 sc-meta all build --path tests/contracts/test_coindrip --wasm-symbols --no-wasm-opt
-poetry -C kmxwasm run -- kasmerx -C tests/contracts/test_coindrip build 2>&1 | tee kasmer.log
+poetry -C kmxwasm run -- kasmer -C tests/contracts/test_coindrip build 2>&1 | tee kasmer.log
 wasm2wat deps/coindrip-protocol-sc/output/coindrip.wasm -o tests/contracts/test_coindrip/generated_claims/w-coindrip.wat
 wasm2wat tests/contracts/test_coindrip/output/test_coindrip.wasm \
          -o tests/contracts/test_coindrip/generated_claims/w-test_coindrip.wat
@@ -34,7 +34,7 @@ wasm2wat tests/contracts/test_coindrip/output/test_coindrip.wasm \
 
 sc-meta all build --path deps/mx-sdk-rs/contracts/examples/crowdfunding-esdt --wasm-symbols --no-wasm-opt
 sc-meta all build --path tests/contracts/test_crowdfunding-esdt --wasm-symbols --no-wasm-opt
-poetry -C kmxwasm run -- kasmerx -C tests/contracts/test_crowdfunding-esdt build 2>&1 | tee kasmer.log
+poetry -C kmxwasm run -- kasmer -C tests/contracts/test_crowdfunding-esdt build 2>&1 | tee kasmer.log
 wasm2wat deps/mx-sdk-rs/contracts/examples/crowdfunding-esdt/output/crowdfunding-esdt.wasm \
          -o tests/contracts/test_crowdfunding-esdt/generated_claims/w-crowdfunding-esdt.wat
 wasm2wat tests/contracts/test_crowdfunding-esdt/output/test_crowdfunding-esdt.wasm \
@@ -44,7 +44,7 @@ wasm2wat tests/contracts/test_crowdfunding-esdt/output/test_crowdfunding-esdt.wa
 
 sc-meta all build --path deps/mx-exchange-sc/dex/pair --wasm-symbols --no-wasm-opt
 sc-meta all build --path tests/contracts/test_pair --wasm-symbols --no-wasm-opt
-poetry -C kmxwasm run -- kasmerx -C tests/contracts/test_pair build 2>&1 | tee kasmer.log
+poetry -C kmxwasm run -- kasmer -C tests/contracts/test_pair build 2>&1 | tee kasmer.log
 wasm2wat deps/mx-exchange-sc/dex/pair/output/pair.wasm -o tests/contracts/test_pair/generated_claims/w-pair.wat
 wasm2wat tests/contracts/test_pair/output/test_pair.wasm -o tests/contracts/test_pair/generated_claims/w-test_pair.wat
 
@@ -52,7 +52,7 @@ wasm2wat tests/contracts/test_pair/output/test_pair.wasm -o tests/contracts/test
 
 sc-meta all build --path deps/mx-sdk-rs/contracts/examples/multisig --wasm-symbols --no-wasm-opt
 sc-meta all build --path tests/contracts/test_multisig --wasm-symbols --no-wasm-opt
-poetry -C kmxwasm run -- kasmerx -C tests/contracts/test_multisig build 2>&1 | tee kasmer.log
+poetry -C kmxwasm run -- kasmer -C tests/contracts/test_multisig build 2>&1 | tee kasmer.log
 wasm2wat deps/mx-sdk-rs/contracts/examples/multisig/output/multisig.wasm \
          -o tests/contracts/test_multisig/generated_claims/w-multisig.wat
 wasm2wat tests/contracts/test_multisig/output/test_multisig.wasm \

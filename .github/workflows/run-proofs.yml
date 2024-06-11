@@ -47,12 +47,12 @@ jobs:
         run: docker exec --user user ${CONTAINER} make build
       - name: 'Build kasmer semantics'
         run: docker exec --user user ${CONTAINER} make build-kasmer
-      - name: 'kasmerx build'
+      - name: 'kasmer build'
         run: |
-          docker exec --user user ${CONTAINER} poetry -C kmxwasm run -- kasmerx -C ${{ matrix.contract }} build
-      - name: 'kasmerx verify'
+          docker exec --user user ${CONTAINER} poetry -C kmxwasm run -- kasmer -C ${{ matrix.contract }} build
+      - name: 'kasmer verify'
         run: |
-          docker exec --user user ${CONTAINER} poetry -C kmxwasm run -- kasmerx -C ${{ matrix.contract }} verify ${{ matrix.test }} --booster
+          docker exec --user user ${CONTAINER} poetry -C kmxwasm run -- kasmer -C ${{ matrix.contract }} verify ${{ matrix.test }} --booster
       - name: 'Tear down Docker'
         if: always()
         run: docker stop --time 0 ${CONTAINER}
