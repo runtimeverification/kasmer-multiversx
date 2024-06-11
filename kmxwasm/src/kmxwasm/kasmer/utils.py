@@ -32,7 +32,7 @@ class KasmerProject:
 
 def load_project(project_dir: Path) -> KasmerProject:
     check_dir_path(project_dir)
-    project_file = project_dir / 'kasmerx.json'
+    project_file = project_dir / 'kasmer.json'
     check_file_path(project_file)
 
     with project_file.open() as f:
