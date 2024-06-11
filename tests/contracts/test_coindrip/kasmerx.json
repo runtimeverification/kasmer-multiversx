@@ -1,5 +1,5 @@
 {
   "contract_paths": [
-    "../../../deps/coindrip-protocol-sc/"
+    "../../../deps/coindrip-protocol-sc/output/coindrip.wasm"
   ]
 }
