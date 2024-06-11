@@ -12,7 +12,7 @@ authors = [
 
 [tool.poetry.scripts]
 kmxwasm-property = "kmxwasm.property:main"
-kasmerx = "kmxwasm.kasmerx.__main__:main"
+kasmer = "kmxwasm.kasmerx.__main__:main"
 
 [tool.poetry.plugins.kdist]
 mxwasm-semantics = "kmxwasm.kdist.plugin"

@@ -128,7 +128,7 @@ def _parse_args(args: Sequence[str]) -> KasmerxOpts:
 
 
 def _arg_parser() -> ArgumentParser:
-    parser = ArgumentParser(prog='kasmerx')
+    parser = ArgumentParser(prog='kasmer')
     parser.add_argument('-C', '--directory', default='.', help='path to test contract (default: CWD)')
 
     command_parser = parser.add_subparsers(dest='command', required=True)
