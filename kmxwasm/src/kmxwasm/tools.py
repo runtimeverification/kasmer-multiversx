@@ -113,7 +113,7 @@ class Tools:
             self.__kore_client = KoreClient('localhost', self.__kore_server.port, bug_report=self.__bug_report)
 
         if not self.__explorer:
-            cterm_symbolic = CTermSymbolic(self.__kore_client, self.printer.definition, self.printer.kompiled_kore)
+            cterm_symbolic = CTermSymbolic(self.__kore_client, self.printer.definition)
             self.__explorer = KCFGExplore(cterm_symbolic)
         return self.__explorer
 

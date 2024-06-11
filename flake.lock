@@ -64,17 +64,17 @@
         "z3": "z3"
       },
       "locked": {
-        "lastModified": 1717048155,
-        "narHash": "sha256-HHrXt2UoG1RbKmAGmOroQJjUbyiE+6c1dJxqoIfp3H0=",
+        "lastModified": 1717504162,
+        "narHash": "sha256-muZL1MfImaMimk+f/SwPj4xrlRvDnSpovDhAx/WqdCw=",
         "owner": "runtimeverification",
         "repo": "haskell-backend",
-        "rev": "b6ab7a9054ae900c97c48e61027fd602dbd2acb8",
+        "rev": "abceb59fcbc47d1bc537ff797f806c8bb8649626",
         "type": "github"
       },
       "original": {
         "owner": "runtimeverification",
         "repo": "haskell-backend",
-        "rev": "b6ab7a9054ae900c97c48e61027fd602dbd2acb8",
+        "rev": "abceb59fcbc47d1bc537ff797f806c8bb8649626",
         "type": "github"
       }
     },
@@ -108,16 +108,16 @@
         "rv-utils": "rv-utils_3"
       },
       "locked": {
-        "lastModified": 1717398151,
-        "narHash": "sha256-6xKGH3t5ePt7CZPYACGpwx0VOxOQ6L8Wk2Vlcafui88=",
+        "lastModified": 1717703773,
+        "narHash": "sha256-3eIJw8y8COwUCAqGNyv+Q0juud4F/rdIIAAioC/J2f4=",
         "owner": "runtimeverification",
         "repo": "k",
-        "rev": "9100689e357a7e5820362869a73684468ef9c91b",
+        "rev": "e070a2048b7e6ce45748426c4868d593113af050",
         "type": "github"
       },
       "original": {
         "owner": "runtimeverification",
-        "ref": "v7.0.106",
+        "ref": "v7.0.120",
         "repo": "k",
         "type": "github"
       }
@@ -142,16 +142,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1716543761,
-        "narHash": "sha256-YQIrz7KjDiwLtHMzRYxzt1+rcCUdeGDmBQl+zWOq5us=",
+        "lastModified": 1717613611,
+        "narHash": "sha256-5rDBlXOfvxYNei+mL949pV6TIE5oAfY6LKxV/AcU3Mo=",
         "owner": "runtimeverification",
         "repo": "llvm-backend",
-        "rev": "0b0bdaeaf5acfed9034c40bec68b285dc5fac4dc",
+        "rev": "744a6150c4e616edcd60faf9786cc27780c364ad",
         "type": "github"
       },
       "original": {
         "owner": "runtimeverification",
-        "ref": "v0.1.31",
+        "ref": "v0.1.44",
         "repo": "llvm-backend",
         "type": "github"
       }
