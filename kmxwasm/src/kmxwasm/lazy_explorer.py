@@ -72,10 +72,7 @@ class LazyExplorer:
         return self.__printer
 
     def __make_summary_module(self) -> Module:
-        axioms: list[Sentence] = [
-            krule_to_kore(self.printer().definition, self.printer().kompiled_kore, r)
-            for r in self.__rules.summarize_rules()
-        ]
+        axioms: list[Sentence] = [krule_to_kore(self.printer().definition, r) for r in self.__rules.summarize_rules()]
         sentences: list[Sentence] = [Import(module_name='MX-WASM', attrs=())]
         return Module(name=GENERATED_MODULE_NAME, sentences=sentences + axioms)
 
@@ -139,7 +136,7 @@ def make_explorer(kprove: KProve, is_debug: bool, module: Module) -> tuple[KCFGE
         port = None
     server = kore_server(kprove.definition_dir, kprove.main_module, port=port)
     kore_client = KoreClient('localhost', server.port)
-    cterm_symbolic = CTermSymbolic(kore_client, kprove.definition, kprove.kompiled_kore)
+    cterm_symbolic = CTermSymbolic(kore_client, kprove.definition)
     explorer = KCFGExplore(cterm_symbolic)
     kore_client.add_module(module)
     return (explorer, server, kore_client)
