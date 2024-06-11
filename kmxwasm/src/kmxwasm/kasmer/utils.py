@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class KasmerxProject:
+class KasmerProject:
     test_dir: Path
     contract_dirs: tuple[Path, ...]
     contract_paths: tuple[Path, ...]
@@ -30,7 +30,7 @@ class KasmerxProject:
         self.contract_paths = tuple(contract_path.resolve() for contract_path in contract_paths)
 
 
-def load_project(project_dir: Path) -> KasmerxProject:
+def load_project(project_dir: Path) -> KasmerProject:
     check_dir_path(project_dir)
     project_file = project_dir / 'kasmerx.json'
     check_file_path(project_file)
@@ -48,7 +48,7 @@ def load_project(project_dir: Path) -> KasmerxProject:
         contract_paths.append(contract_path)
         contract_dirs.append(contract_path.parent.parent)
 
-    return KasmerxProject(
+    return KasmerProject(
         test_dir=project_dir,
         contract_dirs=contract_dirs,
         contract_paths=contract_paths,
@@ -62,7 +62,7 @@ class KasmerSetup(NamedTuple):
     init_subst: dict[str, KInner]
 
     @staticmethod
-    def load_from_project(project: KasmerxProject) -> KasmerSetup:
+    def load_from_project(project: KasmerProject) -> KasmerSetup:
         from kmultiversx import kasmer
         from pyk.kdist import kdist
 
