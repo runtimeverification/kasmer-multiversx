@@ -41,6 +41,11 @@
             subdirectories = [ "kmultiversx" ];
             cleaner = poetry2nix.cleanPythonSources;
           };
+
+          patchPhase = ''
+            sed -i "s/^ROOT = .*$/ROOT = Path('.')/" src/kmxwasm/property_testing/paths.py
+          '';
+
           overrides = poetry2nix.overrides.withDefaults
           (finalPython: prevPython: {
             pyk = nixpkgs-pyk.pyk-python310;
@@ -62,7 +67,7 @@
             secp256k1
             nixpkgs-pyk.pyk-python310
             k-framework.packages.${system}.k
-            kmultiversx
+            kmultiversx-pyk
             kmxwasm-pyk
             cmake
             openssl.dev
@@ -81,16 +86,58 @@
 
           buildPhase = ''
             export XDG_CACHE_HOME=$(pwd)
-            ${
+            export K_OPTS="-Xmx8G -Xss512m"
+            export APPLE_SILICON=${
               prev.lib.optionalString
               (prev.stdenv.isAarch64 && prev.stdenv.isDarwin)
-              "APPLE_SILICON=true"
-            } K_OPTS="-Xmx8G -Xss512m" kdist -v build -j$NIX_BUILD_CORES
+              "true"
+            }
+
+            kdist -v build                \
+              -j$NIX_BUILD_CORES          \
+              "mxwasm-semantics.*"        \
+              "mx-semantics.llvm-kasmer"
           '';
 
           installPhase = ''
             mkdir -p $out
             cp -r ./kdist-*/* $out/
+
+            mkdir -p $out/bin
+            makeWrapper ${final.kmxwasm-pyk}/bin/kasmer $out/bin/kasmer \
+              --prefix PATH : ${
+                prev.lib.makeBinPath [
+                  prev.which
+                  k-framework.packages.${prev.system}.k
+                ]
+              } \
+              --set KDIST_DIR $out
+          '';
+        };
+
+        kmxwasm-test = prev.stdenv.mkDerivation {
+          inherit src version;
+
+          pname = "kmxwasm-test";
+
+          buildInputs = with final; [
+            kmxwasm
+            kmxwasm-pyk
+            k-framework.packages.${system}.k
+            wabt
+            which
+            git
+          ];
+
+          buildPhase = ''
+            export XDG_CACHE_HOME=$(pwd)
+            export KDIST_DIR=${final.kmxwasm}
+            echo $KDIST_DIR
+            pytest
+          '';
+
+          installPhase = ''
+            touch $out
           '';
         };
       }
@@ -113,7 +160,7 @@
         };
       in {
         packages = {
-          inherit (pkgs) kmxwasm;
+          inherit (pkgs) kmxwasm kmxwasm-test;
           default = pkgs.kmxwasm;
         };
 
