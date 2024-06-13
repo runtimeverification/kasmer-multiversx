@@ -11,8 +11,25 @@
     flake-utils.follows = "k-framework/flake-utils";
     rv-utils.url = "github:runtimeverification/rv-nix-tools";
     blockchain-k-plugin.follows = "mx-semantics/blockchain-k-plugin";
+    mx-sdk-rs.url = "github:runtimeverification/mx-sdk-rs-flake/v0.50.3";
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    mx-sdk-rs-src = {
+      url = "github:multiversx/mx-sdk-rs/v0.50.3";
+      flake = false;
+    };
+    coindrip-protocol-sc-src = {
+      url = "github:CoinDrip-finance/coindrip-protocol-sc/v1.0.1";
+      flake = false;
+    };
+    mx-exchange-sc-src = {
+      url = "github:multiversx/mx-exchange-sc/ee2d4645bd13c0f22f668a72bbc1b883753b6aee";
+      flake = false;
+    };
   };
-  outputs = { self, nixpkgs, flake-utils, rv-utils, k-framework, pyk, nixpkgs-pyk, mx-semantics, blockchain-k-plugin, ... }@inputs:
+  outputs = { self, nixpkgs, flake-utils, rv-utils, k-framework, pyk, nixpkgs-pyk, mx-semantics, blockchain-k-plugin, mx-sdk-rs, rust-overlay, ... }@inputs:
     let overlay = (final: prev:
       let
         src = prev.lib.cleanSource (prev.nix-gitignore.gitignoreSourcePure [
@@ -115,25 +132,57 @@
           '';
         };
 
+        kmxwasm-test-src = prev.stdenv.mkDerivation {
+            inherit src version;
+            pname = "kmxwasm-test-src";
+
+            dontBuild = true;
+
+            installPhase = ''
+              mkdir -p $out/deps/mx-sdk-rs
+              cp -R ${inputs.mx-sdk-rs-src}/* $out/deps/mx-sdk-rs
+
+              mkdir -p $out/deps/coindrip-protocol-sc
+              cp -R ${inputs.coindrip-protocol-sc-src}/* $out/deps/coindrip-protocol-sc
+
+              mkdir -p $out/deps/mx-exchange-sc
+              cp -R ${inputs.mx-exchange-sc-src}/* $out/deps/mx-exchange-sc
+
+              mkdir -p $out/tests
+              cp -R tests/* $out/tests
+
+              mkdir -p $out/package
+              cp generate-claims.sh $out
+              cp package/smoke-test.sh $out/package
+
+              cp -R src $out
+            '';
+          };
+
         kmxwasm-test = prev.stdenv.mkDerivation {
-          inherit src version;
+          inherit version;
+
+          src = final.kmxwasm-test-src;
 
           pname = "kmxwasm-test";
 
           buildInputs = with final; [
-            kmxwasm
-            kmxwasm-pyk
-            k-framework.packages.${system}.k
+            cacert
+            (rust-bin.stable.latest.default.override {
+              targets = [ "wasm32-unknown-unknown" ];
+            })
+            mx-sdk-rs.packages.${system}.sc-meta
             wabt
-            which
-            git
+            darwin.apple_sdk.frameworks.SystemConfiguration
+            kmxwasm
           ];
 
           buildPhase = ''
-            export XDG_CACHE_HOME=$(pwd)
-            export KDIST_DIR=${final.kmxwasm}
-            echo $KDIST_DIR
-            pytest
+            export USE_NIX=true
+            export CARGO_HOME=$(pwd)
+
+            ./package/smoke-test.sh
+            ./generate-claims.sh
           '';
 
           installPhase = ''
@@ -152,6 +201,7 @@
         pkgs = import nixpkgs {
           inherit system;
           overlays = [
+            rust-overlay.overlays.default
             k-framework.overlay
             blockchain-k-plugin.overlay
             mx-semantics.overlays.default
@@ -160,7 +210,7 @@
         };
       in {
         packages = {
-          inherit (pkgs) kmxwasm kmxwasm-test;
+          inherit (pkgs) kmxwasm kmxwasm-test kmxwasm-test-src;
           default = pkgs.kmxwasm;
         };
 
