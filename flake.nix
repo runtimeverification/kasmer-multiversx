@@ -173,9 +173,8 @@
             })
             mx-sdk-rs.packages.${system}.sc-meta
             wabt
-            darwin.apple_sdk.frameworks.SystemConfiguration
             kmxwasm
-          ];
+          ] ++ (lib.optional stdenv.isDarwin darwin.apple_sdk.frameworks.SystemConfiguration);
 
           buildPhase = ''
             export USE_NIX=true
