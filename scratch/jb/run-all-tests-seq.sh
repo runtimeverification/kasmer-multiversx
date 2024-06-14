@@ -6,7 +6,8 @@ set -e -o pipefail
 LOGS_DIR="$(readlink -f "${LOGS_DIR:-$MAIN_DIR/logs}")"
 
 # extra options for booster
-export KORE_RPC_OPTS=${KORE_RPC_OPTS:-"--print-stats"}
+# defaults are chosen to match requirements for 'get-node-data.hs'
+export KORE_RPC_OPTS=${KORE_RPC_OPTS:-"--print-stats --log-context proxy. --log-context proxy,abort."}
 export GHCRTS=${GHCRTS:-"-M25G"}
 
 set -u

@@ -28,14 +28,13 @@ processLines = map format . recognise . mapMaybe tokenise
 
 data Line
     = NodeStart Int
-    | NodeRequest (Maybe Int) ByteString
+    | NodeRequest (Maybe Int)
     | NodeTime Int Double
     deriving (Eq, Show)
 
 data NodeRequest
-    = Execute Int
-    | ExecuteImplies Int Int
-    | ProofFailed Int Int Int
+    = RPCRequest Int
+    | RPCRequests [Int]
     | NewWasm
     deriving (Eq, Show)
 
@@ -55,26 +54,22 @@ recognise :: [Line] -> [Result]
 recognise = \case
     [] ->
         []
-    input@( NodeStart n : NodeRequest mbR tipe : NodeTime n' t : rest)
+    input@( NodeStart n : NodeRequest mbR : NodeTime n' t : rest)
         | n /= n' ->
               error $ "Node mismatch: " <> show (take 3 input)
         -- n == n'
-        | tipe == "execute"
-        , Just r <- mbR ->
-              Result n (Execute r) t : recognise rest
-        | tipe == "newWasm"
-        , Nothing <- mbR ->
+        | Just r <- mbR ->
+              Result n (RPCRequest r) t : recognise rest
+        | Nothing <- mbR ->
               Result n NewWasm t : recognise rest
-        | otherwise ->
-              error $ "Unexpected request type in " <> show (take 3 input)
-    input@( NodeStart n : NodeRequest (Just r) "execute" : NodeRequest (Just r') "implies" : NodeTime n' t : rest)
+    input@( NodeStart n : NodeRequest (Just r) : NodeRequest (Just r') : NodeTime n' t : rest)
         | n == n' ->
-              Result n (ExecuteImplies r r') t : recognise rest
+              Result n (RPCRequests [r, r']) t : recognise rest
         | otherwise ->
               error $ "Node mismatch: " <> show (take 4 input)
     -- this can sometimes happen at the end.
-    input@( NodeStart n : NodeRequest (Just r) "execute" : NodeRequest (Just r') "implies" : NodeRequest (Just r'') "implies" : [])
-        -> Result n (ProofFailed r r' r'') 0 : []
+    input@( NodeStart n : NodeRequest (Just r) : NodeRequest (Just r') : NodeRequest (Just r'') : [])
+        -> Result n (RPCRequests [r, r', r'']) 0 : []
 
     [x1] -> []
     [x1, x2] -> []
@@ -86,10 +81,10 @@ tokenise input
     | input =~ nodeStart =
           NodeStart . readBS . head <$> groupsFrom nodeStart
     | input =~ nodeRequest = do
-          ~[num, tipe] <- groupsFrom nodeRequest
-          pure $ NodeRequest (Just $ readBS num) tipe
+          ~[num] <- groupsFrom nodeRequest
+          pure $ NodeRequest (Just $ readBS num)
     | input =~ nodeIsWasm =
-          Just $ NodeRequest Nothing "newWasm"
+          Just $ NodeRequest Nothing
     | input =~ nodeTime = do
           ~[num, time] <- groupsFrom nodeTime
           pure $ NodeTime (readBS num) (readBS time)
@@ -107,6 +102,6 @@ tokenise input
 
 nodeStart, nodeRequest, nodeIsWasm, nodeTime :: ByteString
 nodeStart = "^Processing ([0-9]*)$"
-nodeRequest = "^\\[Info\\] Process request ([0-9]*) ([a-z]*)$"
+nodeRequest = "^\\[proxy\\] Processing request ([0-9]*)"
 nodeIsWasm = "^is new wasm$"
 nodeTime = "^Node ([0-9]*) took ([0-9.]*) sec\\.$"
