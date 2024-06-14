@@ -159,40 +159,26 @@
             '';
           };
 
-        kmxwasm-test = prev.stdenv.mkDerivation {
-          inherit version;
-
-          src = final.kmxwasm-test-src;
-
-          pname = "kmxwasm-test";
-
-          buildInputs = with final; [
-            cacert
-            pkg-config
-            openssl
+        kmxwasm-test-shell = prev.mkShell {
+          packages = with final; [
             (rust-bin.stable.latest.default.override {
               targets = [ "wasm32-unknown-unknown" ];
             })
             mx-sdk-rs.packages.${system}.sc-meta
             wabt
             kmxwasm
+          ];
+
+          buildInputs = with final; [
+            cacert
+            pkg-config
+            openssl
           ] ++ (lib.optional stdenv.isDarwin darwin.apple_sdk.frameworks.SystemConfiguration);
 
-          buildPhase = ''
-            export USE_NIX=true
+          shellHook = ''
             export CARGO_HOME=$(pwd)
-
-            ./package/smoke-test.sh && echo smoke  >> output
-            ./generate-claims.sh    && echo claims >> output
+            export USE_NIX=true
           '';
-
-          installPhase = ''
-            mv output $out
-          '';
-
-          outputHashMode = "flat";
-          outputHashAlgo = "sha256";
-          outputHash = "sha256-nVEUU7CkLF1DpkYAwxZSQQTLQf+bhCzmOsBZzNKHqP4=";
         };
       }
     );
@@ -215,7 +201,7 @@
         };
       in {
         packages = {
-          inherit (pkgs) kmxwasm kmxwasm-test kmxwasm-test-src;
+          inherit (pkgs) kmxwasm kmxwasm-test-shell;
           default = pkgs.kmxwasm;
         };
 
