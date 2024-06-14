@@ -180,13 +180,17 @@
             export USE_NIX=true
             export CARGO_HOME=$(pwd)
 
-            ./package/smoke-test.sh
-            ./generate-claims.sh
+            ./package/smoke-test.sh && echo smoke  >> output
+            ./generate-claims.sh    && echo claims >> output
           '';
 
           installPhase = ''
-            touch $out
+            mv output $out
           '';
+
+          outputHashMode = "flat";
+          outputHashAlgo = "sha256";
+          outputHash = "sha256-nVEUU7CkLF1DpkYAwxZSQQTLQf+bhCzmOsBZzNKHqP4=";
         };
       }
     );
