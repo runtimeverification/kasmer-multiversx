@@ -132,33 +132,6 @@
           '';
         };
 
-        kmxwasm-test-src = prev.stdenv.mkDerivation {
-            inherit src version;
-            pname = "kmxwasm-test-src";
-
-            dontBuild = true;
-
-            installPhase = ''
-              mkdir -p $out/deps/mx-sdk-rs
-              cp -R ${inputs.mx-sdk-rs-src}/* $out/deps/mx-sdk-rs
-
-              mkdir -p $out/deps/coindrip-protocol-sc
-              cp -R ${inputs.coindrip-protocol-sc-src}/* $out/deps/coindrip-protocol-sc
-
-              mkdir -p $out/deps/mx-exchange-sc
-              cp -R ${inputs.mx-exchange-sc-src}/* $out/deps/mx-exchange-sc
-
-              mkdir -p $out/tests
-              cp -R tests/* $out/tests
-
-              mkdir -p $out/package
-              cp generate-claims.sh $out
-              cp package/smoke-test.sh $out/package
-
-              cp -R src $out
-            '';
-          };
-
         kmxwasm-test-shell = prev.mkShell {
           packages = with final; [
             (rust-bin.stable.latest.default.override {
