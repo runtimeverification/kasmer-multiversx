@@ -169,6 +169,7 @@
           buildInputs = with final; [
             cacert
             pkg-config
+            openssl
             (rust-bin.stable.latest.default.override {
               targets = [ "wasm32-unknown-unknown" ];
             })
