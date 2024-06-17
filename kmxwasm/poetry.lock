@@ -545,7 +545,7 @@ colors = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "kmultiversx"
-version = "0.1.80"
+version = "0.1.81"
 description = "Python tools for Elrond semantics"
 optional = false
 python-versions = "^3.10"
@@ -555,13 +555,13 @@ develop = false
 [package.dependencies]
 hypothesis = "^6.82.6"
 pycryptodomex = "^3.18.0"
-pykwasm = {git = "https://github.com/runtimeverification/wasm-semantics.git", tag = "v0.1.62", subdirectory = "pykwasm"}
+pykwasm = {git = "https://github.com/runtimeverification/wasm-semantics.git", tag = "v0.1.63", subdirectory = "pykwasm"}
 
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/mx-semantics.git"
-reference = "v0.1.80"
-resolved_reference = "a8a0d5d54c2cdc1de4df3f2f2aaf8e3fb9bb141c"
+reference = "v0.1.81"
+resolved_reference = "65628e85e2dfffcf40f8cc8edda9d4eb877684fb"
 subdirectory = "kmultiversx"
 
 [[package]]
@@ -995,7 +995,7 @@ subdirectory = "pyk"
 
 [[package]]
 name = "pykwasm"
-version = "0.1.62"
+version = "0.1.63"
 description = ""
 optional = false
 python-versions = "^3.10"
@@ -1011,8 +1011,8 @@ pyk = {git = "https://github.com/runtimeverification/k.git", tag = "v7.0.120", s
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/wasm-semantics.git"
-reference = "v0.1.62"
-resolved_reference = "1cd40684278953bbf617a0896c931bc4f8f32834"
+reference = "v0.1.63"
+resolved_reference = "da84992337b4d4cd9b8798722d294c4c12d410e3"
 subdirectory = "pykwasm"
 
 [[package]]
@@ -1264,4 +1264,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "c847d35b00f06f2f04716c845873283f3ca7b83dd74945c538e3849300868917"
+content-hash = "09efad1f76e774b56229c81f06d7f34f50f442238db092b1a5615dff021348fc"
