@@ -179,3 +179,25 @@ jobs:
       - name: 'Tear down Docker'
         if: always()
         run: docker stop --time 0 mx-wasm-ci-${GITHUB_SHA}
+
+  nix:
+    name: 'Nix'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: [self-hosted, linux, normal]
+          - runner: self-macos-14
+    needs: [python-code-quality-checks]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: 'Check out code'
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: 'Build Kasmer'
+        run: GC_DONT_GC=1 nix build .#kmxwasm --extra-experimental-features 'nix-command flakes' --print-build-logs
+      - name: 'Run smoke tests'
+        run: GC_DONT_GC=1 nix develop .#kmxwasm-test-shell --extra-experimental-features 'nix-command flakes' --print-build-logs --command './package/smoke-test.sh'
+      - name: 'Run claim generation tests'
+        run: GC_DONT_GC=1 nix develop .#kmxwasm-test-shell --extra-experimental-features 'nix-command flakes' --print-build-logs --command './generate-claims.sh'
