@@ -196,6 +196,7 @@ jobs:
         with:
           # Check out pull request HEAD instead of merge commit.
           ref: ${{ github.event.pull_request.head.sha }}
+          submodules: recursive
       - name: 'Build Kasmer'
         run: GC_DONT_GC=1 nix build .#kmxwasm --extra-experimental-features 'nix-command flakes' --print-build-logs
       - name: 'Run smoke tests'
