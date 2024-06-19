@@ -186,8 +186,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: normal
-          - runner: ARM64
+          - runner: [self-hosted, linux, normal]
+          - runner: self-macos-14
     needs: [python-code-quality-checks]
     runs-on: ${{ matrix.runner }}
     steps:
