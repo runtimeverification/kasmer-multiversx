@@ -41,6 +41,9 @@ of the bytes corresponding to `B<N>` values that are `>= 0`, placed on the
   rule int64encoding(A, -1, -1, -1, -1, -1, -1, -1, 0) => A
       requires 0 <=Int A andBool A <Int (1 <<Int 8)
 
+  rule int64encoding( #bool(P), -1, -1, -1, -1, -1, -1, -1, 0 ) => 1 requires P          [simplification]
+  rule int64encoding( #bool(P), -1, -1, -1, -1, -1, -1, -1, 0 ) => 0 requires notBool P  [simplification]
+
   rule int64encoding(A, B8, B7, B6, B5, B4, B3, B2, B1)
       => (((A &Int (255 <<Int 56)) >>Int 56) <<Int (B8 *Int 8)) |Int int64encoding(A, -1, B7, B6, B5, B4, B3, B2, B1)
       requires 0 <=Int B8 andBool B8 <=Int 7
