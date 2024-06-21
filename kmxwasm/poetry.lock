@@ -544,8 +544,36 @@ files = [
 colors = ["colorama (>=0.4.6)"]
 
 [[package]]
+name = "kframework"
+version = "7.1.8"
+description = ""
+optional = false
+python-versions = "^3.10"
+files = []
+develop = false
+
+[package.dependencies]
+cmd2 = "^2.4.2"
+coloredlogs = "^15.0.1"
+filelock = "^3.9.0"
+graphviz = "^0.20.1"
+psutil = "5.9.5"
+pybind11 = "^2.10.3"
+pytest = "*"
+textual = "^0.27.0"
+tomli = "^2.0.1"
+xdg-base-dirs = "^6.0.1"
+
+[package.source]
+type = "git"
+url = "https://github.com/runtimeverification/k.git"
+reference = "v7.1.8"
+resolved_reference = "4c77ef4276f89d692e80b4d1300202920ee1e466"
+subdirectory = "pyk"
+
+[[package]]
 name = "kmultiversx"
-version = "0.1.83"
+version = "0.1.84"
 description = "Python tools for Elrond semantics"
 optional = false
 python-versions = "^3.10"
@@ -555,13 +583,13 @@ develop = false
 [package.dependencies]
 hypothesis = "^6.82.6"
 pycryptodomex = "^3.18.0"
-pykwasm = {git = "https://github.com/runtimeverification/wasm-semantics.git", tag = "v0.1.63", subdirectory = "pykwasm"}
+pykwasm = {git = "https://github.com/runtimeverification/wasm-semantics.git", tag = "v0.1.66", subdirectory = "pykwasm"}
 
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/mx-semantics.git"
-reference = "v0.1.83"
-resolved_reference = "7ea633fc9cf07329dfd04a66c36528851f81023b"
+reference = "v0.1.84"
+resolved_reference = "afeb52e06d8b18a690e94d1c13c5a46a08a1f5fc"
 subdirectory = "kmultiversx"
 
 [[package]]
@@ -863,7 +891,7 @@ numpy = ">=1.16.0,<2"
 toolz = {version = ">0.9.0,<1", markers = "implementation_name == \"pypy\""}
 
 [package.extras]
-dev = ["bumpversion (>=0.5.3,<1)", "ipython", "pytest-watch (>=4.1.0,<5)", "twine", "wheel"]
+dev = ["Sphinx (>=1.6.5,<2)", "bumpversion (>=0.5.3,<1)", "flake8 (==3.6.0)", "hypothesis (>=6.88.1,<7)", "ipython", "isort (>=4.3.9,<5)", "mypy (==1.6.1)", "pytest (>=7.4.3,<8)", "pytest-watch (>=4.1.0,<5)", "pytest-watch (>=4.2.0,<5)", "pytest-xdist (>=3.2.0,<4)", "sphinx_rtd_theme (>=0.1.9)", "tox (>=4.11.3,<5)", "twine", "wheel"]
 doc = ["Sphinx (>=1.6.5,<2)", "sphinx_rtd_theme (>=0.1.9)"]
 lint = ["flake8 (==3.6.0)", "isort (>=4.3.9,<5)", "mypy (==1.6.1)"]
 test = ["hypothesis (>=6.88.1,<7)", "pytest (>=7.4.3,<8)", "pytest-watch (>=4.2.0,<5)", "pytest-xdist (>=3.2.0,<4)", "tox (>=4.11.3,<5)"]
@@ -966,36 +994,8 @@ files = [
 windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
-name = "pyk"
-version = "7.0.120"
-description = ""
-optional = false
-python-versions = "^3.10"
-files = []
-develop = false
-
-[package.dependencies]
-cmd2 = "^2.4.2"
-coloredlogs = "^15.0.1"
-filelock = "^3.9.0"
-graphviz = "^0.20.1"
-psutil = "5.9.5"
-pybind11 = "^2.10.3"
-pytest = "*"
-textual = "^0.27.0"
-tomli = "^2.0.1"
-xdg-base-dirs = "^6.0.1"
-
-[package.source]
-type = "git"
-url = "https://github.com/runtimeverification/k.git"
-reference = "v7.0.120"
-resolved_reference = "e070a2048b7e6ce45748426c4868d593113af050"
-subdirectory = "pyk"
-
-[[package]]
 name = "pykwasm"
-version = "0.1.63"
+version = "0.1.66"
 description = ""
 optional = false
 python-versions = "^3.10"
@@ -1004,15 +1004,15 @@ develop = false
 
 [package.dependencies]
 cytoolz = "^0.12.1"
+kframework = {git = "https://github.com/runtimeverification/k.git", tag = "v7.1.8", subdirectory = "pyk"}
 numpy = "^1.24.2"
 py-wasm = {git = "https://github.com/runtimeverification/py-wasm.git", tag = "0.2.1"}
-pyk = {git = "https://github.com/runtimeverification/k.git", tag = "v7.0.120", subdirectory = "pyk"}
 
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/wasm-semantics.git"
-reference = "v0.1.63"
-resolved_reference = "da84992337b4d4cd9b8798722d294c4c12d410e3"
+reference = "v0.1.66"
+resolved_reference = "b56062830f56aef57e133c3d8f10cab6b874805a"
 subdirectory = "pykwasm"
 
 [[package]]
@@ -1264,4 +1264,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "1eb52e723278e170626d5da26341922459c463944c355897c5efb8c1539b0a6b"
+content-hash = "f1f01b0404737e7757f970145040a93e9417a0fa255d66a3bffba901de8a2bff"
