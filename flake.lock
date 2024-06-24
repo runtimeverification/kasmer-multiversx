@@ -838,16 +838,16 @@
         "wasm-semantics": "wasm-semantics"
       },
       "locked": {
-        "lastModified": 1719223796,
-        "narHash": "sha256-NcSeOqyO23smyCSZlhN7rY+LYM5ZF63+oyKvi/UU2xI=",
+        "lastModified": 1719246394,
+        "narHash": "sha256-1ALEhirbY6vIFPneV5SPyAyJbv0Ncyn+KM8viFYxK/8=",
         "owner": "runtimeverification",
         "repo": "mx-semantics",
-        "rev": "a20db8906b484e575f6b2ba5ae17b45ab8e03464",
+        "rev": "3b0736add04fc35e667050bf26b2f65a7fa1dbd0",
         "type": "github"
       },
       "original": {
         "owner": "runtimeverification",
-        "ref": "v0.1.85",
+        "ref": "v0.1.87",
         "repo": "mx-semantics",
         "type": "github"
       }
