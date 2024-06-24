@@ -66,15 +66,19 @@ class KasmerSetup(NamedTuple):
         from kmultiversx import kasmer
         from pyk.kdist import kdist
 
+        def find_test_wasm_path(test_dir: Path) -> Path:
+            found = list(test_dir.glob('./output/*.wasm'))
+            assert len(found) == 1, f'Expected exactly 1 wasm file in {found}/output, found {len(found)}'
+            return found[0]
+
         definition_dir = kdist.get('mx-semantics.llvm-kasmer')
         krun = KRun(definition_dir)
 
-        test_dir = str(project.test_dir)
-        test_wasm = kasmer.load_wasm(kasmer.find_test_wasm_path(test_dir))
+        test_dir = project.test_dir
+        test_wasm = kasmer.load_wasm(find_test_wasm_path(test_dir))
         test_endpoints = dict(kasmer.get_test_endpoints(test_dir))
 
-        contract_paths = [str(contract_path) for contract_path in project.contract_paths]
-        contract_wasms = kasmer.load_contract_wasms(contract_paths)
+        contract_wasms = kasmer.load_contract_wasms(project.contract_paths)
 
         sym_conf, init_subst = kasmer.deploy_test(krun, test_wasm, contract_wasms)
 
