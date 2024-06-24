@@ -568,7 +568,7 @@ xdg-base-dirs = ">=6.0.1,<7.0.0"
 
 [[package]]
 name = "kmultiversx"
-version = "0.1.86"
+version = "0.1.87"
 description = "Python tools for Elrond semantics"
 optional = false
 python-versions = "^3.10"
@@ -583,8 +583,8 @@ pykwasm = {git = "https://github.com/runtimeverification/wasm-semantics.git", ta
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/mx-semantics.git"
-reference = "v0.1.86"
-resolved_reference = "bae4758e1127657396230c64611555786b227f9b"
+reference = "v0.1.87"
+resolved_reference = "3b0736add04fc35e667050bf26b2f65a7fa1dbd0"
 subdirectory = "kmultiversx"
 
 [[package]]
@@ -1259,4 +1259,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "b908eef20b64bfae2ec5abc9fce4ac6594ee814f2722ad6d1a8785ccf0223534"
+content-hash = "556dc5d294105f880e58d40a4d286a4d0124e4bdf6ac89050b493f84c0382ac9"
