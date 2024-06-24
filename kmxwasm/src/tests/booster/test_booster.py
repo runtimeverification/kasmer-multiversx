@@ -43,7 +43,7 @@ def test_aborted(
     args = AbortTestParams(testcase)
 
     wasm_path = wat_to_wasm(tmp_path, testcase.with_suffix('.wat'))
-    test_wasm = load_wasm(str(wasm_path))
+    test_wasm = load_wasm(wasm_path)
 
     claim_str = generate_test_claim(args, kdist.get('mxwasm-semantics.llvm'), test_wasm)
     claim_path = tmp_path / 'claim.json'
