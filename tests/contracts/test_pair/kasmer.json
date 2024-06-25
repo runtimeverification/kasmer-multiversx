@@ -1,5 +1,8 @@
 {
   "contracts": [
-    "../../../deps/mx-exchange-sc/dex/pair/output/pair.wasm"
+    {
+      "path": "../../../deps/mx-exchange-sc/dex/pair",
+      "name": "pair"
+    }
   ]
 }

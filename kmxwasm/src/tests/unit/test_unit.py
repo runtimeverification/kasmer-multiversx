@@ -21,12 +21,6 @@ TEST_DATA = (
         None,
     ),
     (
-        'string-multi-contract',
-        '../../deps/mx-sdk-rs/contracts/examples/multisig/output/multisig.wasm',
-        '../../deps/mx-sdk-rs/contracts/examples/multisig',
-        'multisig',
-    ),
-    (
         'dict-multi-contract',
         {
             'path': '../../deps/mx-sdk-rs/contracts/examples/multisig',

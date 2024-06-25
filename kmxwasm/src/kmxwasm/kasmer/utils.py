@@ -54,14 +54,8 @@ class KasmerProject:
 
 def read_contract_target(project_dir: Path, contract: dict | str) -> ContractTarget:
     if isinstance(contract, str):
-        path = Path(contract)
-        if path.suffix == '.wasm':
-            assert path.parent.name == 'output'
-            directory = path.parent.parent
-            name = path.stem
-        else:
-            directory = path
-            name = None
+        directory = Path(contract)
+        name = None
     elif isinstance(contract, dict):
         directory = Path(contract['path'])
         name = contract.get('name', None)
