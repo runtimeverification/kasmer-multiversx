@@ -1,5 +1,8 @@
 {
   "contracts": [
-    "../../../deps/mx-sdk-rs/contracts/examples/multisig"
+    {
+      "path": "../../../deps/mx-sdk-rs/contracts/examples/multisig",
+      "name": "multisig"
+    }
   ]
 }
