@@ -52,7 +52,7 @@ class KasmerProject:
         return tuple(t.wasm_path() for t in self.contracts)
 
 
-def read_contract_target(project_dir: Path, contract: dict | str) -> list[ContractTarget]:
+def read_contract_target(project_dir: Path, contract: dict | str) -> ContractTarget:
     if isinstance(contract, str):
         path = Path(contract)
         if path.suffix == '.wasm':
