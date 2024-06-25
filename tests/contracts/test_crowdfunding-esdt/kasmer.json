@@ -1,5 +1,8 @@
 {
-  "contract_paths": [
-    "../../../deps/mx-sdk-rs/contracts/examples/crowdfunding-esdt/output/crowdfunding-esdt.wasm"
+  "contracts": [
+    {
+      "path": "../../../deps/mx-sdk-rs/contracts/examples/crowdfunding-esdt",
+      "name": "crowdfunding-esdt"
+    }
   ]
 }
