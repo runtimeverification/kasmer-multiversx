@@ -26,7 +26,9 @@ class ContractTarget:
             return path
 
         wasm_paths = list(self.directory.glob('./output/*.wasm'))
-        assert len(wasm_paths) == 1, f'Expected exactly one *.wasm file in {self.directory}/output'
+
+        if len(wasm_paths) != 1:
+            raise ValueError(f'Expected exactly one *.wasm file in {self.directory}/output')
 
         return Path(wasm_paths[0])
 
