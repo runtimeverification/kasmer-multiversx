@@ -1,5 +1,8 @@
 {
-  "contract_paths": [
-    "../../../deps/mx-sdk-rs/contracts/examples/multisig/output/multisig.wasm"
+  "contracts": [
+    {
+      "path": "../../../deps/mx-sdk-rs/contracts/examples/multisig",
+      "name": "multisig"
+    }
   ]
 }

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, NamedTuple, Optional
 
 from pyk.ktool.krun import KRun
 from pyk.utils import abs_or_rel_to, check_dir_path, check_file_path
@@ -15,19 +15,57 @@ if TYPE_CHECKING:
 
 
 @dataclass
+class ContractTarget:
+    directory: Path
+    name: Optional[str]
+
+    def wasm_path(self) -> Path:
+        if self.name is not None:
+            path = self.directory / 'output' / (self.name + '.wasm')
+            check_file_path(path)
+            return path
+
+        wasm_paths = list(self.directory.glob('./output/*.wasm'))
+
+        if len(wasm_paths) != 1:
+            raise ValueError(f'Expected exactly one *.wasm file in {self.directory}/output')
+
+        return Path(wasm_paths[0])
+
+
+@dataclass
 class KasmerProject:
     test_dir: Path
-    contract_dirs: tuple[Path, ...]
-    contract_paths: tuple[Path, ...]
+    contracts: tuple[ContractTarget, ...]
 
-    def __init__(self, *, test_dir: Path, contract_dirs: Iterable[Path], contract_paths: Iterable[Path]):
+    def __init__(self, *, test_dir: Path, contracts: Iterable[ContractTarget]):
         check_dir_path(test_dir)
-        for contract_dir in contract_dirs:
-            check_dir_path(contract_dir)
+        for c in contracts:
+            check_dir_path(c.directory)
 
         self.test_dir = test_dir.resolve()
-        self.contract_dirs = tuple(contract_dir.resolve() for contract_dir in contract_dirs)
-        self.contract_paths = tuple(contract_path.resolve() for contract_path in contract_paths)
+        self.contracts = tuple(ContractTarget(c.directory.resolve(), c.name) for c in contracts)
+
+    @property
+    def contract_dirs(self) -> tuple[Path, ...]:
+        return tuple(c.directory for c in self.contracts)
+
+    def contract_paths(self) -> tuple[Path, ...]:
+        return tuple(t.wasm_path() for t in self.contracts)
+
+
+def read_contract_target(project_dir: Path, contract: dict | str) -> ContractTarget:
+    if isinstance(contract, str):
+        directory = Path(contract)
+        name = None
+    elif isinstance(contract, dict):
+        directory = Path(contract['path'])
+        name = contract.get('name', None)
+    else:
+        raise ValueError(f'Expected dictionary or string: {contract}')
+
+    directory = abs_or_rel_to(directory, base=project_dir)
+    return ContractTarget(directory=directory, name=name)
 
 
 def load_project(project_dir: Path) -> KasmerProject:
@@ -38,20 +76,10 @@ def load_project(project_dir: Path) -> KasmerProject:
     with project_file.open() as f:
         project_data = json.load(f)
 
-    contract_paths = []
-    contract_dirs = []
-    for contract_path_ in project_data['contract_paths']:
-        contract_path = abs_or_rel_to(Path(contract_path_), base=project_dir)
-        assert contract_path.suffix == '.wasm'
-        assert contract_path.parent.name == 'output'
-
-        contract_paths.append(contract_path)
-        contract_dirs.append(contract_path.parent.parent)
-
+    contracts = [read_contract_target(project_dir, c) for c in project_data['contracts']]
     return KasmerProject(
         test_dir=project_dir,
-        contract_dirs=contract_dirs,
-        contract_paths=contract_paths,
+        contracts=contracts,
     )
 
 
@@ -66,19 +94,14 @@ class KasmerSetup(NamedTuple):
         from kmultiversx import kasmer
         from pyk.kdist import kdist
 
-        def find_test_wasm_path(test_dir: Path) -> Path:
-            found = list(test_dir.glob('./output/*.wasm'))
-            assert len(found) == 1, f'Expected exactly 1 wasm file in {found}/output, found {len(found)}'
-            return found[0]
-
         definition_dir = kdist.get('mx-semantics.llvm-kasmer')
         krun = KRun(definition_dir)
 
-        test_dir = project.test_dir
-        test_wasm = kasmer.load_wasm(find_test_wasm_path(test_dir))
-        test_endpoints = dict(kasmer.get_test_endpoints(test_dir))
+        test_contract = ContractTarget(project.test_dir, None)
+        test_wasm = kasmer.load_wasm(test_contract.wasm_path())
+        test_endpoints = dict(kasmer.get_test_endpoints(project.test_dir))
 
-        contract_wasms = kasmer.load_contract_wasms(project.contract_paths)
+        contract_wasms = kasmer.load_contract_wasms(project.contract_paths())
 
         sym_conf, init_subst = kasmer.deploy_test(krun, test_wasm, contract_wasms)
 
