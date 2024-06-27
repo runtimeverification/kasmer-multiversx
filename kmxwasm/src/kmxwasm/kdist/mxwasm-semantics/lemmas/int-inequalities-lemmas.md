@@ -249,10 +249,10 @@ module INT-INEQUALITIES-LEMMAS
       [simplification, concrete(A, C), preserves-definedness]
   rule A <=Int B *Int C => A /Int B <=Int C
       requires 0 <Int B andBool A modInt B ==Int 0
-      [simplification, concrete(A, B)]
+      [simplification, concrete(A, B), preserves-definedness]
   rule A <=Int B *Int C => A /Int B +Int 1 <=Int C
       requires 0 <Int B andBool A modInt B =/=Int 0
-      [simplification, concrete(A, B)]
+      [simplification, concrete(A, B), preserves-definedness]
   rule A <Int B *Int C => A /Int B <Int C
       requires 0 <Int B
       [simplification, concrete(A, B), preserves-definedness]
@@ -274,36 +274,36 @@ module INT-INEQUALITIES-LEMMAS
   // Has tests
   rule A <=Int B *Int X => A /Int B <=Int X
       requires 0 <Int B andBool A %Int B ==Int 0
-      [simplification, concrete(A, B)]
+      [simplification, concrete(A, B), preserves-definedness]
   // Has tests
   rule A <=Int B *Int X => X <=Int A /Int B
       requires B <Int 0 andBool A %Int B ==Int 0
-      [simplification, concrete(A, B)]
+      [simplification, concrete(A, B), preserves-definedness]
   // Has tests
   rule A *Int X <=Int B => X <=Int B /Int A
       requires 0 <Int A andBool B %Int A ==Int 0
-      [simplification, concrete(A, B)]
+      [simplification, concrete(A, B), preserves-definedness]
   // Has tests
   rule A *Int X <=Int B => B /Int A <=Int X
       requires A <Int 0 andBool B %Int A ==Int 0
-      [simplification, concrete(A, B)]
+      [simplification, concrete(A, B), preserves-definedness]
 
   // Has tests
   rule A <Int B *Int X => A /Int B <Int X
       requires 0 <Int B andBool A %Int B ==Int 0
-      [simplification, concrete(A, B)]
+      [simplification, concrete(A, B), preserves-definedness]
   // Has tests
   rule A <Int B *Int X => X <Int A /Int B
       requires B <Int 0 andBool A %Int B ==Int 0
-      [simplification, concrete(A, B)]
+      [simplification, concrete(A, B), preserves-definedness]
   // Has tests
   rule A *Int X <Int B => X <Int B /Int A
       requires 0 <Int A andBool B %Int A ==Int 0
-      [simplification, concrete(A, B)]
+      [simplification, concrete(A, B), preserves-definedness]
   // Has tests
   rule A *Int X <Int B => B /Int A <Int X
       requires A <Int 0 andBool B %Int A ==Int 0
-      [simplification, concrete(A, B)]
+      [simplification, concrete(A, B), preserves-definedness]
 
   // a * b <= c
   // iff a <= c / b
