@@ -70,14 +70,21 @@ module BYTES-NORMALIZATION-LEMMAS  [symbolic]
             LE
         )
         requires 0 <=Int Start andBool Start <=Int End andBool End <=Int Size
-        [simplification]
+        [simplification, preserves-definedness]
+        // Preserving definedness:
+        // * The LHS:
+        //   - Int2Bytes is total
+        //   - substrBytesTotal is total
+        // * The RHS:
+        //   - >>Int is defined because 8 * Start >= 0
+        //   - Int2Bytes is total
 
     rule replaceAtBytesTotal(Dest:Bytes, Start:Int, Src:Bytes)
         => substrBytes(Dest, 0, Start)
           +Bytes Src
           +Bytes substrBytes(Dest, Start +Int lengthBytes(Src), lengthBytes(Dest))
         requires 0 <=Int Start andBool Start +Int lengthBytes(Src) <=Int lengthBytes(Dest)
-        [simplification]
+        [simplification, preserves-definedness]
 
     rule padRightBytesTotal (B:Bytes, Length:Int, Value:Int) => B
         requires Length <=Int lengthBytes(B)

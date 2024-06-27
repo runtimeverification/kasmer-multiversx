@@ -36,6 +36,7 @@ from .expression import (
 )
 from .lemmas import (
     CONCRETE,
+    PRESERVES_DEFINEDNESS,
     SMT_LEMMA,
     HelperLemma,
     Lemma,
@@ -271,7 +272,7 @@ LEMMAS = [
                 modIntTotal(addInt(X, Y), Z),
                 modIntTotal(addInt(X, modInt(Y, Z)), Z),
                 requires=andBool([notBool(eqInt(Z, v(0))), geInt(Y, Z)]),
-                att=KAtt([CONCRETE('Y,Z')]),
+                att=KAtt([CONCRETE('Y,Z'), PRESERVES_DEFINEDNESS]),
             ),
             Lemma(
                 mlEquals(modIntTotal(addInt(X, Y), M), modIntTotal(addInt(X, Z), M)),

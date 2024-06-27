@@ -174,7 +174,7 @@ module PROVEN-MX-LEMMAS
       requires ( notBool (Z:Int ==Int 0)
        andBool ( Y:Int >=Int Z:Int
                ))
-      [concrete(Y,Z), simplification()]
+      [concrete(Y,Z), preserves-definedness(), simplification()]
 
     rule  ( { ((X:Int) +Int (Y:Int)) modIntTotal (M:Int) #Equals ((X:Int) +Int (Z:Int)) modIntTotal (M:Int) }:Bool => { (Y:Int) modIntTotal (M:Int) #Equals (Z:Int) modIntTotal (M:Int) }:Bool )
       [simplification()]
