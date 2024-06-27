@@ -352,7 +352,7 @@ clause that is more restrictive for `canSplitSparseBytes` ensures that
             , 0
             )
         requires 0 <Int Addr andBool Addr <Int lengthBytes(A)
-        [simplification, concrete(A, Addr)]
+        [simplification, concrete(A, Addr), preserves-definedness]
     rule splitSparseBytes(SBChunk(#empty(A)) SB:SparseBytes, Prefix:SparseBytes, Addr:Int)
         => splitSparseBytes
             ( SBChunk(#empty(A -Int Addr))
@@ -506,7 +506,7 @@ module UPDATE-SPARSE-BYTES-LEMMAS
             andBool functionCommutesAtStart(F)
             andBool Start <Int lengthBytes(A)
             andBool 0 <Int Start
-        [simplification, concrete(A, Start)]
+        [simplification, concrete(A, Start), preserves-definedness]
     rule updateSparseBytes(
               F:SBSetFunction,
               SBChunk(#empty(A)) SB:SparseBytes,
@@ -630,7 +630,7 @@ module UPDATE-SPARSE-BYTES-LEMMAS
             andBool 0 <Int Start
             andBool Start <Int lengthBytes(A)
             andBool lengthBytes(A) <Int Start +Int Width
-        [simplification, concrete(A, Start)]
+        [simplification, concrete(A, Start), preserves-definedness]
     rule updateSparseBytes(
               F:SBSetFunction,
               SBChunk(#bytes(A)),
@@ -643,7 +643,7 @@ module UPDATE-SPARSE-BYTES-LEMMAS
             andBool functionCommutesAtStart(F)
             andBool 0 <Int Start
             andBool Start <Int lengthBytes(A)
-        [simplification, concrete(A, Start)]
+        [simplification, concrete(A, Start), preserves-definedness]
     rule updateSparseBytes(
               F:SBSetFunction,
               SBChunk(#bytes(A)),
@@ -654,8 +654,9 @@ module UPDATE-SPARSE-BYTES-LEMMAS
           )
         requires functionSparseBytesWellDefined(F, 0, Width)
             andBool functionCommutesAtStart(F)
+            andBool 0 <=Int Width
             andBool Width <Int lengthBytes(A)
-        [simplification, concrete(A)]
+        [simplification, concrete(A), preserves-definedness]
     // TODO: Make this work
     // rule updateSparseBytes(
     //           F:SBSetFunction,
@@ -981,7 +982,7 @@ module EXTRACT-SPARSE-BYTES-LEMMAS
             andBool 0 <Int Start
             andBool Start <Int lengthBytes(A)
             andBool lengthBytes(A) <Int Start +Int Width
-        [simplification, concrete(A, Start)]
+        [simplification, concrete(A, Start), preserves-definedness]
     rule extractSparseBytes(
               F:SBGetFunction,
               SBChunk(#bytes(_)) #as SBI:SBItemChunk,

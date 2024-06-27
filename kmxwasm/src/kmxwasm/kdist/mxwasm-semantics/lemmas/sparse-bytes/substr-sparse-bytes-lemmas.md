@@ -79,7 +79,7 @@ module SUBSTR-SPARSE-BYTES-LEMMAS
             0, Width
         )
         requires 0 <Int Start andBool Start <Int Size
-        [simplification]
+        [simplification, preserves-definedness]
     rule extractSparseBytes(
             substr, SBChunk(#bytes(Int2Bytes(Size:Int, Val:Int, LE))),
             0, Width:Int
@@ -89,7 +89,7 @@ module SUBSTR-SPARSE-BYTES-LEMMAS
             0, Width
         )
         requires 0 <Int Width andBool Width <Int Size
-        [simplification]
+        [simplification, preserves-definedness]
 
 endmodule
 
