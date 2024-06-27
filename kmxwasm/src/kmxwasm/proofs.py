@@ -17,6 +17,7 @@ from pyk.kore.rpc import KoreClientError
 from pyk.ktool.kprint import KPrint
 from pyk.ktool.krun import KRunOutput, _krun
 from pyk.prelude.bytes import BYTES, bytesToken_from_str
+from pyk.prelude.collections import MAP
 from pyk.prelude.k import K
 from pyk.prelude.kbool import TRUE, andBool, notBool
 from pyk.prelude.kint import INT, intToken, leInt, ltInt
@@ -60,7 +61,6 @@ DEBUG_DIR = BUILD_DIR / 'debug'
 SUMMARIES_DIR = DATA_DIR / 'summaries'
 
 GENERATED_RULE_PRIORITY = 20
-MAP = KSort('Map')
 
 # Setting this disables compilation.
 DEBUG_ID = ''  #'ca3493ec081b72857fe96a8b6d3b3f969505e6bc09d91d16eaff9995f2c551ad'
@@ -661,7 +661,7 @@ def run_for_input(
         ('<funcIds>', 'MyFuncIds', MAP),
         # Real symbolic inputs
         # <elrond>
-        ('<bufferHeap>', 'MyBuffers', KSort('Map')),
+        ('<bufferHeap>', 'MyBuffers', MAP),
         ('<bigIntHeap>', 'MyInts', MAP),
         # <elrond>/<node>/<callState>
         ('<callArgs>', 'MyCallArgs', KSort('ListBytes')),
