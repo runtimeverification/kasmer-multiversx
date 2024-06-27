@@ -3,7 +3,7 @@ from typing import Iterable
 
 from pyk.kast.inner import KApply, KInner, KSequence, KSort, KToken, collect
 
-from .collections import cell_map, full_list, k_map, simple_list
+from .collections import cell_map, full_list, simple_list
 from .generic import (
     find_with_path,
     get_with_path,
