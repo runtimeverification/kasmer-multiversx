@@ -3,7 +3,7 @@ from typing import Iterable
 
 from pyk.kast.inner import KApply, KInner, KSequence, KSort, KToken, collect
 
-from .collections import cell_map, full_list, k_map, simple_list
+from .collections import cell_map, full_list, simple_list
 from .generic import (
     find_with_path,
     get_with_path,
@@ -71,16 +71,6 @@ def listAsyncCall(items: Iterable[KInner]) -> KInner:  # noqa: N802
 
 def listBytes(items: Iterable[KInner]) -> KInner:  # noqa: N802
     return full_list(concat_label='_ListBytes_', item_label='ListBytesItem', empty_label='.ListBytes', items=items)
-
-
-def mapIntToBytes(int_to_bytes: dict[KInner, KInner]) -> KInner:  # noqa: N802
-    return k_map(
-        concat_label='_MapIntToBytes_', item_label='_Int2Bytes|->_', empty_label='.MapIntToBytes', items=int_to_bytes
-    )
-
-
-def mapIntToInt(int_to_int: dict[KInner, KInner]) -> KInner:  # noqa: N802
-    return k_map(concat_label='_MapIntToInt_', item_label='_Int2Int|->_', empty_label='.MapIntToInt', items=int_to_int)
 
 
 def bytesStack(items: Iterable[KInner]) -> KInner:  # noqa: N802
