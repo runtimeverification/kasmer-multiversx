@@ -26,6 +26,7 @@ class Attribute:
 
 SMT_LEMMA = AttKey('smt-lemma', type=_NONE)
 CONCRETE = AttKey('concrete', type=_ANY)
+PRESERVES_DEFINEDNESS = AttKey('smt-lemma', type=_NONE)
 
 
 @dataclass(frozen=True)

@@ -110,7 +110,7 @@ module INT-BIT-NORMALIZATION-LEMMAS  [symbolic]
         => (A &Int (M >>Int B)) <<IntTotal B
       requires 0 <=Int B
           andBool 1 <<Int B <=Int M +Int 1
-      [simplification, concrete(M, B)]
+      [simplification, concrete(M, B), preserves-definedness]
   rule (_A <<IntTotal B) &Int M => 0
       requires 0 <=Int M
           andBool 0 <=Int B
@@ -119,7 +119,7 @@ module INT-BIT-NORMALIZATION-LEMMAS  [symbolic]
   rule (A >>IntTotal B) &Int M
         => (A &Int (M <<Int B)) >>IntTotal B
       requires 0 <=Int B
-      [simplification, concrete(M, B)]
+      [simplification, concrete(M, B), preserves-definedness]
 
   rule (A <<IntTotal 0) => A
       [simplification]
@@ -395,7 +395,7 @@ module INT-ARITHMETIC-NORMALIZATION-LEMMAS
 
   rule (X +Int Y) modIntTotal Z => (X +Int (Y modInt Z)) modIntTotal Z
       requires Z =/=Int 0 andBool Y >=Int Z
-      [simplification, concrete(Y, Z)]
+      [simplification, concrete(Y, Z), preserves-definedness]
   rule {((X +Int Y) modIntTotal M) #Equals ((X +Int Z) modIntTotal M)}
       => {(Y modIntTotal M) #Equals (Z modIntTotal M)}
       [simplification]

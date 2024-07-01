@@ -176,11 +176,11 @@ module BINARY-SEARCH [symbolic]
       => findLowerUnknown(B, R, Min, (Min +Int Max) /Int 2)
       requires Min <Int Max -Int 1
         andBool evaluate(B, (Min +Int Max) /Int 2)
-      [simplification(50)]
+      [simplification(50), preserves-definedness]
   rule findLowerUnknown(B:BinSearchBeforeLambda, R:BinSearchResultLambda, Min, Max)
       => findLowerUnknown(B, R, (Min +Int Max) /Int 2, Max)
       requires Min <Int Max -Int 1
-      [simplification(51)]
+      [simplification(51), preserves-definedness]
 
   rule evaluate(GeqThan(A), _:Int, Max:Int) => true
       requires A <=Int Max

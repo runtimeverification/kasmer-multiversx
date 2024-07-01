@@ -38,7 +38,7 @@ module SET-RANGE-LEMMAS
         => SBChunk(#bytes(replaceAtBytes(A, Start, Int2Bytes(Width, Value, LE))))
         requires functionSparseBytesWellDefined(setRange(Value), Start, Width)
             andBool Start +Int Width <=Int lengthBytes(A)
-        [simplification, concrete(A)]
+        [simplification, concrete(A), preserves-definedness]
 
     rule updateSparseBytes(setRange(Value:Int), SBChunk(#empty(A)), Start:Int, Width:Int)
         => SBChunk(#empty(Start))

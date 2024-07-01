@@ -106,7 +106,9 @@ module INT-INEQUALITIES-LEMMAS
       requires 0 <=Int A
           andBool 0 <=Int C
           andBool definedShlInt(A, B)
-      [simplification, concrete(B, C)]
+      [simplification, concrete(B, C), preserves-definedness]
+      // Preserving definedness: definedShlInt(A, B) requires 0 <= B, so all shifts are defined.
+
   // When c & fullMask(b) != 0:
   // a * 2^b < c
   // iff a < c / 2^b
@@ -127,7 +129,9 @@ module INT-INEQUALITIES-LEMMAS
           andBool 0 <=Int C
           andBool definedShlInt(A, B)
           andBool notBool C &Int fullMask(B) ==Int 0
-      [simplification, concrete(B, C)]
+      [simplification, concrete(B, C), preserves-definedness]
+      // Preserving definedness: definedShlInt checks that 0 <= B so all
+      // shifts are defined. fullMask is total.
 
   rule 0 <=Int A >>IntTotal B => 0 <=Int A
       requires definedShrInt(A, B)
@@ -155,7 +159,7 @@ module INT-INEQUALITIES-LEMMAS
       requires 0 <=Int A
           andBool 0 <=Int C
           andBool definedShrInt(A, B)
-      [simplification, concrete(B, C)]
+      [simplification, concrete(B, C), preserves-definedness]
   // trunc(a / 2^b) < c
   // iff a / 2^b - frac(a / 2^b) <= c
   // iff a / 2^b <= c + frac(a / 2^b)
@@ -172,7 +176,7 @@ module INT-INEQUALITIES-LEMMAS
       requires 0 <=Int A
           andBool 0 <=Int C
           andBool definedShrInt(A, B)
-      [simplification, concrete(B, C)]
+      [simplification, concrete(B, C), preserves-definedness]
 
   // Moved to proven-mx-lemmas.md
   // rule A +Int B <=Int A => B <=Int 0  [simplification]
@@ -239,19 +243,19 @@ module INT-INEQUALITIES-LEMMAS
 
   rule A *Int B <=Int C => B <=Int C /Int A
       requires 0 <Int A
-      [simplification, concrete(A, C)]
+      [simplification, concrete(A, C), preserves-definedness]
   rule A *Int B <Int C => B <=Int (C -Int 1) /Int A
       requires 0 <Int A
-      [simplification, concrete(A, C)]
+      [simplification, concrete(A, C), preserves-definedness]
   rule A <=Int B *Int C => A /Int B <=Int C
       requires 0 <Int B andBool A modInt B ==Int 0
-      [simplification, concrete(A, B)]
+      [simplification, concrete(A, B), preserves-definedness]
   rule A <=Int B *Int C => A /Int B +Int 1 <=Int C
       requires 0 <Int B andBool A modInt B =/=Int 0
-      [simplification, concrete(A, B)]
+      [simplification, concrete(A, B), preserves-definedness]
   rule A <Int B *Int C => A /Int B <Int C
       requires 0 <Int B
-      [simplification, concrete(A, B)]
+      [simplification, concrete(A, B), preserves-definedness]
 
   rule A *Int B <=Int C => (0 -Int C) <=Int (0 -Int A) *Int B
       requires A <Int 0
@@ -270,36 +274,36 @@ module INT-INEQUALITIES-LEMMAS
   // Has tests
   rule A <=Int B *Int X => A /Int B <=Int X
       requires 0 <Int B andBool A %Int B ==Int 0
-      [simplification, concrete(A, B)]
+      [simplification, concrete(A, B), preserves-definedness]
   // Has tests
   rule A <=Int B *Int X => X <=Int A /Int B
       requires B <Int 0 andBool A %Int B ==Int 0
-      [simplification, concrete(A, B)]
+      [simplification, concrete(A, B), preserves-definedness]
   // Has tests
   rule A *Int X <=Int B => X <=Int B /Int A
       requires 0 <Int A andBool B %Int A ==Int 0
-      [simplification, concrete(A, B)]
+      [simplification, concrete(A, B), preserves-definedness]
   // Has tests
   rule A *Int X <=Int B => B /Int A <=Int X
       requires A <Int 0 andBool B %Int A ==Int 0
-      [simplification, concrete(A, B)]
+      [simplification, concrete(A, B), preserves-definedness]
 
   // Has tests
   rule A <Int B *Int X => A /Int B <Int X
       requires 0 <Int B andBool A %Int B ==Int 0
-      [simplification, concrete(A, B)]
+      [simplification, concrete(A, B), preserves-definedness]
   // Has tests
   rule A <Int B *Int X => X <Int A /Int B
       requires B <Int 0 andBool A %Int B ==Int 0
-      [simplification, concrete(A, B)]
+      [simplification, concrete(A, B), preserves-definedness]
   // Has tests
   rule A *Int X <Int B => X <Int B /Int A
       requires 0 <Int A andBool B %Int A ==Int 0
-      [simplification, concrete(A, B)]
+      [simplification, concrete(A, B), preserves-definedness]
   // Has tests
   rule A *Int X <Int B => B /Int A <Int X
       requires A <Int 0 andBool B %Int A ==Int 0
-      [simplification, concrete(A, B)]
+      [simplification, concrete(A, B), preserves-definedness]
 
   // a * b <= c
   // iff a <= c / b
@@ -307,7 +311,7 @@ module INT-INEQUALITIES-LEMMAS
   // Has tests
   rule B *Int A <=Int C => A <=Int C /Int B
       requires 0 <Int B andBool 0 <=Int C
-      [simplification, concrete(B, C)]
+      [simplification, concrete(B, C), preserves-definedness]
   // When c mod b is 0:
   // a * b < c
   // iff a < c / b
@@ -328,7 +332,7 @@ module INT-INEQUALITIES-LEMMAS
           #fi
       requires 0 <Int B
         andBool 0 <=Int C
-      [simplification, concrete(B, C)]
+      [simplification, concrete(B, C), preserves-definedness]
   // When a mod c is 0:
   // a <= b * c
   // iff a / c <= b
@@ -349,14 +353,14 @@ module INT-INEQUALITIES-LEMMAS
             #fi
       requires 0 <Int C
         andBool 0 <=Int A
-      [simplification, concrete(A, C)]
+      [simplification, concrete(A, C), preserves-definedness]
   // a < b * c
   // iff a / c < b
   // iff trunc(a/c) < b
   // Has tests
   rule A <Int C *Int B => A /Int C <Int B
       requires 0 <Int C andBool 0 <=Int B
-      [simplification, concrete(A, C)]
+      [simplification, concrete(A, C), preserves-definedness]
 
 
   // a * b <= c
@@ -412,7 +416,7 @@ module INT-INEQUALITIES-LEMMAS
   rule log2IntTotal(A) <Int B => A <Int 2 ^Int B
       requires 0 <Int A andBool 0 <=Int B
           andBool B <=Int 1000 // Making sure there is no OOM when computing 2^B
-      [simplification, concrete(B)]
+      [simplification, concrete(B), preserves-definedness]
   // Partly covering the case when 1000 < B
   // Has tests
   rule log2IntTotal(A) <Int B => true
@@ -426,7 +430,7 @@ module INT-INEQUALITIES-LEMMAS
   rule log2IntTotal(A) <=Int B => A <Int 2 ^Int (B +Int 1)
       requires 0 <Int A andBool 0 <=Int B
           andBool B <=Int 1000 // Making sure there is no OOM when computing 2^B
-      [simplification, concrete(B)]
+      [simplification, concrete(B), preserves-definedness]
   // Partly covering the case when 1000 < B
   // Has tests
   rule log2IntTotal(A) <=Int B => true
@@ -440,7 +444,7 @@ module INT-INEQUALITIES-LEMMAS
   rule B <=Int log2IntTotal(A) => 2 ^Int B <=Int A
       requires 0 <Int A andBool 0 <=Int B
           andBool B <=Int 1000 // Making sure there is no OOM when computing 2^B
-      [simplification, concrete(B)]
+      [simplification, concrete(B), preserves-definedness]
   // Partly covering the case when 1000 < B
   // Has tests
   rule B <=Int log2IntTotal(A) => false
@@ -455,7 +459,7 @@ module INT-INEQUALITIES-LEMMAS
   rule B <Int log2IntTotal(A) => 2 ^Int (B +Int 1) <=Int A
       requires 0 <Int A andBool 0 <=Int B
           andBool B <=Int 1000 // Making sure there is no OOM when computing 2^B
-      [simplification, concrete(B)]
+      [simplification, concrete(B), preserves-definedness]
   // Partly covering the case when 1000 < B
   // Has tests
   rule B <Int log2IntTotal(A) => false
