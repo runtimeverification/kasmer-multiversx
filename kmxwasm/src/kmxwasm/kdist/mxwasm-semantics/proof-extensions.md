@@ -5,7 +5,7 @@ module PROOF-EXTENSIONS
   imports ELROND
   imports WASM
 
-  syntax Instr ::= "infiniteLoop"  [symbol, klabel(infiniteLoop)]
+  syntax Instr ::= "infiniteLoop"  [symbol(infiniteLoop)]
   rule <instrs> (infiniteLoop ~> _:KItem => infiniteLoop) ... </instrs>
 
   syntax Bool ::= firstCommandIsNotException(K)  [function, total]
