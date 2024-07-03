@@ -8,7 +8,7 @@ module USER-OPERATIONS
   imports LIST
   imports PROOF-SYNTAX
 
-  syntax ProofUserOperation ::= basicListInduction(List)  [symbol, klabel(basicListInduction)]
+  syntax ProofUserOperation ::= basicListInduction(List)  [symbol(basicListInduction)]
 
   rule runProofStep(basicListInduction(L:List))
       => runProof(
@@ -17,7 +17,7 @@ module USER-OPERATIONS
               empty(nop)
           )
 
-  syntax ProofUserOperation ::= moduloBetween0AndM(number:Int, mod:Int)  [symbol, klabel(moduloBetween0AndM)]
+  syntax ProofUserOperation ::= moduloBetween0AndM(number:Int, mod:Int)  [symbol(moduloBetween0AndM)]
 
   rule runProofStep(moduloBetween0AndM(A:Int, M:Int))
       => runProof(
@@ -36,7 +36,7 @@ module USER-OPERATIONS
             )
           )
 
-  syntax ProofUserOperation ::= tModuloBetween0AndM(number:Int, mod:Int)  [symbol, klabel(tModuloBetween0AndM)]
+  syntax ProofUserOperation ::= tModuloBetween0AndM(number:Int, mod:Int)  [symbol(tModuloBetween0AndM)]
 
   rule runProofStep(tModuloBetween0AndM(A:Int, M:Int))
       => runProof(
@@ -55,7 +55,7 @@ module USER-OPERATIONS
             )
           )
 
-  syntax ProofUserOperation ::= numberAsTDivModulo(number:Int, mod:Int)  [symbol, klabel(numberAsTDivModulo)]
+  syntax ProofUserOperation ::= numberAsTDivModulo(number:Int, mod:Int)  [symbol(numberAsTDivModulo)]
 
   rule runProofStep(numberAsTDivModulo(A:Int, M:Int))
       => runProof(
@@ -63,7 +63,7 @@ module USER-OPERATIONS
           )
 
   syntax ProofUserOperation ::= numberAsTDivModuloHelper(number:Int, mod:Int, divresult:Int, modresult:Int)
-      [symbol, klabel(numberAsTDivModuloHelper)]
+      [symbol(numberAsTDivModuloHelper)]
 
   rule runProofStep(numberAsTDivModuloHelper(A:Int, M:Int, Div:Int, Mod:Int))
       => runProof(
@@ -95,7 +95,7 @@ module USER-OPERATIONS
         )
 
 
-  syntax ProofUserOperation ::= numberAsDivModulo(number:Int, mod:Int)  [symbol, klabel(numberAsDivModulo)]
+  syntax ProofUserOperation ::= numberAsDivModulo(number:Int, mod:Int)  [symbol(numberAsDivModulo)]
 
   rule runProofStep(numberAsDivModulo(A:Int, M:Int))
       => runProof(
@@ -103,7 +103,7 @@ module USER-OPERATIONS
           )
 
   syntax ProofUserOperation ::= numberAsDivModuloHelper(number:Int, mod:Int, divresult:Int, modresult:Int)
-      [symbol, klabel(numberAsDivModuloHelper)]
+      [symbol(numberAsDivModuloHelper)]
 
   rule runProofStep(numberAsDivModuloHelper(A:Int, M:Int, Div:Int, Mod:Int))
       => runProof(
@@ -135,7 +135,7 @@ module USER-OPERATIONS
         )
 
   syntax ProofUserOperation ::= numberIsNumberMulDiv(number:Int, mod:Int)
-      [symbol, klabel(numberIsNumberMulDiv)]
+      [symbol(numberIsNumberMulDiv)]
 
   rule runProofStep(numberIsNumberMulDiv(A:Int, M:Int))
       => runProof(
@@ -164,7 +164,7 @@ module USER-OPERATIONS
 
 
   syntax ProofUserOperation ::= modAddMultiple(number:Int, multiplier: Int, mod:Int)
-      [symbol, klabel(modAddMultiple)]
+      [symbol(modAddMultiple)]
 
   rule runProofStep(modAddMultiple(A:Int, B:Int, M:Int))
       => runProof(
