@@ -1,0 +1,24 @@
+[package]
+name = "adder-int-64"
+version = "0.0.0"
+authors = ["you"]
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/adder_int_64.rs"
+
+[dependencies.multiversx-sc]
+version = "0.50.5"
+
+[dev-dependencies]
+num-bigint = "0.4"
+
+[dev-dependencies.multiversx-sc-scenario]
+version = "0.50.5"
+
+[workspace]
+members = [
+    ".",
+    "meta",
+]

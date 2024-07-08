@@ -1,0 +1,14 @@
+[
+  "checkNoPayment",
+  "getNumArguments",
+  "mBufferAppendBytes",
+  "mBufferGetByteSlice",
+  "mBufferGetLength",
+  "mBufferSetBytes",
+  "mBufferStorageLoad",
+  "mBufferStorageStore",
+  "managedSignalError",
+  "signalError",
+  "smallIntFinishUnsigned",
+  "smallIntGetUnsignedArgument"
+]
