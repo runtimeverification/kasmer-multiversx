@@ -584,8 +584,8 @@ pykwasm = {git = "https://github.com/runtimeverification/wasm-semantics.git", ta
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/mx-semantics.git"
-reference = "v0.1.91"
-resolved_reference = "85764c0ff7ae2445c0120e84720620209eee5f89"
+reference = "HOTFIX-refactor-getbuffer-rules"
+resolved_reference = "aada22545554186ba01e3d796dbc67405035b124"
 subdirectory = "kmultiversx"
 
 [[package]]
@@ -1260,4 +1260,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "f80fba8120ebe63820fe2119e801ec9e3c84c2f25a4028d1c53e8d1c88a46192"
+content-hash = "f88aba27cf84b64d25507ef88c5857dc66715a2470f5036a17dcedd97f93207f"
