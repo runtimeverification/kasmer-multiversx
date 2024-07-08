@@ -1,0 +1,8 @@
+{
+  "contracts": [
+    {
+      "path": "../adder-int-64",
+      "name": "adder-int-64"
+    }
+  ]
+}
