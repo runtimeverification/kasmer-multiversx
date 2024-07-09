@@ -198,6 +198,15 @@ jobs:
       - name: 'Build Kasmer'
         run: GC_DONT_GC=1 nix build .#kmxwasm --extra-experimental-features 'nix-command flakes' --print-build-logs
       - name: 'Run smoke tests'
-        run: GC_DONT_GC=1 nix develop .#kmxwasm-test-shell --extra-experimental-features 'nix-command flakes' --print-build-logs --command './package/smoke-test.sh'
+        run: GC_DONT_GC=1 KORE_RPC_OPTS='--log-file ./smoke-log.json --log-format json -l Rewrite -l Simplify --log-context "*>llvm"' nix develop .#kmxwasm-test-shell --extra-experimental-features 'nix-command flakes' --print-build-logs --command './package/smoke-test.sh'
       - name: 'Run claim generation tests'
         run: GC_DONT_GC=1 nix develop .#kmxwasm-test-shell --extra-experimental-features 'nix-command flakes' --print-build-logs --command './generate-claims.sh'
+      - name: Compress server logs from smoke test
+        if: always()
+        run: gzip smoke-log.json
+      - name: Archive server logs for inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: "${{ matrix.runner }}.smoke-log.json.gz"
+          path: ./smoke-log.json.gz
