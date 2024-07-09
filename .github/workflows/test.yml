@@ -203,7 +203,7 @@ jobs:
         run: GC_DONT_GC=1 nix develop .#kmxwasm-test-shell --extra-experimental-features 'nix-command flakes' --print-build-logs --command './generate-claims.sh'
       - name: Compress server logs from smoke test
         if: success() || failure()
-        run: touch /tmp/smoke-log.json && ls -l /tmp/smoke-log.json && gzip /tmp/smoke-log.json
+        run: touch /tmp/smoke-log.json && ls -l /tmp/smoke-log.json && rm -f /tmp/smoke-log.json.gz && gzip /tmp/smoke-log.json
       - name: Archive server logs for inspection
         if: success() || failure()
         uses: actions/upload-artifact@v4
