@@ -202,10 +202,10 @@ jobs:
       - name: 'Run claim generation tests'
         run: GC_DONT_GC=1 nix develop .#kmxwasm-test-shell --extra-experimental-features 'nix-command flakes' --print-build-logs --command './generate-claims.sh'
       - name: Compress server logs from smoke test
-        if: always()
-        run: gzip /tmp/smoke-log.json
+        if: success() || failure()
+        run: touch /tmp/smoke-log.json && ls -l /tmp/smoke-log.json && gzip /tmp/smoke-log.json
       - name: Archive server logs for inspection
-        if: always()
+        if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
           name: "${{ matrix.runner }}.smoke-log.json.gz"
