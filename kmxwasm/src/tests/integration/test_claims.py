@@ -11,7 +11,7 @@ from pyk.prelude.kint import intToken
 from pyk.prelude.string import stringToken
 
 from kmxwasm.ast.configuration import wrap_with_generated_top_if_needed
-from kmxwasm.ast.mx import accountCellMap, bytesStack, directCall, listAsyncCall, listBytes
+from kmxwasm.ast.mx import accountCellMap, bytesStack, directCall, listAsyncCall, listBytes, mapIntToBytes, mapIntToInt
 from kmxwasm.ast.wasm import (
     elemInstCellMap,
     funcDefCellMap,
@@ -80,8 +80,8 @@ def callStateCell() -> KInner:  # noqa: N802
                 ),
             ),
             wasmCell(),
-            KApply('<bigIntHeap>', map_empty()),
-            KApply('<bufferHeap>', map_empty()),
+            KApply('<bigIntHeap>', mapIntToInt({})),
+            KApply('<bufferHeap>', mapIntToBytes({})),
             KApply('<bytesStack>', bytesStack([])),
             KApply('<contractModIdx>', optionalInt_empty()),
             KApply('<asyncCalls>', listAsyncCall([])),
