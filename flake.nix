@@ -6,7 +6,7 @@
     pyk.url = "github:runtimeverification/k/v7.1.30?dir=pyk";
     nixpkgs-pyk.follows = "pyk/nixpkgs";
     poetry2nix.follows = "pyk/poetry2nix";
-    mx-semantics.url = "github:runtimeverification/mx-semantics/v0.1.92";
+    mx-semantics.url = "github:runtimeverification/mx-semantics/v0.1.93";
     nixpkgs.follows = "k-framework/nixpkgs";
     flake-utils.follows = "k-framework/flake-utils";
     rv-utils.url = "github:runtimeverification/rv-nix-tools";
