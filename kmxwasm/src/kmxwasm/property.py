@@ -267,7 +267,7 @@ PROFILE_INSTRUCTIONS = [
                 KApply('aIConst', [KApply('i32'), token(1)]),
                 KApply(
                     'init_local___WASM_Instr_Int_Val',
-                    [token(0), KApply('<_>__WASM-DATA-COMMON_IVal_IValType_Int', [KApply('i32'), token(1)])],
+                    [token(0), KApply('IVal', [KApply('i32'), token(1)])],
                 ),
             ]
         ),
@@ -280,7 +280,7 @@ PROFILE_INSTRUCTIONS = [
     InstructionProfile(
         name='push.i32',
         steps=1,
-        to_run=KApply('<_>__WASM-DATA-COMMON_IVal_IValType_Int', [KApply('i32'), token(2)]),
+        to_run=KApply('IVal', [KApply('i32'), token(2)]),
     ),
     InstructionProfile(
         name='store',
@@ -301,7 +301,7 @@ PROFILE_INSTRUCTIONS = [
                 KApply('aIConst', [KApply('i32'), token(1)]),
                 KApply(
                     'init_local___WASM_Instr_Int_Val',
-                    [token(0), KApply('<_>__WASM-DATA-COMMON_IVal_IValType_Int', [KApply('i32'), token(1)])],
+                    [token(0), KApply('IVal', [KApply('i32'), token(1)])],
                 ),
             ]
         ),
@@ -316,7 +316,7 @@ PROFILE_INSTRUCTIONS = [
                 KApply('aIConst', [KApply('i32'), token(1)]),
                 KApply(
                     'init_local___WASM_Instr_Int_Val',
-                    [token(0), KApply('<_>__WASM-DATA-COMMON_IVal_IValType_Int', [KApply('i32'), token(1)])],
+                    [token(0), KApply('IVal', [KApply('i32'), token(1)])],
                 ),
             ]
         ),

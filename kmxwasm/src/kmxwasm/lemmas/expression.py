@@ -58,7 +58,7 @@ def geInt(i1: KInner, i2: KInner) -> KApply:  # noqa: N802
 
 
 def sizeList(l: KInner) -> KApply:  # noqa: N802
-    return KApply('size(_)_LIST_Int_List', l)  # TODO: make sizeList in K a symbol.
+    return KApply('sizeList', l)
 
 
 def maxInt(l: KInner, r: KInner) -> KApply:  # noqa: N802

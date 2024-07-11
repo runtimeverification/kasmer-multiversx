@@ -236,8 +236,8 @@ def generate_symbolic_function_call(function: WasmFunction) -> Tuple[KSequence, 
     stack: KInner = KVariable('MyStack', sort=KSort('ValStack'))
     for var, vtype in zip(variables, argument_types_list, strict=True):
         stack = KApply(
-            '_:__WASM-DATA-COMMON_ValStack_Val_ValStack',
-            (KApply('<_>__WASM-DATA-COMMON_IVal_IValType_Int', (make_type(vtype), var)), stack),
+            'concatValStack',
+            (KApply('IVal', (make_type(vtype), var)), stack),
         )
     statements = [KApply('aNop'), make_a_call(function.address()), KVariable('MyOtherInstructions', sort=K)]
     call = make_statement_list(statements)
@@ -590,7 +590,7 @@ class VariablesForGlobals:
         val_type = k_type_to_val_type(typed_value.args[0])
 
         assert isinstance(typed_value, KApply), typed_value
-        assert typed_value.label.name == '<_>__WASM-DATA-COMMON_IVal_IValType_Int', typed_value
+        assert typed_value.label.name == 'IVal', typed_value
         assert typed_value.arity == 2, typed_value
 
         variable = make_variable(f'MyGlobal{self.__next_index}', val_type)
