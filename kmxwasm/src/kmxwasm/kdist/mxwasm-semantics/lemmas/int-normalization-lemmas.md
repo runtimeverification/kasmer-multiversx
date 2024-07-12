@@ -257,6 +257,24 @@ module INT-BIT-NORMALIZATION-LEMMAS  [symbolic]
       => {true #Equals A <=Int fullMask(8) }
       requires 0 <=Int A andBool A <=Int fullMask(16)
       [simplification]
+
+  // versions of the above rules that avoid #Equals:
+  rule 0  ==Int (A &Int B) >>IntTotal C
+       => 0 ==Int A &Int B
+      requires B &Int fullMask(C) ==Int 0
+      [simplification, concrete(B, C)]
+  rule 0 ==Int A &Int 4278190080
+       => A <=Int fullMask(24)
+      requires 0 <=Int A andBool A <=Int fullMask(32)
+      [simplification]
+  rule 0 ==Int A &Int 16711680
+      => A <=Int fullMask(16)
+      requires 0 <=Int A andBool A <=Int fullMask(24)
+      [simplification]
+  rule 0 ==Int A &Int 65280
+      => A <=Int fullMask(8)
+      requires 0 <=Int A andBool A <=Int fullMask(16)
+      [simplification]
 endmodule
 
 module INT-ARITHMETIC-NORMALIZATION-LEMMAS
@@ -399,9 +417,16 @@ module INT-ARITHMETIC-NORMALIZATION-LEMMAS
   rule {((X +Int Y) modIntTotal M) #Equals ((X +Int Z) modIntTotal M)}
       => {(Y modIntTotal M) #Equals (Z modIntTotal M)}
       [simplification]
+  rule ((X +Int Y) modIntTotal M) ==Int ((X +Int Z) modIntTotal M)
+      => (Y modIntTotal M) ==Int (Z modIntTotal M)
+      [simplification]
+
   rule X modIntTotal Y => X requires 0 <=Int X andBool X <Int Y
 
   rule {(A modIntTotal C) #Equals (B modIntTotal C)} => #Top
+      requires A ==Int B
+      [simplification]
+  rule (A modIntTotal C) ==Int (B modIntTotal C) => true
       requires A ==Int B
       [simplification]
 
@@ -416,10 +441,31 @@ module INT-ARITHMETIC-NORMALIZATION-LEMMAS
       requires B =/=Int 0
       [simplification(50)]
 
+  // ==Int versions of the above rules
+  rule 0 ==Int A ^IntTotal _B => false
+      requires A =/=Int 0
+      [simplification(40)]
+  rule A ^IntTotal _B ==Int 0 => false
+      requires A =/=Int 0
+      [simplification(40)]
+  rule 0 ==Int A ^IntTotal B => 0 ==Int A
+      requires B =/=Int 0
+      [simplification(50)]
+
+  // complementing the above, ^IntTotal is positive if its 1st argument is
+  rule 0 <Int A ^IntTotal _B => 0 <Int A
+      [simplification]
+
+
   rule {0 #Equals A divIntTotal B} => {true #Equals A <Int B}
       requires 0 <=Int A andBool 0 <Int B
       [simplification]
   rule {A divIntTotal B #Equals 0} => {true #Equals A <Int B}
+      requires 0 <=Int A andBool 0 <Int B
+      [simplification]
+
+  // rule similar to the above but using Int domain operations
+  rule A divIntTotal B ==Int 0 => A <Int B
       requires 0 <=Int A andBool 0 <Int B
       [simplification]
 
