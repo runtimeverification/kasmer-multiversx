@@ -21,6 +21,12 @@ module PROVEN-MX-LEMMAS
     rule  ( { 1 #Equals #bool ( B:Bool ) }:Bool => { true #Equals B:Bool }:Bool )
       [simplification()]
 
+    rule  0 ==Int #bool ( B:Bool )  => notBool B
+      [simplification()]
+
+    rule  1 ==Int #bool ( B:Bool )  => B:Bool
+      [simplification()]
+
     rule  ( size ( _L:List ) >=Int 0 => true )
       [smt-lemma, simplification()]
 
@@ -177,6 +183,10 @@ module PROVEN-MX-LEMMAS
       [concrete(Y,Z), simplification()]
 
     rule  ( { ((X:Int) +Int (Y:Int)) modIntTotal (M:Int) #Equals ((X:Int) +Int (Z:Int)) modIntTotal (M:Int) }:Bool => { (Y:Int) modIntTotal (M:Int) #Equals (Z:Int) modIntTotal (M:Int) }:Bool )
+      [simplification()]
+
+    rule  (X +Int Y) modIntTotal M ==Int (X +Int Z) modIntTotal M
+          => Y modIntTotal M ==Int Z modIntTotal M
       [simplification()]
 
     rule  ( (X:Int) modIntTotal (Y:Int) => X:Int )

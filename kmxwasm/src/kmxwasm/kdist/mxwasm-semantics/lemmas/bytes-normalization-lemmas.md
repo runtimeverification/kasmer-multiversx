@@ -135,6 +135,19 @@ module BYTES-NORMALIZATION-LEMMAS  [symbolic]
         requires lengthBytes(A) >Int 0
         [simplification(100)]
 
+    rule b"" ==K Int2Bytes(Len:Int, _Value:Int, _E:Endianness)
+        => 0 ==Int Len
+        [simplification]
+    rule b"" ==K Int2Bytes(Value:Int, _E:Endianness, _S:Signedness)
+        => 0 ==Int Value
+        [simplification]
+    rule b"" ==K substrBytesTotal(B:Bytes, Start:Int, End:Int)
+        => 0 ==Int End -Int Start
+        requires definedSubstrBytes(B, Start, End)
+        [simplification]
+    rule b"" ==K A => false
+        requires lengthBytes(A) >Int 0
+        [simplification(100)]
 
 endmodule
 ```
