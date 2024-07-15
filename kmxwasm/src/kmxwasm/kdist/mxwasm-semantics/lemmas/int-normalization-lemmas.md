@@ -431,31 +431,35 @@ module INT-ARITHMETIC-NORMALIZATION-LEMMAS
       [simplification]
 
 
-  rule {0 #Equals A ^IntTotal _B} => #Bottom
+  rule {0 #Equals A ^IntTotal B} => #Bottom
       requires A =/=Int 0
+       andBool B >=Int 0
       [simplification(40)]
-  rule {A ^IntTotal _B #Equals 0} => #Bottom
+  rule {A ^IntTotal B #Equals 0} => #Bottom
       requires A =/=Int 0
+       andBool B >=Int 0
       [simplification(40)]
   rule {0 #Equals A ^IntTotal B} => {0 #Equals A}
-      requires B =/=Int 0
+      requires B >Int 0
       [simplification(50)]
 
   // ==Int versions of the above rules
-  rule 0 ==Int A ^IntTotal _B => false
+  rule 0 ==Int A ^IntTotal B => false
       requires A =/=Int 0
+       andBool B >=Int 0
       [simplification(40)]
-  rule A ^IntTotal _B ==Int 0 => false
+  rule A ^IntTotal B ==Int 0 => false
       requires A =/=Int 0
+       andBool B >=Int 0
       [simplification(40)]
   rule 0 ==Int A ^IntTotal B => 0 ==Int A
-      requires B =/=Int 0
+      requires B >Int 0
       [simplification(50)]
 
   // complementing the above, ^IntTotal is positive if its 1st argument is
-  rule 0 <Int A ^IntTotal _B => 0 <Int A
+  rule 0 <Int A ^IntTotal B => 0 <Int A
+       requires B >Int 0
       [simplification]
-
 
   rule {0 #Equals A divIntTotal B} => {true #Equals A <Int B}
       requires 0 <=Int A andBool 0 <Int B
