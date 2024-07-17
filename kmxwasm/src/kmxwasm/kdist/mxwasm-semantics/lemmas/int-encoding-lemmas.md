@@ -74,6 +74,9 @@ of the bytes corresponding to `B<N>` values that are `>= 0`, placed on the
       requires 0 <=Int B1 andBool B1 <=Int 7
       [simplification, concrete, preserves-definedness]  // All <<Int and >>Int arguments are >= 0
 
+  rule int64encoding(boolToInt(_), -1, -1, -1, -1, -1, -1, -1, 0) ==Int A => false
+      requires 1 <Int A
+      [simplification] // boolToInt is 0,1-valued
 ```
 int64BytesAre0
 --------------
