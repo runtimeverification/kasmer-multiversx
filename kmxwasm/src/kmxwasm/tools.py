@@ -110,10 +110,9 @@ class Tools:
                     # port=39425,
                 )
         if not self.__kore_client:
-            self.__kore_client = KoreClient('localhost',
-                                            self.__kore_server.port,
-                                            bug_report=self.__bug_report,
-                                            bug_report_id='kasmer')
+            self.__kore_client = KoreClient(
+                'localhost', self.__kore_server.port, bug_report=self.__bug_report, bug_report_id='kasmer'
+            )
 
         if not self.__explorer:
             cterm_symbolic = CTermSymbolic(self.__kore_client, self.printer.definition)
