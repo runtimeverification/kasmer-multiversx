@@ -69,6 +69,7 @@ __TARGETS__: Final = {
             'main_file': src_dir / 'mxwasm-semantics/mx-wasm.md',
             'backend': PykBackend.LLVM,
             'llvm_kompile_type': LLVMKompileType.C,
+            'opt_level': 1,
             **_default_args(src_dir),
         },
     ),
