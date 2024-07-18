@@ -114,7 +114,7 @@ class Tools:
                 'localhost',
                 self.__kore_server.port,
                 bug_report=self.__bug_report,
-                bug_report_id='kasmer' if self.bug_report is not None else None,
+                bug_report_id='kasmer' if self.__bug_report is not None else None,
             )
 
         if not self.__explorer:
