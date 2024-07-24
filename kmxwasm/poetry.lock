@@ -501,13 +501,13 @@ zoneinfo = ["backports.zoneinfo (>=0.2.1)", "tzdata (>=2024.1)"]
 
 [[package]]
 name = "importlib-metadata"
-version = "8.0.0"
+version = "8.1.0"
 description = "Read metadata from Python packages"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "importlib_metadata-8.0.0-py3-none-any.whl", hash = "sha256:15584cf2b1bf449d98ff8a6ff1abef57bf20f3ac6454f431736cd3e660921b2f"},
-    {file = "importlib_metadata-8.0.0.tar.gz", hash = "sha256:188bd24e4c346d3f0a933f275c2fec67050326a856b9a359881d7c2a697e8812"},
+    {file = "importlib_metadata-8.1.0-py3-none-any.whl", hash = "sha256:3cd29f739ed65973840b068e3132135ce954c254d48b5b640484467ef7ab3c8c"},
+    {file = "importlib_metadata-8.1.0.tar.gz", hash = "sha256:fcdcb1d5ead7bdf3dd32657bb94ebe9d2aabfe89a19782ddc32da5041d6ebfb4"},
 ]
 
 [package.dependencies]
@@ -569,7 +569,7 @@ xdg-base-dirs = ">=6.0.1,<7.0.0"
 
 [[package]]
 name = "kmultiversx"
-version = "0.1.100"
+version = "0.1.101"
 description = "Python tools for Elrond semantics"
 optional = false
 python-versions = "^3.10"
@@ -585,8 +585,8 @@ pykwasm = {git = "https://github.com/runtimeverification/wasm-semantics.git", ta
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/mx-semantics.git"
-reference = "v0.1.100"
-resolved_reference = "be78362547dbfdd7573a55bc3204cd011ae9f155"
+reference = "v0.1.101"
+resolved_reference = "bf86434b3957f80fa309bc18fdc1068a547b2532"
 subdirectory = "kmultiversx"
 
 [[package]]
@@ -1262,4 +1262,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "9d30c0807d362f9de084769f765518e0960e4cb34abaff1bde67c7059562e243"
+content-hash = "fba011159a31760242dddaacb95a1c2b9383f5252a6e1b85683afcc1da1f1754"
