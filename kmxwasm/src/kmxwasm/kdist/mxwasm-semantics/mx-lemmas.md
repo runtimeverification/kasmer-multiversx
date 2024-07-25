@@ -127,6 +127,14 @@ module MX-LEMMAS  [symbolic]
           andBool A <Int #pow1(IType)
       [simplification]
 
+  // equivalent rule for #signed
+  rule #signed(IType:IValType, A modIntTotal M) => A
+    requires M ==Int #pow(IType)
+     andBool A <Int #pow1(IType)
+     andBool 0 -Int #pow1(IType) <=Int A
+     [simplification, preserves-definedness]
+     // LHS always defined because 0 <= modIntTotal(_, _)
+
   rule -1 <=Int #cmpInt(_:Int, _:Int) => true
       [simplification, smt-lemma]
   rule #cmpInt(_:Int, _:Int) <=Int 1 => true
