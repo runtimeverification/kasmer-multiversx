@@ -1,3 +1,5 @@
+# DO NOT MERGEm TEST ONLY!
+
 # mx-wasm
 Symbolic execution backend for the MultiversX blockchain network
 
