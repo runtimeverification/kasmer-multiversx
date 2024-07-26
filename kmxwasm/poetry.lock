@@ -545,13 +545,13 @@ colors = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "kframework"
-version = "7.1.83"
+version = "7.1.85"
 description = ""
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "kframework-7.1.83-py3-none-any.whl", hash = "sha256:58e399b3f86512d9727f5933841d37073dae9d795132e2360989116e62b3ce4b"},
-    {file = "kframework-7.1.83.tar.gz", hash = "sha256:331a9c95d13f9e24bd9a8450e5e322f48b115ed2eecf4a25b58469dd68a726cb"},
+    {file = "kframework-7.1.85-py3-none-any.whl", hash = "sha256:4c4d7483cc6874337369ffca071df6ed3b46ee05e550ea057f0be8153e7fb76c"},
+    {file = "kframework-7.1.85.tar.gz", hash = "sha256:2d7c2e14a7bd561091326e41605f6056eb4da5da00f7b1348272890864971904"},
 ]
 
 [package.dependencies]
@@ -569,7 +569,7 @@ xdg-base-dirs = ">=6.0.1,<7.0.0"
 
 [[package]]
 name = "kmultiversx"
-version = "0.1.104"
+version = "0.1.105"
 description = "Python tools for Elrond semantics"
 optional = false
 python-versions = "^3.10"
@@ -580,13 +580,13 @@ develop = false
 exceptiongroup = "==1.2.1"
 hypothesis = "^6.82.6"
 pycryptodomex = "^3.18.0"
-pykwasm = {git = "https://github.com/runtimeverification/wasm-semantics.git", tag = "v0.1.94", subdirectory = "pykwasm"}
+pykwasm = {git = "https://github.com/runtimeverification/wasm-semantics.git", tag = "v0.1.95", subdirectory = "pykwasm"}
 
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/mx-semantics.git"
-reference = "v0.1.104"
-resolved_reference = "904b231ad1e33d5c832e98ff945e4026a1e67f68"
+reference = "v0.1.105"
+resolved_reference = "be77871e85535dd2fa2bc53b82b1ebf9f9412ef6"
 subdirectory = "kmultiversx"
 
 [[package]]
@@ -992,7 +992,7 @@ windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "pykwasm"
-version = "0.1.94"
+version = "0.1.95"
 description = ""
 optional = false
 python-versions = "^3.10"
@@ -1001,15 +1001,15 @@ develop = false
 
 [package.dependencies]
 cytoolz = "^0.12.1"
-kframework = "7.1.83"
+kframework = "7.1.85"
 numpy = "^1.24.2"
 py-wasm = {git = "https://github.com/runtimeverification/py-wasm.git", tag = "0.2.1"}
 
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/wasm-semantics.git"
-reference = "v0.1.94"
-resolved_reference = "2344e9c97d259acf810c64497c0e7367bcc058b4"
+reference = "v0.1.95"
+resolved_reference = "c8e8bc61eabc3707857af1e022bae21a8f6195ca"
 subdirectory = "pykwasm"
 
 [[package]]
@@ -1262,4 +1262,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "fffe08402ecadbcccc69e3317782e6ba673287d7a2f057aa2b4267464331fac2"
+content-hash = "6605c3adad9c958b32312cd57f379ad9c6bca58bfadbf64e72224715e5c44d0c"
