@@ -78,4 +78,25 @@ module SUBSTR-BYTES
       </k>
       <commands> .K </commands>
       <instrs> .K </instrs>
+
+    claim
+      <k>
+        runSimplification(
+            substrBytesTotal
+              ( b"\x00\x00\x00\x07\x00\x00\x00\x00\x00\x00\x00\x00recipient address not setargument decode error (): wrong number of argumentssync resultinput too long\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00storage decode error: bad array lengthtoo few argumentsaddowner___________________________adder___________________________adderAddressownerAddress"
+              , 4
+              , ((-1) *Int (((log2IntTotal ( (ARG_0:Int) +Int (5) )) +Int (8)) divIntTotal (8))) +Int (12)
+              )
+        ) => doneSimplification(
+            substrBytesTotal
+                ( b"\x00\x00\x00\x00\x00\x00\x00\x00"
+                , 0
+                , ((-1) *Int (((log2IntTotal ( (ARG_0:Int) +Int (5) )) +Int (8)) divIntTotal (8))) +Int (8)
+                )
+        )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+      requires 0 <=Int ARG_0 andBool ARG_0:Int <Int 100
+
 endmodule

@@ -36,8 +36,18 @@ of the bytes corresponding to `B<N>` values that are `>= 0`, placed on the
   rule int64encoding(_, -1, -1, -1, -1, -1, -1, -1, -1) => 0
   rule int64encoding(A, 7, 6, 5, 4, 3, 2, 1, 0) => A
       requires 0 <=Int A andBool A <Int (1 <<Int 64)
+  rule int64encoding(A, -1, 6, 5, 4, 3, 2, 1, 0) => A
+      requires 0 <=Int A andBool A <Int (1 <<Int 56)
+  rule int64encoding(A, -1, -1, 5, 4, 3, 2, 1, 0) => A
+      requires 0 <=Int A andBool A <Int (1 <<Int 48)
+  rule int64encoding(A, -1, -1, -1, 4, 3, 2, 1, 0) => A
+      requires 0 <=Int A andBool A <Int (1 <<Int 40)
   rule int64encoding(A, -1, -1, -1, -1, 3, 2, 1, 0) => A
       requires 0 <=Int A andBool A <Int (1 <<Int 32)
+  rule int64encoding(A, -1, -1, -1, -1, -1, 2, 1, 0) => A
+      requires 0 <=Int A andBool A <Int (1 <<Int 24)
+  rule int64encoding(A, -1, -1, -1, -1, -1, -1, 1, 0) => A
+      requires 0 <=Int A andBool A <Int (1 <<Int 16)
   rule int64encoding(A, -1, -1, -1, -1, -1, -1, -1, 0) => A
       requires 0 <=Int A andBool A <Int (1 <<Int 8)
 
@@ -861,6 +871,31 @@ module INT-ENCODING-LEMMAS  [symbolic]
         ( 1, int64encoding( A, -1, -1, -1, -1, -1, -1, -1, 0 ), LE )
       ))))))))
       => Int2Bytes( 8, int64encoding( A, 0, 1, 2, 3, 4, 5, 6, 7 ), LE )
+      [simplification]
+
+
+  rule
+      Bytes2Int
+      ( substrBytesTotal
+          ( b"\x00\x00\x00\x00\x00\x00\x00\x00"
+          , 0
+          , (-1) *Int ((log2IntTotal(A) +Int 8) divIntTotal 8) +Int 8
+          )
+        +Bytes Int2Bytes(
+          (log2IntTotal(A) +Int 8) divIntTotal 8,
+          A,
+          BE
+        )
+        , LE
+        , Unsigned
+      )
+      =>
+      int64encoding
+        ( ... value: A
+        , b8pos: 0 , b7pos: 1 , b6pos: 2 , b5pos: 3
+        , b4pos: 4 , b3pos: 5 , b2pos: 6 , b1pos: 7
+        )
+      requires 0 <=Int A andBool A <Int (2 ^Int 64)
       [simplification]
 
 endmodule

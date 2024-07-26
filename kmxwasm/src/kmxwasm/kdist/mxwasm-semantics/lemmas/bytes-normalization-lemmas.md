@@ -120,6 +120,19 @@ module BYTES-NORMALIZATION-LEMMAS  [symbolic]
         requires 0 <=Int Index andBool Index +Int lengthBytes(Src) <=Int lengthBytes(Dest)
         [simplification]
 
+    rule substrBytesTotal(B:Bytes, Start:Int, End:Int)
+        => substrBytes(substrBytes(B, Start, lengthBytes(B) -Int Start), 0, End -Int Start)
+        requires 0 <Int Start andBool Start <=Int lengthBytes(B)
+        [simplification, concrete(B, Start)]
+    rule substrBytesTotal(B:Bytes, 0:Int, End:Int)
+        => substrBytes(substrBytes(B, 0, 8), 0, End)
+        requires 0 <=Int End andBool End <=Int 8 andBool 8 <Int lengthBytes(B)
+        [simplification, concrete(B), symbolic(End)]
+    rule substrBytesTotal(B:Bytes, 0:Int, End:Int)
+        => substrBytes(substrBytes(B, 0, 4), 0, End)
+        requires 0 <=Int End andBool End <=Int 4 andBool 4 <Int lengthBytes(B)
+        [simplification, concrete(B), symbolic(End)]
+
     rule { b"" #Equals Int2Bytes(Len:Int, _Value:Int, _E:Endianness) }:Bool
         => {0 #Equals Len}
         [simplification]

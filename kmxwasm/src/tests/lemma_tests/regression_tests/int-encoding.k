@@ -1,6 +1,41 @@
 module INT-ENCODING
     imports MX-WASM-LEMMA-TESTS
 
+
+    claim
+      <k>
+        runSimplification(
+            int64encoding
+                ( ... value: Bytes2Int
+                  ( substrBytesTotal
+                    ( b"\x00\x00\x00\x07\x00\x00\x00\x00\x00\x00\x00\x00recipient address not setargument decode error (): wrong number of argumentssync resultinput too long\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00storage decode error: bad array lengthtoo few argumentsaddowner___________________________adder___________________________adderAddressownerAddress"
+                    , 4
+                    , ( (-1)
+                      *Int
+                        ( ( ( log2IntTotal ( (ARG_0:Int) +Int (5) ) ) +Int (8) ) divIntTotal (8) )
+                      )
+                      +Int (12)
+                    )
+                  +Bytes Int2Bytes
+                    ( ( ( log2IntTotal ( (ARG_0:Int) +Int (5) ) ) +Int (8) ) divIntTotal (8)
+                    , (ARG_0:Int) +Int (5)
+                    , BE
+                    )
+                  , LE
+                  , Unsigned
+                  )
+                , b8pos: 0 , b7pos: 1 , b6pos: 2 , b5pos: 3 , b4pos: 4
+                , b3pos: 5 , b2pos: 6 , b1pos: 7
+                )
+        ) => doneSimplification(
+            ARG_0 +Int 5
+        )
+      </k>
+      <commands> .K </commands>
+      <instrs> .K </instrs>
+      requires 0 <Int ARG_0 andBool ARG_0 <=Int 100
+
+
     claim
       <k>
         runSimplification(
