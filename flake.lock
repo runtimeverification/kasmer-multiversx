@@ -1043,16 +1043,16 @@
         "wasm-semantics": "wasm-semantics"
       },
       "locked": {
-        "lastModified": 1722027728,
-        "narHash": "sha256-hhjsiCFEIgti0R0dSwhThr9XMT14sk8Jwuda4QUlKNw=",
+        "lastModified": 1722217246,
+        "narHash": "sha256-XZBDFZguHEAmI0PhBzcj7052q6Obfau2CJ49v1qxA5c=",
         "owner": "runtimeverification",
         "repo": "mx-semantics",
-        "rev": "be77871e85535dd2fa2bc53b82b1ebf9f9412ef6",
+        "rev": "a973a08e5ff85c5bfc5c8343212f3b438e41490b",
         "type": "github"
       },
       "original": {
         "owner": "runtimeverification",
-        "ref": "v0.1.105",
+        "ref": "v0.1.106",
         "repo": "mx-semantics",
         "type": "github"
       }
@@ -1812,11 +1812,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1721960387,
-        "narHash": "sha256-o21ax+745ETGXrcgc/yUuLw1SI77ymp3xEpJt+w/kks=",
+        "lastModified": 1722133294,
+        "narHash": "sha256-XKSVN+lmjVEFPjMa5Ui0VTay2Uvqa74h0MQT0HU1pqw=",
         "owner": "oxalica",
         "repo": "rust-overlay",
-        "rev": "9cbf831c5b20a53354fc12758abd05966f9f1699",
+        "rev": "9803f6e04ca37a2c072783e8297d2080f8d0e739",
         "type": "github"
       },
       "original": {
