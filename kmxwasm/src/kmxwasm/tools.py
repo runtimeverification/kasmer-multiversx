@@ -89,6 +89,8 @@ class Tools:
                         '100',
                         '--interim-simplification',
                         '2000',
+                        '--no-fallback-simplify',
+                        '--no-post-exec-simplify',
                         # Other options can be added by setting env.var KORE_RPC_OPTS
                     ),
                     bug_report=self.__bug_report,
