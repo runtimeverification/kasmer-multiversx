@@ -589,7 +589,7 @@ xdg-base-dirs = ">=6.0.1,<7.0.0"
 
 [[package]]
 name = "kmultiversx"
-version = "0.1.112"
+version = "0.1.113"
 description = "Python tools for Elrond semantics"
 optional = false
 python-versions = "^3.10"
@@ -605,8 +605,8 @@ pykwasm = {git = "https://github.com/runtimeverification/wasm-semantics.git", ta
 [package.source]
 type = "git"
 url = "https://github.com/runtimeverification/mx-semantics.git"
-reference = "v0.1.112"
-resolved_reference = "42f4c41c7e8ba4efc040cc519f88525398b1694b"
+reference = "v0.1.113"
+resolved_reference = "7e3275348667814fabc52d7e76d53ed66e8443fa"
 subdirectory = "kmultiversx"
 
 [[package]]
@@ -1150,13 +1150,13 @@ jupyter = ["ipywidgets (>=7.5.1,<9)"]
 
 [[package]]
 name = "setuptools"
-version = "74.0.0"
+version = "74.1.2"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "setuptools-74.0.0-py3-none-any.whl", hash = "sha256:0274581a0037b638b9fc1c6883cc71c0210865aaa76073f7882376b641b84e8f"},
-    {file = "setuptools-74.0.0.tar.gz", hash = "sha256:a85e96b8be2b906f3e3e789adec6a9323abf79758ecfa3065bd740d81158b11e"},
+    {file = "setuptools-74.1.2-py3-none-any.whl", hash = "sha256:5f4c08aa4d3ebcb57a50c33b1b07e94315d7fc7230f7115e47fc99776c8ce308"},
+    {file = "setuptools-74.1.2.tar.gz", hash = "sha256:95b40ed940a1c67eb70fc099094bd6e99c6ee7c23aa2306f4d2697ba7916f9c6"},
 ]
 
 [package.extras]
@@ -1290,4 +1290,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "52682ba57329a568bf2e9fcbb63dcefaf6bfcecfbc7e49e399d955fa3aa0f140"
+content-hash = "bd0c49c3bf7d929a41a0ab053d68d12c73b5878f514041c87df680a49b980366"
