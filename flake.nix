@@ -2,34 +2,20 @@
   description = "kmxwasm - Symbolic execution for the MulitversX blockchain with the Wasm semantics, using pyk.";
 
   inputs = {
-    k-framework.url = "github:runtimeverification/k/v7.1.85";
-    pyk.url = "github:runtimeverification/k/v7.1.85?dir=pyk";
-    nixpkgs-pyk.follows = "pyk/nixpkgs";
-    poetry2nix.follows = "pyk/poetry2nix";
-    mx-semantics.url = "github:runtimeverification/mx-semantics/v0.1.113";
+    mx-semantics.url = "github:runtimeverification/mx-semantics/v0.1.114";
+    k-framework.follows = "mx-semantics/k-framework";
+    poetry2nix.follows = "k-framework/poetry2nix";
     nixpkgs.follows = "k-framework/nixpkgs";
     flake-utils.follows = "k-framework/flake-utils";
-    rv-utils.url = "github:runtimeverification/rv-nix-tools";
+    rv-utils.follows = "k-framework/rv-utils";
     blockchain-k-plugin.follows = "mx-semantics/blockchain-k-plugin";
     mx-sdk-rs.url = "github:runtimeverification/mx-sdk-rs-flake/v0.50.3";
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    mx-sdk-rs-src = {
-      url = "github:multiversx/mx-sdk-rs/v0.50.3";
-      flake = false;
-    };
-    coindrip-protocol-sc-src = {
-      url = "github:CoinDrip-finance/coindrip-protocol-sc/v1.0.1";
-      flake = false;
-    };
-    mx-exchange-sc-src = {
-      url = "github:multiversx/mx-exchange-sc/ee2d4645bd13c0f22f668a72bbc1b883753b6aee";
-      flake = false;
-    };
   };
-  outputs = { self, nixpkgs, flake-utils, rv-utils, k-framework, pyk, nixpkgs-pyk, mx-semantics, blockchain-k-plugin, mx-sdk-rs, rust-overlay, ... }@inputs:
+  outputs = { self, nixpkgs, flake-utils, rv-utils, k-framework, mx-semantics, blockchain-k-plugin, mx-sdk-rs, rust-overlay, ... }@inputs:
     let overlay = (final: prev:
       let
         src = prev.lib.cleanSource (prev.nix-gitignore.gitignoreSourcePure [
@@ -40,17 +26,10 @@
 
         version = self.rev or "dirty";
 
-        nixpkgs-pyk = import inputs.nixpkgs-pyk {
-          system = prev.system;
-          overlays = [ pyk.overlay ];
-        };
-
-        python310-pyk = nixpkgs-pyk.python310;
-
-        poetry2nix = inputs.poetry2nix.lib.mkPoetry2Nix { pkgs = nixpkgs-pyk; };
+        poetry2nix = inputs.poetry2nix.lib.mkPoetry2Nix { pkgs = prev; };
       in {
         kmxwasm-pyk = poetry2nix.mkPoetryApplication {
-          python = nixpkgs-pyk.python310;
+          python = prev.python310;
           projectDir = ./kmxwasm;
           src = rv-utils.lib.mkSubdirectoryAppSrc {
             pkgs = import nixpkgs { system = prev.system; };
@@ -65,14 +44,14 @@
 
           overrides = poetry2nix.overrides.withDefaults
           (finalPython: prevPython: {
-            pyk = nixpkgs-pyk.pyk-python310;
+            k-framework = prev.pyk-python310;
             kmultiversx = final.kmultiversx-pyk;
           });
           groups = [ ];
           checkGroups = [ ];
           postInstall = ''
-            mkdir -p $out/${nixpkgs-pyk.python310.sitePackages}/kmxwasm/kdist/plugin
-            cp -r ${prev.blockchain-k-plugin-src}/* $out/${nixpkgs-pyk.python310.sitePackages}/kmxwasm/kdist/plugin/
+            mkdir -p $out/${prev.python310.sitePackages}/kmxwasm/kdist/plugin
+            cp -r ${prev.blockchain-k-plugin-src}/* $out/${prev.python310.sitePackages}/kmxwasm/kdist/plugin/
           '';
         };
 
@@ -82,7 +61,7 @@
 
           buildInputs = with final; [
             secp256k1
-            nixpkgs-pyk.pyk-python310
+            prev.pyk-python310
             k-framework.packages.${system}.k
             kmultiversx-pyk
             kmxwasm-pyk
@@ -93,6 +72,7 @@
             pkg-config
             procps
             llvmPackages.llvm
+            boost
           ];
 
           dontUseCmakeConfigure = true;
@@ -167,6 +147,7 @@
           overlays = [
             rust-overlay.overlays.default
             k-framework.overlay
+            k-framework.overlays.pyk
             blockchain-k-plugin.overlay
             mx-semantics.overlays.default
             overlay
