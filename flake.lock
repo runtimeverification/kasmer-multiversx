@@ -445,16 +445,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1725377777,
-        "narHash": "sha256-yP+1b+iw82AEaCBDDQHmqp6QM5v+aZGEAEFyZbAOh9I=",
+        "lastModified": 1726050015,
+        "narHash": "sha256-0vP3wxiB89QRtKLxuIcftcFO0qoknKzq1zBDZlC43lA=",
         "owner": "runtimeverification",
         "repo": "k",
-        "rev": "240d9ff350772995c9922e035076f6cc9a2a2a9e",
+        "rev": "8914fd6f709de5b2113f75b3805cebdd5335f7c7",
         "type": "github"
       },
       "original": {
         "owner": "runtimeverification",
-        "ref": "v7.1.129",
+        "ref": "v7.1.140",
         "repo": "k",
         "type": "github"
       }
@@ -622,16 +622,16 @@
         "wasm-semantics": "wasm-semantics"
       },
       "locked": {
-        "lastModified": 1725896294,
-        "narHash": "sha256-pKS4FmmoLWP+b2PpV6djUnHUGD55Qp5vQPxkauDDP6g=",
+        "lastModified": 1726133159,
+        "narHash": "sha256-XLhr6Tt6YM8egMgLjJmmEBn9v/0bErecSzsENmrH5nw=",
         "owner": "runtimeverification",
         "repo": "mx-semantics",
-        "rev": "16854c98ce7d20398f6444497aa67bce5b4aec89",
+        "rev": "8944a546a566a0215d92220cf5db8f0dd7ce36f8",
         "type": "github"
       },
       "original": {
         "owner": "runtimeverification",
-        "ref": "v0.1.114",
+        "ref": "v0.1.115",
         "repo": "mx-semantics",
         "type": "github"
       }
@@ -961,11 +961,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1725935143,
-        "narHash": "sha256-mVtTVQMlXkydSXVwFClE0ckxHrOQ9nb2DrCjNwW5pUE=",
+        "lastModified": 1726107922,
+        "narHash": "sha256-G8P6YT/U55G4YILkL/I0NaEqYYoL05Rfs7y/tI4mqqI=",
         "owner": "oxalica",
         "repo": "rust-overlay",
-        "rev": "c3c175c74cd0e8c2c40a0e22bc6e3005c4d28d64",
+        "rev": "fb1cf4398436a12f1f8b07da08d94fc72fcb1a69",
         "type": "github"
       },
       "original": {
@@ -1289,16 +1289,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1725399750,
-        "narHash": "sha256-kuMbgTtTWd8CLhvFyWxJCmETo9CDwt7BYXX2QkI6eU4=",
+        "lastModified": 1726054942,
+        "narHash": "sha256-yju+6FWKtPgaepie+MX0JB9ev+JjkfdhF4pCDprL6Ac=",
         "owner": "runtimeverification",
         "repo": "wasm-semantics",
-        "rev": "af8f0e84ff1ef344dadfb040128a8fdc8825d8ac",
+        "rev": "bf1af3f2a32fda39238047b7e0f34bec7ef26c0a",
         "type": "github"
       },
       "original": {
         "owner": "runtimeverification",
-        "ref": "v0.1.103",
+        "ref": "v0.1.106",
         "repo": "wasm-semantics",
         "type": "github"
       }
