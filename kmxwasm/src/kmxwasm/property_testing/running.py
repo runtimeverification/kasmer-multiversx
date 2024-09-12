@@ -245,7 +245,8 @@ def run_claim(
                         print('changes abstracted cell')
                         t = Timer('  Run call stack change')
                         extend_result = tools.explorer.extend_cterm(node.cterm, node_id=node.id, execute_depth=1)
-                        kcfg.extend(extend_result, node, {})
+                        for er in extend_result:
+                            kcfg.extend(er, node, {})
                         t.measure()
                     else:
                         t = Timer('  Abstract')
@@ -266,7 +267,8 @@ def run_claim(
                             extend_result = tools.explorer.extend_cterm(
                                 node.cterm, node_id=node.id, cut_point_rules=all_cut_points, execute_depth=depth
                             )
-                            kcfg.extend(extend_result, node, {})
+                            for er in extend_result:
+                                kcfg.extend(er, node, {})
                             t.measure()
                         finally:
                             t = Timer('  Concretize')
@@ -347,7 +349,8 @@ def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int) -> RunClaim
         start_time = time.time()
 
         extend_result = tools.explorer.extend_cterm(start.cterm, node_id=start.id, execute_depth=half_depth)
-        kcfg.extend(extend_result, start, {})
+        for er in extend_result:
+            kcfg.extend(er, start, {})
         middle_node: KCFG.Node | None = None
         for node in kcfg.leaves:
             if node.id in to_ignore:
@@ -365,7 +368,8 @@ def split_edge(tools: Tools, restart_kcfg: KCFG, start_node_id: int) -> RunClaim
         extend_result = tools.explorer.extend_cterm(
             middle_node.cterm, node_id=middle_node.id, execute_depth=total_depth - half_depth
         )
-        kcfg.extend(extend_result, middle_node, {})
+        for er in extend_result:
+            kcfg.extend(er, middle_node, {})
         result_node: KCFG.Node | None = None
         for node in kcfg.leaves:
             if node.id in to_ignore:
@@ -417,7 +421,8 @@ def profile_step(tools: Tools, restart_kcfg: KCFG, node_id: int, depth: int, gro
 
         timer = Timer('Warming up the explorer')
         extend_result = tools.explorer.extend_cterm(start.cterm, node_id=start.id, execute_depth=1)
-        kcfg.extend(extend_result, start, logs)
+        for er in extend_result:
+            kcfg.extend(er, start, logs)
         edges = kcfg.edges(source_id=node_id)
         assert len(edges) == 1
         kcfg.remove_node(edges[0].target.id)
@@ -427,7 +432,8 @@ def profile_step(tools: Tools, restart_kcfg: KCFG, node_id: int, depth: int, gro
 
         timer = Timer(f'Running {depth} steps.')
         extend_result = tools.explorer.extend_cterm(start.cterm, node_id=start.id, execute_depth=depth)
-        kcfg.extend(extend_result, start, {})
+        for er in extend_result:
+            kcfg.extend(er, start, {})
         time = timer.measure()
 
         print(f'Average time per group: {time / groups}')
